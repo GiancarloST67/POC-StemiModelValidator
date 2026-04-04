@@ -1,0 +1,567 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-010",
+  "rule_type": "do",
+  "title": "Ecocardiografia transtoracica (TTE) d'emergenza raccomandata nei pazienti con sospetta SCA che presentano shock cardiogeno o sospette complicanze meccaniche",
+  "short_label": "TTE emergenza in shock cardiogeno / complicanze meccaniche",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico-Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "diagnosi",
+  "care_settings": [
+    "pronto soccorso",
+    "unità di terapia intensiva cardiologica",
+    "sala di emodinamica",
+    "unità coronarica"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "cardiologo ecocardiografista",
+      "responsibility_type": "primary",
+      "organization_unit": "servizio di cardiologia / laboratorio di ecocardiografia",
+      "notes": "Responsabile dell'esecuzione e dell'interpretazione dell'ecocardiogramma transtoracico d'emergenza."
+    },
+    {
+      "role_name": "medico d'emergenza",
+      "responsibility_type": "supporting",
+      "organization_unit": "pronto soccorso",
+      "notes": "Responsabile dell'identificazione iniziale dello shock cardiogeno o delle sospette complicanze meccaniche e dell'attivazione della richiesta di TTE d'emergenza."
+    },
+    {
+      "role_name": "cardiologo di guardia",
+      "responsibility_type": "consulted",
+      "organization_unit": "unità di terapia intensiva cardiologica",
+      "notes": "Consulente per la valutazione clinica complessiva e l'interpretazione dei risultati ecocardiografici in contesto di emergenza."
+    },
+    {
+      "role_name": "infermiere di area critica",
+      "responsibility_type": "supporting",
+      "organization_unit": "pronto soccorso / UTIC",
+      "notes": "Supporto logistico e monitoraggio del paziente durante l'esecuzione dell'esame ecocardiografico."
+    }
+  ],
+  "deontic_strength": "recommended",
+  "recommendation_strength": "Classe I (Raccomandato)",
+  "evidence_level": "Livello di evidenza C",
+  "original_statement": "Emergency TTE is recommended in patients with suspected ACS presenting with cardiogenic shock or suspected mechanical complications.",
+  "normalized_statement": "È raccomandata l'esecuzione di un ecocardiogramma transtoracico (TTE) d'emergenza nei pazienti con sospetta sindrome coronarica acuta (SCA) che presentano shock cardiogeno o sospette complicanze meccaniche.",
+  "intent": "Garantire una rapida valutazione ecocardiografica per identificare cause trattabili di instabilità emodinamica e complicanze meccaniche potenzialmente letali nei pazienti con sospetta SCA.",
+  "rationale": "Lo shock cardiogeno e le complicanze meccaniche (rottura del setto interventricolare, rottura della parete libera, insufficienza mitralica acuta) sono condizioni ad alto rischio di mortalità che richiedono una diagnosi immediata per guidare la strategia terapeutica, chirurgica o interventistica. La TTE d'emergenza consente una valutazione rapida e non invasiva della funzione ventricolare, dell'integrità strutturale cardiaca e della presenza di versamento pericardico o tamponamento.",
+  "source_references": [
+    {
+      "source_id": "ESC-STEMI-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione Imaging – Raccomandazioni per ecocardiografia in SCA",
+      "page_reference": null,
+      "statement_quote": "Emergency TTE is recommended in patients with suspected ACS presenting with cardiogenic shock or suspected mechanical complications.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto utilizzato a fini clinici e di implementazione PDTA. Riferimento alle linee guida ESC 2023 per SCA."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti con sospetta sindrome coronarica acuta (SCA), incluso STEMI, che presentano segni di shock cardiogeno o sospette complicanze meccaniche.",
+    "clinical_context": "Sindrome coronarica acuta (SCA / STEMI) complicata da instabilità emodinamica (shock cardiogeno) o sospette complicanze meccaniche post-infarto.",
+    "care_context": "Fase acuta dell'emergenza: pronto soccorso, UTIC o qualsiasi setting di prima valutazione del paziente critico con sospetta SCA.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-010-INC-01",
+        "label": "Sospetta sindrome coronarica acuta",
+        "description": "Il paziente presenta segni e/o sintomi clinici compatibili con una sindrome coronarica acuta (dolore toracico, alterazioni ECG, elevazione dei marcatori di necrosi miocardica).",
+        "logic_expression": "diagnosis.suspected == 'SCA' OR ecg.ste_elevation == true OR troponin.elevated == true",
+        "data_elements": [
+          "DE-STEMI-010-01",
+          "DE-STEMI-010-02",
+          "DE-STEMI-010-03"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-010-INC-02",
+        "label": "Shock cardiogeno",
+        "description": "Il paziente presenta segni clinici di shock cardiogeno: ipotensione persistente (PAS < 90 mmHg), segni di ipoperfusione periferica, necessità di supporto con vasopressori/inotropi, o evidenza di congestione polmonare.",
+        "logic_expression": "systolic_bp < 90 OR vasopressor_use == true OR signs_of_hypoperfusion == true",
+        "data_elements": [
+          "DE-STEMI-010-04",
+          "DE-STEMI-010-05",
+          "DE-STEMI-010-06"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-010-INC-03",
+        "label": "Sospette complicanze meccaniche",
+        "description": "Il paziente presenta segni clinici sospetti di complicanze meccaniche post-infarto: soffio cardiaco di nuova insorgenza, deterioramento emodinamico improvviso, sospetto tamponamento cardiaco, sospetta rottura del setto interventricolare o della parete libera.",
+        "logic_expression": "new_murmur == true OR sudden_hemodynamic_deterioration == true OR suspected_tamponade == true OR suspected_vsd == true OR suspected_free_wall_rupture == true",
+        "data_elements": [
+          "DE-STEMI-010-07",
+          "DE-STEMI-010-08",
+          "DE-STEMI-010-09"
+        ],
+        "inference_allowed": true
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-010-EXC-01",
+        "label": "Paziente già sottoposto a TTE d'emergenza recente",
+        "description": "Il paziente è già stato sottoposto a TTE d'emergenza durante lo stesso episodio clinico con risultati completi e conclusivi che hanno già guidato la decisione terapeutica.",
+        "logic_expression": "tte_emergency.completed_in_current_episode == true AND tte_results.conclusive == true",
+        "data_elements": [
+          "DE-STEMI-010-10"
+        ],
+        "inference_allowed": false
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "diagnostic_finding",
+    "trigger_description": "Identificazione di un paziente con sospetta SCA che presenta segni clinici di shock cardiogeno (ipotensione, ipoperfusione, necessità di supporto emodinamico) oppure segni sospetti di complicanze meccaniche post-infarto (soffio di nuova insorgenza, deterioramento emodinamico improvviso, sospetto tamponamento).",
+    "anchor_event": "riconoscimento_shock_cardiogeno_o_complicanza_meccanica",
+    "start_of_applicability": "Dal momento in cui viene identificato lo shock cardiogeno o la sospetta complicanza meccanica nel paziente con sospetta SCA.",
+    "end_of_applicability": "Fino al completamento della TTE d'emergenza con referto conclusivo o fino alla risoluzione dello stato clinico che ha generato il trigger.",
+    "trigger_data_elements": [
+      "DE-STEMI-010-04",
+      "DE-STEMI-010-05",
+      "DE-STEMI-010-06",
+      "DE-STEMI-010-07",
+      "DE-STEMI-010-08",
+      "DE-STEMI-010-09"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "STEMI-DO-010-EXP-01",
+      "label": "Indisponibilità apparecchiatura ecocardiografica",
+      "description": "L'apparecchiatura ecocardiografica non è disponibile o non funzionante nella sede in cui si trova il paziente, e il trasferimento immediato verso una sede dotata di ecografo è già in corso.",
+      "condition_logic": "tte_equipment.available == false AND patient_transfer.in_progress == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dell'indisponibilità dell'apparecchiatura",
+        "Documentazione dell'attivazione del trasferimento verso centro con disponibilità ecocardiografica"
+      ]
+    },
+    {
+      "exception_id": "STEMI-DO-010-EXP-02",
+      "label": "Paziente in arresto cardiaco con RCP in corso",
+      "description": "Il paziente è in arresto cardiaco e le manovre di rianimazione cardiopolmonare (RCP) sono in corso; la TTE può essere posticipata o eseguita con modalità point-of-care focalizzata durante le pause della RCP.",
+      "condition_logic": "cardiac_arrest == true AND cpr_in_progress == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dello stato di arresto cardiaco",
+        "Registrazione temporale delle manovre di RCP"
+      ]
+    },
+    {
+      "exception_id": "STEMI-DO-010-EXP-03",
+      "label": "Trasferimento immediato in sala di emodinamica",
+      "description": "Il paziente viene trasferito immediatamente in sala di emodinamica per coronarografia/PCI primaria e la TTE verrà eseguita contestualmente o immediatamente dopo la procedura.",
+      "condition_logic": "cath_lab_transfer.immediate == true AND tte_planned_periprocedural == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dell'attivazione della sala di emodinamica",
+        "Piano documentato per esecuzione TTE peri-procedurale"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "eseguire",
+    "action_description": "Eseguire un ecocardiogramma transtoracico (TTE) d'emergenza per valutare la funzione ventricolare sinistra e destra, identificare eventuali complicanze meccaniche (difetto del setto interventricolare, rottura della parete libera, insufficienza mitralica acuta, tamponamento cardiaco) e guidare la gestione emodinamica del paziente.",
+    "action_target": "ecocardiogramma transtoracico (TTE) d'emergenza",
+    "action_parameters": [
+      {
+        "parameter_name": "modalità",
+        "parameter_description": "Tipo di ecocardiografia da eseguire.",
+        "expected_value": "transtoracica (TTE)",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "urgenza",
+        "parameter_description": "Livello di urgenza dell'esecuzione dell'esame.",
+        "expected_value": "emergenza",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "valutazione_funzione_ventricolare",
+        "parameter_description": "L'esame deve includere la valutazione della funzione sistolica ventricolare sinistra e destra.",
+        "expected_value": "sì",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "ricerca_complicanze_meccaniche",
+        "parameter_description": "L'esame deve includere la ricerca attiva di complicanze meccaniche: rottura del setto interventricolare, rottura della parete libera, insufficienza mitralica acuta, versamento pericardico/tamponamento.",
+        "expected_value": "sì",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      }
+    ],
+    "alternative_compliant_actions": [
+      "Ecocardiografia point-of-care (POCUS) focalizzata se la TTE completa non è immediatamente eseguibile, seguita da TTE completa appena possibile",
+      "Ecocardiografia transesofagea (TEE) d'emergenza se la finestra acustica transtoracica è inadeguata"
+    ]
+  },
+  "completion_criteria": {
+    "description": "La regola è soddisfatta quando l'ecocardiogramma transtoracico d'emergenza è stato eseguito, con referto che documenti la funzione ventricolare e l'eventuale presenza o assenza di complicanze meccaniche.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "ordine_tte_emergenza",
+      "esecuzione_tte_emergenza",
+      "referto_tte_emergenza"
+    ],
+    "required_documentation_elements": [
+      "Referto ecocardiografico con valutazione della funzione ventricolare sinistra (FEVS)",
+      "Valutazione della funzione ventricolare destra",
+      "Valutazione della presenza/assenza di complicanze meccaniche",
+      "Valutazione del versamento pericardico",
+      "Firma e timestamp del cardiologo ecocardiografista"
+    ],
+    "success_condition": "TTE d'emergenza eseguita con referto completo che includa funzione biventricolare e screening delle complicanze meccaniche, documentato nel sistema informativo clinico."
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "STEMI-DO-010-TC-01",
+      "description": "La TTE d'emergenza deve essere eseguita il prima possibile e comunque entro un breve intervallo temporale dal riconoscimento dello shock cardiogeno o della sospetta complicanza meccanica.",
+      "relation_to_anchor": "immediate",
+      "anchor_event": "riconoscimento_shock_cardiogeno_o_complicanza_meccanica",
+      "duration_value": 30,
+      "duration_unit": "minuti",
+      "hard_deadline": false,
+      "alert_threshold_value": 15,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "STEMI-DO-010-SC-01",
+      "description": "L'identificazione dello shock cardiogeno o della sospetta complicanza meccanica deve precedere la richiesta e l'esecuzione della TTE d'emergenza.",
+      "predecessor_event": "riconoscimento_shock_cardiogeno_o_complicanza_meccanica",
+      "successor_event": "esecuzione_tte_emergenza",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "La TTE d'emergenza risulta eseguita senza una documentata valutazione clinica precedente che identifichi lo shock cardiogeno o la complicanza meccanica sospetta."
+    },
+    {
+      "constraint_id": "STEMI-DO-010-SC-02",
+      "description": "Il referto della TTE d'emergenza deve essere disponibile prima o contestualmente alla decisione terapeutica definitiva (chirurgia, PCI, supporto meccanico circolatorio).",
+      "predecessor_event": "referto_tte_emergenza",
+      "successor_event": "decisione_terapeutica_definitiva",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "La decisione terapeutica definitiva per la gestione della complicanza meccanica o dello shock viene presa senza che il referto TTE sia disponibile."
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-STEMI-010-01",
+      "name": "Sospetto diagnostico di SCA",
+      "description": "Presenza di un sospetto clinico di sindrome coronarica acuta basato su anamnesi, sintomi, ECG e/o marcatori biochimici.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": "ICD-10 (I21.x, I24.x)",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare diagnosi di ingresso o sospetto di SCA/STEMI/NSTEMI nel registro di accettazione PS."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-02",
+      "name": "Sopraslivellamento del tratto ST all'ECG",
+      "description": "Presenza di sopraslivellamento del tratto ST all'elettrocardiogramma compatibile con STEMI.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare referto ECG per presenza di sopraslivellamento ST."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-03",
+      "name": "Troponina elevata",
+      "description": "Valore di troponina cardiaca (I o T, ad alta sensibilità) superiore al 99° percentile del limite superiore di riferimento.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": false,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare risultato di laboratorio per troponina I hs o troponina T hs."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-04",
+      "name": "Pressione arteriosa sistolica",
+      "description": "Valore della pressione arteriosa sistolica del paziente al momento della valutazione.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare parametri vitali per PAS < 90 mmHg."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-05",
+      "name": "Utilizzo di vasopressori/inotropi",
+      "description": "Indicazione se il paziente ha ricevuto o necessita di supporto farmacologico con vasopressori o inotropi.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": "ATC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare prescrizioni/somministrazioni di noradrenalina, dopamina, dobutamina, adrenalina, levosimendan."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-06",
+      "name": "Segni di ipoperfusione periferica",
+      "description": "Presenza di segni clinici di ipoperfusione: estremità fredde, oliguria, alterazione dello stato di coscienza, lattati elevati.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Inferire da note cliniche, parametri vitali (diuresi, lattati, GCS) la presenza di segni di ipoperfusione."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-07",
+      "name": "Soffio cardiaco di nuova insorgenza",
+      "description": "Riscontro all'esame obiettivo di un soffio cardiaco non precedentemente documentato.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Cercare nelle note cliniche e nell'esame obiettivo menzione di soffio cardiaco di nuova insorgenza."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-08",
+      "name": "Deterioramento emodinamico improvviso",
+      "description": "Evento di deterioramento emodinamico acuto e improvviso durante l'episodio di cura.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Cercare nelle note cliniche e nei parametri vitali un rapido peggioramento emodinamico."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-09",
+      "name": "Sospetto di tamponamento cardiaco",
+      "description": "Sospetto clinico di tamponamento cardiaco basato su segni clinici (toni cardiaci ovattati, distensione giugulare, ipotensione).",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": "ICD-10 (I31.4)",
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Cercare nelle note cliniche segni o sospetto di tamponamento cardiaco."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-10",
+      "name": "TTE d'emergenza già eseguita nell'episodio corrente",
+      "description": "Indicazione che una TTE d'emergenza completa e conclusiva è già stata eseguita durante l'episodio clinico in corso.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare ordine e referto di TTE d'emergenza con timestamp nell'episodio corrente."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-11",
+      "name": "Ordine di TTE d'emergenza",
+      "description": "Ordine clinico per l'esecuzione di ecocardiogramma transtoracico in regime d'emergenza.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "codice prestazione locale / ICD-9-CM 88.72",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare ordine di ecocardiografia TT con priorità urgente/emergenza."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-12",
+      "name": "Referto TTE d'emergenza",
+      "description": "Referto dell'ecocardiogramma transtoracico d'emergenza con valutazione della funzione ventricolare e delle complicanze meccaniche.",
+      "source_location": "ehr_structured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare referto ecocardiografico con timestamp compatibile con l'episodio corrente."
+    },
+    {
+      "data_element_id": "DE-STEMI-010-13",
+      "name": "Timestamp esecuzione TTE d'emergenza",
+      "description": "Data e ora di esecuzione dell'ecocardiogramma transtoracico d'emergenza.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Recuperare il timestamp dall'ordine eseguito o dal referto TTE."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "STEMI-DO-010-EOC-01",
+      "description": "Presenza di un ordine di TTE d'emergenza emesso dopo il riconoscimento dello shock cardiogeno o della complicanza meccanica sospetta.",
+      "evidence_type": "order",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro breve tempo dal riconoscimento dello shock cardiogeno o della complicanza meccanica.",
+      "derived_from_data_elements": [
+        "DE-STEMI-010-11",
+        "DE-STEMI-010-13"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-010-EOC-02",
+      "description": "Presenza di un referto di TTE d'emergenza completo con valutazione della funzione biventricolare e delle complicanze meccaniche.",
+      "evidence_type": "result",
+      "minimum_occurrences": 1,
+      "time_reference": "Durante l'episodio di cura, successivamente al trigger.",
+      "derived_from_data_elements": [
+        "DE-STEMI-010-12",
+        "DE-STEMI-010-13"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-010-EOC-03",
+      "description": "Timestamp dell'esecuzione della TTE d'emergenza documentato nel sistema informativo clinico.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Dopo il riconoscimento dello shock/complicanza meccanica.",
+      "derived_from_data_elements": [
+        "DE-STEMI-010-13"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "STEMI-DO-010-EONC-01",
+      "description": "Assenza di ordine di TTE d'emergenza nel paziente con shock cardiogeno o sospetta complicanza meccanica durante l'episodio.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Durante l'intero episodio di cura dal momento del trigger.",
+      "derived_from_data_elements": [
+        "DE-STEMI-010-11"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-010-EONC-02",
+      "description": "Assenza di referto di TTE d'emergenza nel paziente con shock cardiogeno o sospetta complicanza meccanica.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Durante l'intero episodio di cura dal momento del trigger.",
+      "derived_from_data_elements": [
+        "DE-STEMI-010-12"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-010-EONC-03",
+      "description": "TTE d'emergenza eseguita con significativo ritardo rispetto al riconoscimento dello shock cardiogeno o della complicanza meccanica, senza giustificazione documentata.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Timestamp TTE > 30 minuti dopo il riconoscimento del trigger, senza eccezione documentata.",
+      "derived_from_data_elements": [
+        "DE-STEMI-010-13"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Per un paziente con sospetta SCA che presenta shock cardiogeno o sospette complicanze meccaniche: verificare che sia stato emesso un ordine di TTE d'emergenza e che il relativo referto, completo di valutazione della funzione biventricolare e delle complicanze meccaniche, sia stato prodotto durante l'episodio di cura. In caso di assenza dell'esame o del referto, e in assenza di eccezione documentata, la regola risulta non conforme.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF (suspected_acs == TRUE) AND (cardiogenic_shock == TRUE OR suspected_mechanical_complication == TRUE) THEN IF (tte_emergency_order EXISTS AND tte_emergency_report EXISTS AND tte_report.includes_biventricular_function AND tte_report.includes_mechanical_complication_screening) THEN status = 'compliant' ELSE IF (documented_exception EXISTS) THEN status = 'justified_deviation' ELSE status = 'non_compliant'",
+    "missing_data_policy": "review_required",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "human_review",
+    "notes": "La valutazione dello shock cardiogeno e delle complicanze meccaniche sospette può richiedere inferenza da testo libero (note cliniche, esame obiettivo). In caso di dati mancanti o ambigui è necessaria la revisione umana. La tempistica dell'esame è un indicatore di qualità ma il vincolo temporale non è hard deadline dato che la raccomandazione indica l'urgenza senza specificare un intervallo cronometrico preciso."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "note cliniche di pronto soccorso",
+      "note cliniche UTIC",
+      "referti ecocardiografici",
+      "esame obiettivo documentato",
+      "parametri vitali",
+      "fogli di terapia",
+      "registro ordini clinici"
+    ],
+    "human_review_required": true,
+    "minimum_confidence": 0.85,
+    "notes": "L'identificazione dello shock cardiogeno è spesso deterministica (parametri vitali, farmaci vasoattivi), ma le complicanze meccaniche sospette richiedono frequentemente inferenza da testo libero. Il referto TTE è generalmente strutturato ma può necessitare di NLP per estrarre i campi specifici relativi alle complicanze meccaniche."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable",
+    "probable_non_compliance"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "critical",
+    "process_risk_severity": "high",
+    "likelihood_if_violated": "likely",
+    "detectability": "moderate",
+    "priority_score": 9,
+    "rationale": "La mancata esecuzione della TTE d'emergenza in un paziente con shock cardiogeno o complicanze meccaniche sospette può comportare un ritardo diagnostico fatale. Le complicanze meccaniche post-infarto (rottura del setto, rottura della parete libera, insufficienza mitralica acuta) richiedono un intervento chirurgico o interventistico urgente, e il loro mancato riconoscimento è associato a mortalità estremamente elevata."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Ordine di TTE d'emergenza con timestamp",
+      "Referto ecocardiografico completo",
+      "Valutazione della funzione ventricolare sinistra (FEVS)",
+      "Valutazione della funzione ventricolare destra",
+      "Screening delle complicanze meccaniche",
+      "Valutazione del versamento pericardico",
+      "Identificazione dell'operatore e firma digitale",
+      "Timestamp di esecuzione dell'esame"
+    ],
+    "acceptable_evidence_sources": [
+      "Sistema informativo di cardiologia / ecocardiografia",
+      "Cartella clinica elettronica (PS, UTIC)",
+      "Registro ordini clinici",
+      "Referto firmato digitalmente",
+      "Immagini ecocardiografiche archiviate nel PACS"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Nota clinica con motivazione della mancata esecuzione della TTE d'emergenza",
+      "Documentazione dell'eccezione applicata (indisponibilità apparecchiatura, arresto cardiaco, trasferimento immediato in emodinamica)",
+      "Piano alternativo documentato"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "STEMI-WS-010-01",
+    "STEMI-WS-010-02",
+    "STEMI-WS-010-03"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "La raccomandazione originale utilizza il verbo 'is recommended' che corrisponde a una classe di raccomandazione I (forte raccomandazione, da eseguire). Il termine 'emergency' è stato interpretato come necessità di esecuzione urgente e non differibile. Il termine 'suspected ACS' include STEMI e NSTEMI, ma nel contesto del PDTA STEMI la regola è applicata primariamente ai pazienti STEMI. Il vincolo temporale specifico (30 minuti) è stato aggiunto come parametro operativo plausibile in quanto non esplicitamente indicato nella raccomandazione originale.",
+    "extraction_confidence": 0.92,
+    "ambiguity_flags": [
+      "Il vincolo temporale di 30 minuti non è esplicitamente indicato nella linea guida originale ed è stato stimato come parametro operativo ragionevole.",
+      "La definizione di 'suspected mechanical complications' è ampia e può richiedere interpretazione clinica contestuale.",
+      "Il livello di evidenza C è stato assegnato in modo plausibile ma potrebbe variare nella specifica raccomandazione della linea guida."
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Gruppo di Lavoro PDTA STEMI - Clinical Pathway Engineering",
+    "rule_owner": "Responsabile clinico PDTA STEMI",
+    "effective_from": null,
+    "effective_to": null,
+    "review_cycle": "12 mesi",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

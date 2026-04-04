@@ -1,0 +1,493 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-003",
+  "rule_type": "do",
+  "title": "Esecuzione e interpretazione dell'ECG a 12 derivazioni entro 10 minuti dal primo contatto medico",
+  "short_label": "ECG 12 derivazioni ≤10 min da FMC",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "primo contatto medico / triage",
+  "care_settings": [
+    "pre-ospedaliero (118/ambulanza)",
+    "pronto soccorso",
+    "punto di primo contatto medico"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "Medico di emergenza territoriale (118)",
+      "responsibility_type": "primary",
+      "organization_unit": "Servizio di Emergenza Territoriale 118",
+      "notes": "Responsabile principale dell'esecuzione e interpretazione dell'ECG a 12 derivazioni in ambito pre-ospedaliero."
+    },
+    {
+      "role_name": "Medico di pronto soccorso",
+      "responsibility_type": "primary",
+      "organization_unit": "Pronto Soccorso / DEA",
+      "notes": "Responsabile principale dell'esecuzione e interpretazione dell'ECG a 12 derivazioni se il primo contatto medico avviene in pronto soccorso."
+    },
+    {
+      "role_name": "Infermiere di triage",
+      "responsibility_type": "supporting",
+      "organization_unit": "Pronto Soccorso / DEA",
+      "notes": "Supporto nell'esecuzione dell'ECG a 12 derivazioni; può avviare la registrazione ECG prima della valutazione medica secondo protocollo locale."
+    },
+    {
+      "role_name": "Equipaggio ambulanza (infermiere/tecnico)",
+      "responsibility_type": "supporting",
+      "organization_unit": "Servizio di Emergenza Territoriale 118",
+      "notes": "Supporto tecnico per l'esecuzione dell'ECG nella fase pre-ospedaliera."
+    }
+  ],
+  "deontic_strength": "recommended",
+  "recommendation_strength": "Classe I (Raccomandato)",
+  "evidence_level": "B",
+  "original_statement": "Twelve-lead ECG recording and interpretation is recommended as soon as possible at the point of first medical contact, with a target of <10 min.",
+  "normalized_statement": "La registrazione e l'interpretazione dell'ECG a 12 derivazioni devono essere eseguite il prima possibile al punto di primo contatto medico, con un obiettivo temporale inferiore a 10 minuti.",
+  "intent": "Garantire una diagnosi ECG rapida di STEMI per consentire l'attivazione tempestiva del percorso di riperfusione e ridurre il tempo totale di ischemia miocardica.",
+  "rationale": "La diagnosi precoce mediante ECG a 12 derivazioni è fondamentale per l'identificazione dello STEMI e l'attivazione immediata della strategia di riperfusione. Il ritardo nella registrazione e interpretazione dell'ECG comporta un prolungamento del tempo di ischemia, con conseguente aumento dell'area di necrosi miocardica e peggioramento degli esiti clinici.",
+  "source_references": [
+    {
+      "source_id": "ESC-STEMI-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione Diagnosi – Raccomandazione ECG al primo contatto medico",
+      "page_reference": null,
+      "statement_quote": "Twelve-lead ECG recording and interpretation is recommended as soon as possible at the point of first medical contact, with a target of <10 min.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto soggetto a copyright ESC. Utilizzo ai fini di codifica interna del PDTA."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti con sospetto clinico di sindrome coronarica acuta, in particolare con dolore toracico suggestivo di infarto miocardico acuto con sopraslivellamento del tratto ST (STEMI).",
+    "clinical_context": "Sospetto clinico di sindrome coronarica acuta / STEMI al primo contatto medico.",
+    "care_context": "Fase pre-ospedaliera (primo contatto medico con equipaggio 118) o fase di arrivo in pronto soccorso, qualunque sia il punto di primo contatto medico.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-003-INC-01",
+        "label": "Dolore toracico acuto sospetto ischemico",
+        "description": "Paziente adulto che presenta dolore toracico acuto o equivalente ischemico (dispnea, sudorazione algida, dolore epigastrico) suggestivo di sindrome coronarica acuta.",
+        "logic_expression": "sintomo_presentazione IN ('dolore_toracico_acuto', 'equivalente_ischemico') AND età >= 18",
+        "data_elements": [
+          "DE-sintomo-presentazione",
+          "DE-eta-paziente"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-003-INC-02",
+        "label": "Primo contatto medico avvenuto",
+        "description": "Il paziente ha raggiunto il punto di primo contatto medico (first medical contact), sia in ambito pre-ospedaliero sia in pronto soccorso.",
+        "logic_expression": "evento_primo_contatto_medico IS NOT NULL",
+        "data_elements": [
+          "DE-timestamp-primo-contatto-medico"
+        ],
+        "inference_allowed": false
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-003-EXC-01",
+        "label": "Arresto cardiaco in corso con rianimazione attiva",
+        "description": "Paziente in arresto cardiaco con manovre di rianimazione cardiopolmonare in corso, per il quale l'ECG a 12 derivazioni non è tecnicamente eseguibile in modo affidabile.",
+        "logic_expression": "stato_clinico == 'arresto_cardiaco' AND RCP_in_corso == true",
+        "data_elements": [
+          "DE-stato-clinico",
+          "DE-RCP-in-corso"
+        ],
+        "inference_allowed": true
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "event",
+    "trigger_description": "Il primo contatto medico (First Medical Contact, FMC) con un paziente che presenta sintomi suggestivi di sindrome coronarica acuta / sospetto STEMI.",
+    "anchor_event": "primo_contatto_medico",
+    "start_of_applicability": "Dal momento esatto del primo contatto medico con il paziente sintomatico.",
+    "end_of_applicability": "Fino al completamento della registrazione e interpretazione dell'ECG a 12 derivazioni, oppure fino alla decisione clinica di non procedere con l'ECG per motivazione documentata.",
+    "trigger_data_elements": [
+      "DE-timestamp-primo-contatto-medico",
+      "DE-sintomo-presentazione"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "STEMI-DO-003-EXP-01",
+      "label": "Arresto cardiaco con RCP in corso",
+      "description": "L'ECG a 12 derivazioni non può essere eseguito in modo attendibile durante le manovre di rianimazione cardiopolmonare attiva. L'esecuzione viene differita fino al ripristino della circolazione spontanea (ROSC).",
+      "condition_logic": "stato_clinico == 'arresto_cardiaco' AND RCP_in_corso == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dello stato di arresto cardiaco",
+        "Timestamp di inizio e fine RCP",
+        "Timestamp del ROSC se ottenuto"
+      ]
+    },
+    {
+      "exception_id": "STEMI-DO-003-EXP-02",
+      "label": "Indisponibilità temporanea dell'elettrocardiografo",
+      "description": "L'apparecchio ECG non è disponibile o malfunzionante al punto di primo contatto medico. In tal caso il paziente deve essere trasferito al più presto verso una sede dotata di ECG.",
+      "condition_logic": "disponibilita_ECG == false",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dell'indisponibilità dell'apparecchio ECG",
+        "Timestamp della segnalazione del malfunzionamento",
+        "Azioni correttive intraprese (es. trasferimento rapido)"
+      ]
+    },
+    {
+      "exception_id": "STEMI-DO-003-EXP-03",
+      "label": "Condizioni cliniche che impediscono l'esecuzione tecnica dell'ECG",
+      "description": "Condizioni del paziente (es. agitazione psicomotoria estrema, ustioni toraciche estese) che rendono tecnicamente impossibile il posizionamento degli elettrodi e la registrazione dell'ECG.",
+      "condition_logic": "impedimento_tecnico_ECG == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Descrizione clinica dell'impedimento tecnico",
+        "Documentazione delle azioni alternative intraprese"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "eseguire",
+    "action_description": "Registrare e interpretare un ECG a 12 derivazioni il prima possibile al punto di primo contatto medico, con un obiettivo temporale inferiore a 10 minuti dal primo contatto medico.",
+    "action_target": "ECG a 12 derivazioni",
+    "action_parameters": [
+      {
+        "parameter_name": "numero_derivazioni",
+        "parameter_description": "Numero minimo di derivazioni dell'ECG da registrare.",
+        "expected_value": "12",
+        "comparison_operator": "equals",
+        "unit": "derivazioni",
+        "mandatory": true
+      },
+      {
+        "parameter_name": "tempo_massimo_da_FMC",
+        "parameter_description": "Tempo massimo target dalla registrazione del primo contatto medico all'acquisizione e interpretazione dell'ECG.",
+        "expected_value": "10",
+        "comparison_operator": "less_than",
+        "unit": "minuti",
+        "mandatory": true
+      },
+      {
+        "parameter_name": "interpretazione_ECG",
+        "parameter_description": "L'ECG deve essere non solo registrato ma anche interpretato da personale qualificato per identificare un eventuale sopraslivellamento del tratto ST.",
+        "expected_value": "completata",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      }
+    ],
+    "alternative_compliant_actions": [
+      "Trasmissione telematica dell'ECG a 12 derivazioni a un centro hub per tele-interpretazione da parte di un cardiologo esperto, entro il medesimo limite temporale"
+    ]
+  },
+  "completion_criteria": {
+    "description": "La regola è soddisfatta quando un ECG a 12 derivazioni è stato registrato e interpretato (con refertazione o annotazione diagnostica documentata) entro 10 minuti dal momento del primo contatto medico.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "registrazione_ECG_12_derivazioni",
+      "interpretazione_ECG"
+    ],
+    "required_documentation_elements": [
+      "Tracciato ECG a 12 derivazioni memorizzato",
+      "Timestamp di acquisizione dell'ECG",
+      "Referto o annotazione diagnostica dell'interpretazione ECG"
+    ],
+    "success_condition": "ECG_12_derivazioni_registrato == true AND ECG_interpretato == true AND (timestamp_ECG_interpretato - timestamp_primo_contatto_medico) < 10 minuti"
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "STEMI-DO-003-TC-01",
+      "description": "L'ECG a 12 derivazioni deve essere registrato e interpretato entro un obiettivo inferiore a 10 minuti dal primo contatto medico (FMC).",
+      "relation_to_anchor": "within",
+      "anchor_event": "primo_contatto_medico",
+      "duration_value": 10,
+      "duration_unit": "minuti",
+      "hard_deadline": true,
+      "alert_threshold_value": 7,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "STEMI-DO-003-SC-01",
+      "description": "L'ECG a 12 derivazioni deve essere eseguito e interpretato prima dell'attivazione del laboratorio di emodinamica, poiché la decisione di attivare il percorso di riperfusione dipende dall'interpretazione ECG.",
+      "predecessor_event": "interpretazione_ECG_12_derivazioni",
+      "successor_event": "attivazione_laboratorio_emodinamica",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "timestamp_attivazione_emodinamica < timestamp_interpretazione_ECG OR interpretazione_ECG IS NULL al momento dell'attivazione emodinamica"
+    },
+    {
+      "constraint_id": "STEMI-DO-003-SC-02",
+      "description": "Il primo contatto medico deve precedere la registrazione dell'ECG a 12 derivazioni.",
+      "predecessor_event": "primo_contatto_medico",
+      "successor_event": "registrazione_ECG_12_derivazioni",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "timestamp_registrazione_ECG < timestamp_primo_contatto_medico"
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-timestamp-primo-contatto-medico",
+      "name": "Timestamp del primo contatto medico (FMC)",
+      "description": "Data e ora esatta del primo contatto tra il paziente con sospetta SCA e un operatore sanitario qualificato (medico o infermiere) in grado di acquisire e interpretare un ECG.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare il timestamp nell'accettazione del 118 (orario arrivo sul posto) o nell'accettazione di triage in pronto soccorso, a seconda del punto di primo contatto."
+    },
+    {
+      "data_element_id": "DE-timestamp-registrazione-ECG",
+      "name": "Timestamp di registrazione dell'ECG a 12 derivazioni",
+      "description": "Data e ora di acquisizione del tracciato ECG a 12 derivazioni.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Estrarre il timestamp dall'header dell'ECG digitale o dal sistema di archiviazione ECG (MUSE, sistema di gestione ECG)."
+    },
+    {
+      "data_element_id": "DE-timestamp-interpretazione-ECG",
+      "name": "Timestamp di interpretazione dell'ECG",
+      "description": "Data e ora in cui l'ECG a 12 derivazioni è stato interpretato e refertato (anche sotto forma di annotazione clinica).",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Può coincidere con il timestamp della registrazione se l'interpretazione è immediata. Verificare la presenza di un referto ECG o annotazione diagnostica nel sistema."
+    },
+    {
+      "data_element_id": "DE-sintomo-presentazione",
+      "name": "Sintomo di presentazione",
+      "description": "Sintomo principale riferito dal paziente o rilevato all'esame obiettivo al primo contatto medico (es. dolore toracico, dispnea, sincope).",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "ICD-10 / codifica locale triage",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare nel campo 'motivo di accesso' del triage o nel campo 'sintomo principale' della scheda 118."
+    },
+    {
+      "data_element_id": "DE-eta-paziente",
+      "name": "Età del paziente",
+      "description": "Età del paziente in anni al momento del primo contatto medico.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "deterministic",
+      "query_hint": "Calcolare dalla data di nascita nel sistema anagrafico."
+    },
+    {
+      "data_element_id": "DE-referto-ECG",
+      "name": "Referto/interpretazione ECG",
+      "description": "Contenuto testuale o codificato dell'interpretazione dell'ECG a 12 derivazioni, inclusa la valutazione del tratto ST.",
+      "source_location": "ehr_structured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare nel sistema di archiviazione ECG il referto associato al tracciato. Può essere presente anche in nota clinica di pronto soccorso."
+    },
+    {
+      "data_element_id": "DE-stato-clinico",
+      "name": "Stato clinico del paziente al primo contatto",
+      "description": "Stato clinico complessivo del paziente (cosciente, incosciente, arresto cardiaco) al momento del primo contatto medico.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "Codifica locale",
+      "required_for_evaluation": false,
+      "extraction_method": "hybrid",
+      "query_hint": "Verificare lo stato clinico nella scheda 118 o nella valutazione iniziale di triage."
+    },
+    {
+      "data_element_id": "DE-numero-derivazioni-ECG",
+      "name": "Numero di derivazioni dell'ECG",
+      "description": "Numero di derivazioni registrate nell'ECG acquisito.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare dall'header del file ECG digitale o dalla descrizione del dispositivo utilizzato."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "STEMI-DO-003-EOC-01",
+      "description": "Tracciato ECG a 12 derivazioni registrato e archiviato nel sistema, con timestamp di acquisizione entro 10 minuti dal primo contatto medico.",
+      "evidence_type": "execution",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 10 minuti dal primo contatto medico",
+      "derived_from_data_elements": [
+        "DE-timestamp-primo-contatto-medico",
+        "DE-timestamp-registrazione-ECG",
+        "DE-numero-derivazioni-ECG"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-003-EOC-02",
+      "description": "Referto o annotazione diagnostica dell'interpretazione dell'ECG presente nel sistema, con valutazione del tratto ST documentata.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 10 minuti dal primo contatto medico",
+      "derived_from_data_elements": [
+        "DE-referto-ECG",
+        "DE-timestamp-interpretazione-ECG"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-003-EOC-03",
+      "description": "Timestamp documentato attestante che la differenza tra il momento dell'interpretazione ECG e il momento del primo contatto medico è inferiore a 10 minuti.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Differenza temporale < 10 minuti",
+      "derived_from_data_elements": [
+        "DE-timestamp-primo-contatto-medico",
+        "DE-timestamp-interpretazione-ECG"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "STEMI-DO-003-EONC-01",
+      "description": "Assenza di tracciato ECG a 12 derivazioni registrato nel sistema per il paziente con sospetta SCA dopo il primo contatto medico.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Oltre 10 minuti dal primo contatto medico senza ECG registrato",
+      "derived_from_data_elements": [
+        "DE-timestamp-primo-contatto-medico",
+        "DE-timestamp-registrazione-ECG"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-003-EONC-02",
+      "description": "ECG registrato ma con intervallo temporale dal primo contatto medico superiore o uguale a 10 minuti.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Differenza temporale >= 10 minuti tra FMC e registrazione/interpretazione ECG",
+      "derived_from_data_elements": [
+        "DE-timestamp-primo-contatto-medico",
+        "DE-timestamp-registrazione-ECG",
+        "DE-timestamp-interpretazione-ECG"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-003-EONC-03",
+      "description": "ECG registrato ma senza interpretazione o referto documentato.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Dopo la registrazione dell'ECG",
+      "derived_from_data_elements": [
+        "DE-referto-ECG",
+        "DE-timestamp-interpretazione-ECG"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-003-EONC-04",
+      "description": "ECG registrato con numero di derivazioni inferiore a 12 senza giustificazione clinica documentata.",
+      "evidence_type": "result",
+      "minimum_occurrences": 1,
+      "time_reference": null,
+      "derived_from_data_elements": [
+        "DE-numero-derivazioni-ECG"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Verificare che: (1) esista un ECG a 12 derivazioni registrato per il paziente dopo il primo contatto medico; (2) l'ECG sia stato interpretato con referto o annotazione diagnostica documentata; (3) il tempo trascorso tra il primo contatto medico e il completamento dell'interpretazione ECG sia inferiore a 10 minuti. Se tutte e tre le condizioni sono soddisfatte, la regola è conforme. Se manca l'ECG o l'interpretazione, o se il tempo è ≥ 10 minuti, la regola è non conforme, salvo eccezione giustificata documentata.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF DE-timestamp-registrazione-ECG IS NOT NULL AND DE-referto-ECG IS NOT NULL AND DE-numero-derivazioni-ECG == 12 AND (DE-timestamp-interpretazione-ECG - DE-timestamp-primo-contatto-medico) < 10 min THEN 'compliant' ELIF exception_documented == true THEN 'justified_deviation' ELIF DE-timestamp-primo-contatto-medico IS NULL OR DE-timestamp-registrazione-ECG IS NULL THEN 'not_evaluable' ELSE 'non_compliant'",
+    "missing_data_policy": "not_evaluable",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "most_recent_source",
+    "notes": "Il timestamp del primo contatto medico può provenire da fonti differenti (scheda 118, triage PS). In caso di discrepanza, utilizzare il timestamp più precoce documentato. L'interpretazione dell'ECG può essere effettuata anche mediante tele-refertazione."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "Note cliniche di pronto soccorso",
+      "Scheda intervento 118",
+      "Sistema di archiviazione ECG",
+      "Verbale di triage"
+    ],
+    "human_review_required": false,
+    "minimum_confidence": 0.85,
+    "notes": "La valutazione deterministica è possibile quando i timestamp strutturati sono disponibili nel sistema. L'inferenza è necessaria quando il timestamp del FMC o dell'interpretazione ECG devono essere estratti da documentazione non strutturata."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable",
+    "probable_non_compliance"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "critical",
+    "process_risk_severity": "high",
+    "likelihood_if_violated": "likely",
+    "detectability": "easy",
+    "priority_score": 95,
+    "rationale": "Il ritardo nella registrazione e interpretazione dell'ECG a 12 derivazioni è direttamente correlato al ritardo nella diagnosi di STEMI e nell'attivazione del percorso di riperfusione. Ogni minuto di ritardo aumenta l'area di necrosi miocardica e peggiora la prognosi del paziente. La rilevabilità è elevata grazie alla disponibilità di timestamp strutturati nei sistemi ECG."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Timestamp del primo contatto medico (FMC)",
+      "Timestamp di registrazione dell'ECG a 12 derivazioni",
+      "Tracciato ECG a 12 derivazioni archiviato",
+      "Referto o annotazione diagnostica dell'interpretazione ECG",
+      "Identificativo dell'operatore che ha interpretato l'ECG"
+    ],
+    "acceptable_evidence_sources": [
+      "Sistema di archiviazione ECG digitale (es. MUSE, Mortara)",
+      "Cartella clinica elettronica di pronto soccorso",
+      "Scheda intervento 118",
+      "Verbale di triage",
+      "Sistema di tele-ECG"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Motivo del ritardo o della mancata esecuzione dell'ECG",
+      "Condizioni cliniche del paziente che hanno impedito l'esecuzione",
+      "Azioni alternative intraprese",
+      "Timestamp delle azioni correttive"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "STEMI-WS-003-A",
+    "STEMI-WS-003-B",
+    "STEMI-WS-003-C"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "Il testo originale utilizza il termine 'recommended' che nella classificazione ESC corrisponde a Classe I. Il target temporale '<10 min' è stato codificato come vincolo temporale rigido (hard deadline). L'azione comprende sia la registrazione sia l'interpretazione dell'ECG, come esplicitamente indicato nella raccomandazione originale. Il concetto di 'point of first medical contact' è stato tradotto con il termine italiano 'primo contatto medico (FMC)' secondo la terminologia standard PDTA STEMI.",
+    "extraction_confidence": 0.93,
+    "ambiguity_flags": [
+      "Il timestamp esatto dell'interpretazione ECG potrebbe non essere sempre registrato separatamente dal timestamp di acquisizione",
+      "La definizione operativa di 'primo contatto medico' può variare tra contesti pre-ospedalieri e ospedalieri"
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Gruppo di lavoro PDTA STEMI – Rete Cardiologica",
+    "rule_owner": "Responsabile Clinico PDTA STEMI",
+    "effective_from": null,
+    "effective_to": null,
+    "review_cycle": "12 mesi",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

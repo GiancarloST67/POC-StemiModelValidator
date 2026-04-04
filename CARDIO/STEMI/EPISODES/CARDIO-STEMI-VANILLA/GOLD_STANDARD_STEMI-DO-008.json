@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-008-RSSMRA58L12H501X-20260318",
+  "check_timestamp": "2026-03-22T12:00:00+01:00",
+  "rule_id": "STEMI-DO-008",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "not_applicable",
+  "confidence": 0.97,
+  "rationale": "La regola STEMI-DO-008 riguarda l'utilizzo dell'algoritmo ESC con dosaggi seriati di hs-cTn per confermare o escludere NSTEMI in pazienti con sospetta SCA senza sopraslivellamento persistente del tratto ST. Il paziente in esame presenta un quadro ECG pre-ospedaliero diagnostico per STEMI antero-laterale conclamato (sopraslivellamento ST 3 mm in V2-V4, 2 mm in V5-V6, I e aVL), confermato dal medico 118 e dal medico di Pronto Soccorso, con immediata attivazione della rete IMA e invio diretto a PCI primaria. Si applica pertanto il criterio di esclusione EC-008-01 ('STEMI conclamato all'ECG: paziente con sopraslivellamento persistente del tratto ST diagnostico di STEMI che richiede riperfusione immediata'). L'algoritmo ESC 0h/1h o 0h/2h per rule-in/rule-out di NSTEMI non è indicato né applicabile in questo contesto clinico. I dosaggi di hs-cTnI eseguiti durante il ricovero (68 ng/L all'ingresso, 5460 ng/L a 6 ore, 18940 ng/L a 22 ore, 12360 ng/L a 46 ore) sono stati effettuati per il monitoraggio dell'evoluzione dell'infarto post-riperfusione e non nell'ambito di un algoritmo diagnostico differenziale NSTEMI. Regola non applicabile al caso."
+}

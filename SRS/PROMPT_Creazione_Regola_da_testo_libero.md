@@ -1,0 +1,1 @@
+In merito al Clinical Pathway STEMI, se ti dico questa regola: "Si raccomanda che i pazienti con sospetto STEMI siano immediatamente valutati per una emergency reperfusion strategy". Struttura la regola nel rispetto dello schema do_rule qui allegato. Usa terminologia in italiano

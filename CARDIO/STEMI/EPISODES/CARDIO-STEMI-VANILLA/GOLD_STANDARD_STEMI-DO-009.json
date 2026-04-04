@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-009-20260322-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-22T12:00:00+01:00",
+  "rule_id": "STEMI-DO-009",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "not_applicable",
+  "confidence": 0.98,
+  "rationale": "La regola STEMI-DO-009 si applica ai pazienti con sospetta SCA il cui algoritmo 0 h/1 h di hs-cTn ha dato esito inconcludente. Nel caso in esame il paziente presentava un chiaro STEMI antero-laterale diagnosticato all'ECG pre-ospedaliero (sopraslivellamento ST 3 mm in V2-V4, 2 mm in V5-V6, I e aVL), soddisfacendo pienamente il criterio di esclusione STEMI-DO-009-EXC-03 ('STEMI evidente all'ECG'). Il percorso clinico seguito è stato quello della riperfusione urgente tramite PCI primaria (door-to-balloon 53 min), senza necessità né indicazione di applicazione dell'algoritmo rapido 0 h/1 h di hs-cTn. Il dosaggio di hs-cTnI eseguito all'ingresso (68 ng/L) era già positivo in fase precoce, ma la diagnosi era stata stabilita elettrocardiograficamente e non richiedeva ulteriori dosaggi seriati a scopo diagnostico. L'algoritmo 0 h/1 h non è mai stato avviato né classificato come inconcludente, pertanto la condizione di applicabilità della regola (risultato inconcludente dell'algoritmo 0 h/1 h) non è soddisfatta. La regola risulta non applicabile al presente episodio clinico."
+}

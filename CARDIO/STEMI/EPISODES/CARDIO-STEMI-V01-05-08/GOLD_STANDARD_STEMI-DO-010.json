@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-010-RSSMRA58L12H501X-20260318",
+  "check_timestamp": "2025-01-24T12:00:00Z",
+  "rule_id": "STEMI-DO-010",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "not_applicable",
+  "confidence": 0.95,
+  "rationale": "La regola STEMI-DO-010 si applica esclusivamente a pazienti con sospetta SCA che presentino shock cardiogeno o sospette complicanze meccaniche. Nell'episodio in esame il paziente è stato costantemente emodinamicamente stabile durante tutto il ricovero: PAS sempre ≥ 114 mmHg (mai < 90 mmHg), classe Killip I dall'ingresso alla dimissione, SpO2 ≥ 97%, GCS 15, nessuna necessità di supporto con vasopressori o inotropi, nessun segno documentato di ipoperfusione periferica (diuresi conservata, stato di coscienza integro, assenza di estremità fredde o lattati elevati). Non sono documentati soffi cardiaci di nuova insorgenza (esame obiettivo: 'non soffi francamente patologici'), né deterioramento emodinamico improvviso, né sospetto di tamponamento cardiaco, rottura del setto interventricolare o della parete libera. L'ecocardiogramma transtoracico eseguito il 19/03/2026 (record #24) è stato un esame di routine post-STEMI per valutazione della funzione ventricolare e screening complicanze, non un TTE d'emergenza attivato da trigger di shock o complicanza meccanica. Pertanto, i criteri di inclusione della regola (INC-02 e INC-03) non sono soddisfatti e la regola risulta non applicabile al caso clinico in esame."
+}

@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rule Browser - ConnectEquipe</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafd;
+      --text: #1d2a39;
+      --muted: #617289;
+      --primary: #2a5bd7;
+      --primary-soft: #e9f0ff;
+      --border: #d9e1ec;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --shadow: 0 8px 22px rgba(29, 42, 57, 0.08);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(145deg, #f1f5fd 0%, #eef3fb 55%, #f8faff 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: 72px 1fr;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 20px;
+      padding: 0 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(10, 30, 70, 0.03);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: radial-gradient(circle at 30% 30%, #7ea4ff, #2a5bd7 65%);
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.45);
+      position: relative;
+    }
+
+    .brand-logo::after {
+      content: "C";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: #3a4d63;
+      font-size: 0.95rem;
+    }
+
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #d6e4ff;
+      color: var(--primary);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 0.78rem;
+    }
+
+    .menu-wrap {
+      position: relative;
+    }
+
+    .menu-button {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: #4d6078;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .menu {
+      position: absolute;
+      top: 48px;
+      right: 0;
+      min-width: 170px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 8px;
+      display: none;
+    }
+
+    .menu.open {
+      display: block;
+    }
+
+    .menu-item {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.94rem;
+      color: #2f4158;
+      cursor: pointer;
+    }
+
+    .menu-item:hover {
+      background: #f3f7ff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 18px;
+      padding: 18px;
+      min-height: calc(100vh - 72px);
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
+      padding: 14px;
+    }
+
+    .panel-title {
+      margin: 4px 6px 14px;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .tree {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 6px;
+    }
+
+    .tree button {
+      width: 100%;
+      text-align: left;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #2e4259;
+      border-radius: 10px;
+      padding: 11px 12px;
+      cursor: pointer;
+      font-size: 0.97rem;
+      font-weight: 500;
+    }
+
+    .tree button:hover {
+      background: #f7faff;
+      border-color: #e2eaf8;
+    }
+
+    .tree button.active {
+      background: var(--primary-soft);
+      border-color: #bfd3ff;
+      color: #1a4cbc;
+    }
+
+    .content {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+
+    .content-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 10px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .content-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .content-header h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      color: #203146;
+    }
+
+    .badge {
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      background: #eff5ff;
+      color: #2a5bd7;
+      border: 1px solid #d8e5ff;
+    }
+
+    .ghost-btn {
+      border: 1px solid #c8d6f0;
+      background: #f4f8ff;
+      color: #1f4fb9;
+      border-radius: 10px;
+      padding: 7px 11px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .ghost-btn:hover {
+      background: #e9f1ff;
+    }
+
+    .rule-list {
+      list-style: none;
+      margin: 0;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      overflow: auto;
+    }
+
+    .rule-item {
+      background: linear-gradient(160deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #d8e5fa;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 26px rgba(37, 72, 128, 0.08);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .rule-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(37, 72, 128, 0.12);
+      border-color: #c5d8fa;
+    }
+
+    .rule-accordion {
+      display: grid;
+      gap: 0;
+    }
+
+    .rule-summary {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .rule-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .accordion-chevron {
+      color: #6f8198;
+      font-size: 0.86rem;
+      transition: transform 0.2s ease;
+    }
+
+    .rule-accordion[open] .accordion-chevron {
+      transform: rotate(180deg);
+    }
+
+    .rule-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .rule-icon.do {
+      background: var(--success);
+    }
+
+    .rule-icon.donot {
+      background: var(--danger);
+    }
+
+    .rule-name {
+      font-weight: 700;
+      color: #24384e;
+      letter-spacing: 0.01em;
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.28;
+    }
+
+    .rule-type {
+      font-size: 0.79rem;
+      border-radius: 999px;
+      padding: 5px 10px;
+      border: 1px solid;
+      font-weight: 600;
+    }
+
+    .rule-type.do {
+      color: #126f37;
+      background: #ecfdf3;
+      border-color: #b7edcd;
+    }
+
+    .rule-type.donot {
+      color: #a11a1a;
+      background: #fff1f1;
+      border-color: #f8c8c8;
+    }
+
+    .view-btn {
+      border: 1px solid #bfd3ff;
+      background: linear-gradient(180deg, #f4f8ff 0%, #eaf1ff 100%);
+      color: #1c4eb7;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+    }
+
+    .view-btn:hover {
+      background: linear-gradient(180deg, #eaf2ff 0%, #deebff 100%);
+      border-color: #a8c4ff;
+    }
+
+    .rule-details {
+      margin: 0;
+      border-top: 1px solid #e8eef9;
+      background: #f8fbff;
+      padding: 12px 14px 14px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 8px 16px;
+      min-width: 0;
+    }
+
+    .detail-field {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 0.9rem;
+      min-width: 0;
+    }
+
+    .detail-label {
+      color: #687b93;
+      font-weight: 600;
+    }
+
+    .detail-value {
+      color: #24384e;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      min-width: 0;
+      margin: 0;
+    }
+
+    .placeholder {
+      margin: 22px;
+      padding: 20px;
+      border: 1px dashed #ccd8ea;
+      border-radius: 12px;
+      color: #60748b;
+      background: #f9fbff;
+    }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 20, 35, 0.32);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+      z-index: 29;
+    }
+
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .rule-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: min(760px, 96vw);
+      background: linear-gradient(180deg, #f7faff 0%, #f2f7ff 100%);
+      border-left: 1px solid #cfe0ff;
+      box-shadow: -14px 0 40px rgba(20, 45, 90, 0.22);
+      z-index: 30;
+      transform: translateX(102%);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+    }
+
+    .rule-drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid #d6e5ff;
+      background: #ffffffd9;
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .drawer-title-wrap {
+      min-width: 0;
+    }
+
+    .drawer-title {
+      margin: 0;
+      font-size: 1.05rem;
+      color: #1f3552;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .drawer-subtitle {
+      margin-top: 4px;
+      font-size: 0.84rem;
+      color: #5f7392;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .drawer-close {
+      border: 1px solid #c9d9f7;
+      background: #fff;
+      color: #35547f;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .drawer-meta {
+      padding: 10px 18px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #dce8fe;
+      background: #f8fbff;
+    }
+
+    .meta-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #cadeff;
+      background: #ecf3ff;
+      color: #2a4d84;
+      font-size: 0.79rem;
+      font-weight: 600;
+    }
+
+    .drawer-body {
+      padding: 14px 18px 26px;
+      overflow: auto;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .drawer-card {
+      background: #ffffff;
+      border: 1px solid #d8e6ff;
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 8px 20px rgba(27, 59, 110, 0.08);
+      min-width: 0;
+    }
+
+    .drawer-card h3 {
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+      color: #27466f;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: minmax(130px, 220px) minmax(0, 1fr);
+      gap: 8px 10px;
+      align-items: start;
+      font-size: 0.9rem;
+      min-width: 0;
+    }
+
+    .kv-key {
+      color: #637b99;
+      font-weight: 600;
+    }
+
+    .kv-value {
+      color: #203650;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      min-width: 0;
+    }
+
+    .relation-item {
+      border: 1px solid #d8e6ff;
+      background: #f6faff;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-size: 0.86rem;
+      color: #2a4568;
+      margin-bottom: 8px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .node {
+      border-left: 2px solid #d6e4ff;
+      padding-left: 10px;
+      margin-left: 4px;
+    }
+
+    .node-title {
+      font-weight: 700;
+      color: #355883;
+      margin: 8px 0 5px;
+      font-size: 0.86rem;
+    }
+
+    .node-item {
+      margin: 6px 0;
+      font-size: 0.86rem;
+      color: #294467;
+    }
+
+    .node-empty {
+      color: #7086a4;
+      font-style: italic;
+      font-size: 0.84rem;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        order: 2;
+      }
+
+      .content {
+        order: 1;
+        min-height: 430px;
+      }
+
+      .rule-summary {
+        grid-template-columns: 28px 1fr auto auto;
+      }
+
+      .accordion-chevron {
+        grid-column: 4;
+      }
+
+      .rule-details {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-field {
+        grid-template-columns: 100px 1fr;
+      }
+
+      .kv-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand" aria-label="Logo ConnectEquipe">
+        <span class="brand-logo" aria-hidden="true"></span>
+        <span>ConnectEquipe</span>
+      </div>
+
+      <div class="user-pill" aria-label="Utente">
+        <span class="avatar">US</span>
+        <span>Utente Clinico</span>
+      </div>
+
+      <div class="menu-wrap">
+        <button class="menu-button" id="menuButton" title="Menu" aria-label="Apri menu">☰</button>
+        <div class="menu" id="menuPanel" role="menu">
+          <button class="menu-item" role="menuitem" id="logoutBtn">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel sidebar">
+        <h2 class="panel-title">Albero</h2>
+        <ul class="tree">
+          <li><button id="diagnosiBtn" class="active">Diagnosi</button></li>
+          <li><button id="imagingBtn">Imaging</button></li>
+        </ul>
+      </aside>
+
+      <section class="panel content">
+        <div class="content-header">
+          <h1 id="contentTitle">Regole STEMI - Diagnosi</h1>
+          <div class="content-header-actions">
+            <button class="ghost-btn" id="loadLocalBtn" type="button">Carica JSON locali</button>
+            <span class="badge" id="counterBadge">0 regole</span>
+          </div>
+        </div>
+
+        <ul class="rule-list" id="ruleList"></ul>
+        <div class="placeholder" id="placeholder" hidden>
+          Seleziona una sezione dell'albero per vedere le regole disponibili.
+        </div>
+        <input id="jsonFolderInput" type="file" webkitdirectory directory multiple hidden />
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+  <aside class="rule-drawer" id="ruleDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-title-wrap">
+        <h2 class="drawer-title" id="drawerTitle">Dettaglio regola</h2>
+        <div class="drawer-subtitle" id="drawerSubtitle">Campi completi e relazioni</div>
+      </div>
+      <button class="drawer-close" id="drawerClose" aria-label="Chiudi dettaglio">✕</button>
+    </div>
+    <div class="drawer-meta" id="drawerMeta"></div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <script>
+    let rulesStemi = [];
+
+    const diagnosiBtn = document.getElementById("diagnosiBtn");
+    const imagingBtn = document.getElementById("imagingBtn");
+    const ruleList = document.getElementById("ruleList");
+    const title = document.getElementById("contentTitle");
+    const badge = document.getElementById("counterBadge");
+    const placeholder = document.getElementById("placeholder");
+    const loadLocalBtn = document.getElementById("loadLocalBtn");
+    const jsonFolderInput = document.getElementById("jsonFolderInput");
+
+    const menuButton = document.getElementById("menuButton");
+    const menuPanel = document.getElementById("menuPanel");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const drawerBackdrop = document.getElementById("drawerBackdrop");
+    const ruleDrawer = document.getElementById("ruleDrawer");
+    const drawerTitle = document.getElementById("drawerTitle");
+    const drawerSubtitle = document.getElementById("drawerSubtitle");
+    const drawerMeta = document.getElementById("drawerMeta");
+    const drawerBody = document.getElementById("drawerBody");
+    const drawerClose = document.getElementById("drawerClose");
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function setActive(button) {
+      [diagnosiBtn, imagingBtn].forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+    }
+
+    function toUiRule(rule, sourceName = "") {
+      const normalizedRuleType = (rule.rule_type || "").toLowerCase();
+      const type = normalizedRuleType === "do_not" || sourceName.toUpperCase().includes("DONOT") ? "DONOT" : "DO";
+      const fallbackName = sourceName ? sourceName.replace(/\.json$/i, "") : "N/A";
+      return {
+        name: rule.rule_id || fallbackName,
+        title: rule.title || rule.short_label || rule.rule_id || "Regola senza titolo",
+        type,
+        area: "Diagnosi",
+        versione: rule.schema_version || "-",
+        priorita: rule.recommendation_strength || "-",
+        stato: "Attiva",
+        clinicalPhase: rule.clinical_phase || "-",
+        pathway: rule.clinical_pathway_name || "-",
+        evidenceLevel: rule.evidence_level || "-",
+        raw: rule
+      };
+    }
+
+    function sortRules() {
+      rulesStemi.sort((a, b) => a.name.localeCompare(b.name, "it"));
+    }
+
+    async function loadRulesFromLocalSelection(fileList) {
+      const loadedRules = [];
+      const files = Array.from(fileList || []).filter((file) => {
+        const upper = file.name.toUpperCase();
+        return file.name.toLowerCase().endsWith(".json") && upper.startsWith("STEMI-");
+      });
+
+      for (const file of files) {
+        try {
+          const rawText = await file.text();
+          const rawRule = JSON.parse(rawText);
+          loadedRules.push(toUiRule(rawRule, file.name));
+        } catch {
+          // Ignore single file errors to keep UI resilient.
+        }
+      }
+      rulesStemi = loadedRules;
+      sortRules();
+    }
+
+    function relationLines(raw, type) {
+      const lines = [];
+      if (raw.trigger?.anchor_event) {
+        lines.push(`Trigger (${escapeHtml(raw.trigger.trigger_type || "evento")}) ➜ ${escapeHtml(raw.trigger.anchor_event)}`);
+      }
+
+      if (Array.isArray(raw.sequence_constraints) && raw.sequence_constraints.length) {
+        raw.sequence_constraints.forEach((sc) => {
+          lines.push(`${escapeHtml(sc.predecessor_event || "") } ➜ ${escapeHtml(sc.successor_event || "") }`);
+        });
+      }
+
+      if (Array.isArray(raw.time_constraints) && raw.time_constraints.length) {
+        raw.time_constraints.forEach((tc) => {
+          const rel = tc.relation_to_anchor || "vincolo";
+          const duration = tc.duration_value ? ` (${tc.duration_value} ${tc.duration_unit || ""})` : "";
+          lines.push(`Tempo: ${escapeHtml(rel)} su ${escapeHtml(tc.anchor_event || "evento")}${escapeHtml(duration)}`);
+        });
+      }
+
+      if (Array.isArray(raw.applicability?.inclusion_criteria) || Array.isArray(raw.applicability?.exclusion_criteria)) {
+        const inc = raw.applicability?.inclusion_criteria?.length || 0;
+        const exc = raw.applicability?.exclusion_criteria?.length || 0;
+        lines.push(`Applicabilità: ${inc} inclusioni / ${exc} esclusioni`);
+      }
+
+      if (type === "DO" && raw.expected_action?.action_target) {
+        lines.push(`Azione attesa: ${escapeHtml(raw.expected_action.action_verb || "") } ${escapeHtml(raw.expected_action.action_target || "")}`);
+      }
+      if (type === "DONOT" && raw.prohibited_action?.action_target) {
+        lines.push(`Azione proibita: ${escapeHtml(raw.prohibited_action.action_verb || "") } ${escapeHtml(raw.prohibited_action.action_target || "")}`);
+      }
+
+      return lines;
+    }
+
+    function renderNode(value, keyName = "") {
+      if (value === null || value === undefined) {
+        return `<div class="node-item"><strong>${escapeHtml(keyName)}:</strong> <span class="node-empty">null</span></div>`;
+      }
+
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        return `<div class="node-item"><strong>${escapeHtml(keyName)}:</strong> ${escapeHtml(value)}</div>`;
+      }
+
+      if (Array.isArray(value)) {
+        if (!value.length) {
+          return `<div class="node-item"><strong>${escapeHtml(keyName)}:</strong> <span class="node-empty">[]</span></div>`;
+        }
+        const items = value
+          .map((entry, idx) => `<div class="node">${renderNode(entry, `${keyName}[${idx}]`)}</div>`)
+          .join("");
+        return `<div class="node-title">${escapeHtml(keyName)} <span class="node-empty">(${value.length})</span></div>${items}`;
+      }
+
+      const entries = Object.entries(value);
+      if (!entries.length) {
+        return `<div class="node-item"><strong>${escapeHtml(keyName)}:</strong> <span class="node-empty">{ }</span></div>`;
+      }
+
+      const content = entries.map(([k, v]) => renderNode(v, k)).join("");
+      if (!keyName) {
+        return `<div class="node">${content}</div>`;
+      }
+      return `<div class="node-title">${escapeHtml(keyName)}</div><div class="node">${content}</div>`;
+    }
+
+    function openDrawer(rule) {
+      const raw = rule.raw || {};
+      drawerTitle.textContent = rule.title;
+      drawerSubtitle.textContent = `${rule.name} • dettaglio completo`;
+      drawerMeta.innerHTML = `
+        <span class="meta-pill">${escapeHtml(rule.type)}</span>
+        <span class="meta-pill">Versione ${escapeHtml(rule.versione)}</span>
+        <span class="meta-pill">${escapeHtml(rule.clinicalPhase)}</span>
+        <span class="meta-pill">${escapeHtml(rule.evidenceLevel)}</span>
+      `;
+
+      const relations = relationLines(raw, rule.type)
+        .map((line) => `<div class="relation-item">${line}</div>`)
+        .join("");
+
+      drawerBody.innerHTML = `
+        <section class="drawer-card">
+          <h3>Campi principali</h3>
+          <div class="kv-grid">
+            <div class="kv-key">Rule ID</div><div class="kv-value">${escapeHtml(raw.rule_id || "-")}</div>
+            <div class="kv-key">Titolo</div><div class="kv-value">${escapeHtml(raw.title || "-")}</div>
+            <div class="kv-key">Tipo</div><div class="kv-value">${escapeHtml(raw.rule_type || "-")}</div>
+            <div class="kv-key">Pathway</div><div class="kv-value">${escapeHtml(raw.clinical_pathway_name || "-")}</div>
+            <div class="kv-key">Intent</div><div class="kv-value">${escapeHtml(raw.intent || "-")}</div>
+            <div class="kv-key">Rationale</div><div class="kv-value">${escapeHtml(raw.rationale || "-")}</div>
+          </div>
+        </section>
+        <section class="drawer-card">
+          <h3>Relazioni cliniche</h3>
+          ${relations || '<div class="node-empty">Nessuna relazione disponibile.</div>'}
+        </section>
+        <section class="drawer-card">
+          <h3>Struttura completa regola (tutti i campi)</h3>
+          ${renderNode(raw)}
+        </section>
+      `;
+
+      drawerBackdrop.hidden = false;
+      ruleDrawer.classList.add("open");
+      drawerBackdrop.classList.add("open");
+      ruleDrawer.setAttribute("aria-hidden", "false");
+    }
+
+    function closeDrawer() {
+      ruleDrawer.classList.remove("open");
+      drawerBackdrop.classList.remove("open");
+      ruleDrawer.setAttribute("aria-hidden", "true");
+      setTimeout(() => {
+        if (!ruleDrawer.classList.contains("open")) {
+          drawerBackdrop.hidden = true;
+        }
+      }, 250);
+    }
+
+    function renderDiagnosi() {
+      setActive(diagnosiBtn);
+      title.textContent = "Regole STEMI - Diagnosi";
+      badge.textContent = `${rulesStemi.length} regole`;
+      placeholder.hidden = true;
+      ruleList.hidden = false;
+
+      if (!rulesStemi.length) {
+        ruleList.hidden = true;
+        placeholder.hidden = false;
+        placeholder.textContent = "Nessuna regola caricata. Usa 'Carica JSON locali' e seleziona la cartella CARDIO/STEMI/RULES.";
+        return;
+      }
+
+      ruleList.innerHTML = rulesStemi
+        .map((rule, index) => {
+          const isDo = rule.type === "DO";
+          const iconClass = isDo ? "do" : "donot";
+          const iconText = isDo ? "✓" : "✕";
+          const typeClass = isDo ? "do" : "donot";
+          return `
+            <li class="rule-item">
+              <details class="rule-accordion">
+                <summary class="rule-summary" aria-label="Apri dettagli ${escapeHtml(rule.name)}">
+                  <span class="rule-icon ${iconClass}">${iconText}</span>
+                  <span class="rule-name">${escapeHtml(rule.title)}</span>
+                  <span class="rule-type ${typeClass}">${escapeHtml(rule.type)}</span>
+                  <button class="view-btn" type="button" data-index="${index}">VIEW</button>
+                  <span class="accordion-chevron">▾</span>
+                </summary>
+                <dl class="rule-details">
+                  <div class="detail-field">
+                    <dt class="detail-label">ID</dt>
+                    <dd class="detail-value">${escapeHtml(rule.name)}</dd>
+                  </div>
+                  <div class="detail-field">
+                    <dt class="detail-label">Tipo</dt>
+                    <dd class="detail-value">${escapeHtml(rule.type)}</dd>
+                  </div>
+                  <div class="detail-field">
+                    <dt class="detail-label">Titolo</dt>
+                    <dd class="detail-value">${escapeHtml(rule.title)}</dd>
+                  </div>
+                  <div class="detail-field">
+                    <dt class="detail-label">Versione</dt>
+                    <dd class="detail-value">${escapeHtml(rule.versione)}</dd>
+                  </div>
+                  <div class="detail-field">
+                    <dt class="detail-label">Raccom.</dt>
+                    <dd class="detail-value">${escapeHtml(rule.priorita)}</dd>
+                  </div>
+                  <div class="detail-field">
+                    <dt class="detail-label">Fase</dt>
+                    <dd class="detail-value">${escapeHtml(rule.clinicalPhase)}</dd>
+                  </div>
+                  <div class="detail-field">
+                    <dt class="detail-label">Evidenza</dt>
+                    <dd class="detail-value">${escapeHtml(rule.evidenceLevel)}</dd>
+                  </div>
+                </dl>
+              </details>
+            </li>
+          `;
+        })
+        .join("");
+
+      ruleList.querySelectorAll(".view-btn").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const index = Number(button.dataset.index);
+          const selected = rulesStemi[index];
+          if (selected) {
+            openDrawer(selected);
+          }
+        });
+      });
+    }
+
+    function renderImaging() {
+      closeDrawer();
+      setActive(imagingBtn);
+      title.textContent = "Imaging";
+      badge.textContent = "0 regole";
+      ruleList.hidden = true;
+      placeholder.hidden = false;
+      placeholder.textContent = "Nessuna regola configurata per Imaging.";
+    }
+
+    diagnosiBtn.addEventListener("click", renderDiagnosi);
+    imagingBtn.addEventListener("click", renderImaging);
+
+    menuButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      menuPanel.classList.toggle("open");
+    });
+
+    document.addEventListener("click", () => {
+      menuPanel.classList.remove("open");
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      menuPanel.classList.remove("open");
+      alert("Logout eseguito.");
+    });
+
+    drawerClose.addEventListener("click", closeDrawer);
+    drawerBackdrop.addEventListener("click", closeDrawer);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeDrawer();
+      }
+    });
+
+    loadLocalBtn.addEventListener("click", () => {
+      jsonFolderInput.click();
+    });
+
+    jsonFolderInput.addEventListener("change", async (event) => {
+      badge.textContent = "Caricamento...";
+      await loadRulesFromLocalSelection(event.target.files);
+      closeDrawer();
+      renderDiagnosi();
+    });
+
+    async function init() {
+      badge.textContent = "0 regole";
+      renderDiagnosi();
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,585 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-002",
+  "rule_type": "do",
+  "title": "Diagnosi e stratificazione del rischio a breve termine della SCA basata su anamnesi, sintomi, segni vitali, esame obiettivo, ECG e troponina ad alta sensibilità",
+  "short_label": "Diagnosi SCA multiparametrica",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "diagnosi",
+  "care_settings": [
+    "Pronto Soccorso",
+    "Servizio di Emergenza Territoriale (118)",
+    "Unità di Terapia Intensiva Cardiologica"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "Medico di Pronto Soccorso",
+      "responsibility_type": "primary",
+      "organization_unit": "Pronto Soccorso / Dipartimento di Emergenza-Urgenza",
+      "notes": "Responsabile principale della valutazione diagnostica iniziale integrata del paziente con sospetta SCA."
+    },
+    {
+      "role_name": "Cardiologo di guardia",
+      "responsibility_type": "consulted",
+      "organization_unit": "Unità di Terapia Intensiva Cardiologica (UTIC)",
+      "notes": "Consulente per la conferma diagnostica e la stratificazione del rischio nei casi complessi."
+    },
+    {
+      "role_name": "Infermiere di Triage",
+      "responsibility_type": "supporting",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Supporta la raccolta dei parametri vitali, l'esecuzione dell'ECG e il prelievo ematico per troponina."
+    },
+    {
+      "role_name": "Medico del Servizio di Emergenza Territoriale",
+      "responsibility_type": "primary",
+      "organization_unit": "Servizio 118",
+      "notes": "In fase pre-ospedaliera è responsabile della valutazione clinica iniziale, dell'ECG e della trasmissione dei dati."
+    }
+  ],
+  "deontic_strength": "mandatory",
+  "recommendation_strength": "Classe I",
+  "evidence_level": "Livello di evidenza B",
+  "original_statement": "It is recommended to base the diagnosis and initial short-term risk stratification of ACS on a combination of clinical history, symptoms, vital signs, other physical findings, ECG, and hs-cTn.",
+  "normalized_statement": "La diagnosi e la stratificazione iniziale del rischio a breve termine della sindrome coronarica acuta devono essere basate sulla combinazione di anamnesi clinica, sintomi, segni vitali, altri reperti dell'esame obiettivo, elettrocardiogramma e troponina cardiaca ad alta sensibilità.",
+  "intent": "Garantire una diagnosi accurata e una stratificazione del rischio a breve termine della SCA mediante un approccio diagnostico multiparametrico integrato che combini dati clinici, strumentali e di laboratorio.",
+  "rationale": "L'utilizzo combinato di anamnesi, sintomi, parametri vitali, esame obiettivo, ECG e troponina ad alta sensibilità consente di aumentare la sensibilità e la specificità diagnostica della SCA, riducendo il rischio di mancata diagnosi e permettendo una stratificazione prognostica precoce che orienta il trattamento tempestivo.",
+  "source_references": [
+    {
+      "source_id": "ESC-ACS-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione 3 - Diagnosi",
+      "page_reference": null,
+      "statement_quote": "It is recommended to base the diagnosis and initial short-term risk stratification of ACS on a combination of clinical history, symptoms, vital signs, other physical findings, ECG, and hs-cTn.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto protetto da copyright ESC. Uso a fini clinici e di ricerca conforme alle condizioni di utilizzo dell'editore."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti (età ≥ 18 anni) che si presentano con sospetta sindrome coronarica acuta, incluso STEMI, NSTEMI e angina instabile.",
+    "clinical_context": "Sospetto clinico di sindrome coronarica acuta (SCA) in fase acuta, inclusa la presentazione con dolore toracico, dispnea, sintomi equivalenti anginosi o alterazioni emodinamiche suggestive.",
+    "care_context": "Fase diagnostica iniziale in ambito pre-ospedaliero (118) e in Pronto Soccorso, fino alla conferma o esclusione della diagnosi di SCA.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "IC-001",
+        "label": "Sospetta SCA",
+        "description": "Paziente adulto che si presenta con sintomi compatibili con sindrome coronarica acuta, come dolore toracico, dispnea acuta, sincope o equivalenti anginosi.",
+        "logic_expression": "age >= 18 AND (chief_complaint IN ['dolore_toracico', 'dispnea_acuta', 'sincope', 'equivalente_anginoso'] OR clinical_suspicion == 'SCA')",
+        "data_elements": [
+          "DE-001",
+          "DE-002"
+        ],
+        "inference_allowed": true
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "EC-001",
+        "label": "Causa non cardiaca chiaramente identificata",
+        "description": "Paziente in cui una causa non cardiaca dei sintomi è stata chiaramente identificata e documentata prima della valutazione multiparametrica (ad es. trauma toracico diretto, pneumotorace evidente alla radiografia).",
+        "logic_expression": "confirmed_non_cardiac_etiology == true AND alternative_diagnosis IS NOT NULL",
+        "data_elements": [
+          "DE-010"
+        ],
+        "inference_allowed": false
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "documented_symptom",
+    "trigger_description": "Il paziente si presenta al Pronto Soccorso o viene valutato dal Servizio di Emergenza Territoriale con sintomi suggestivi di sindrome coronarica acuta (dolore toracico acuto, dispnea, sudorazione, nausea, sincope o equivalenti anginosi).",
+    "anchor_event": "primo_contatto_medico",
+    "start_of_applicability": "Dal momento del primo contatto medico con il paziente che presenta sospetta SCA.",
+    "end_of_applicability": "Fino al completamento della valutazione diagnostica iniziale integrata e alla formulazione della diagnosi di lavoro.",
+    "trigger_data_elements": [
+      "DE-001",
+      "DE-002",
+      "DE-003"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "EX-001",
+      "label": "Arresto cardiaco in corso con necessità di rianimazione immediata",
+      "description": "Nel paziente in arresto cardiaco, le manovre rianimatorie hanno priorità assoluta. La valutazione diagnostica multiparametrica completa può essere posticipata fino al ripristino della circolazione spontanea (ROSC).",
+      "condition_logic": "patient_status == 'arresto_cardiaco' AND rosc == false",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dello stato di arresto cardiaco",
+        "Registrazione dei tempi di rianimazione cardiopolmonare",
+        "Nota clinica che giustifica il differimento della valutazione diagnostica completa"
+      ]
+    },
+    {
+      "exception_id": "EX-002",
+      "label": "Instabilità emodinamica critica che richiede intervento immediato",
+      "description": "In presenza di shock cardiogeno o instabilità emodinamica grave con necessità di supporto circolatorio immediato, alcune componenti della valutazione diagnostica possono essere differite o eseguite in parallelo con le manovre di stabilizzazione.",
+      "condition_logic": "hemodynamic_status == 'shock_cardiogeno' OR systolic_bp < 90",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dei parametri emodinamici critici",
+        "Nota clinica sulla prioritizzazione delle manovre di stabilizzazione"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "eseguire",
+    "action_description": "Eseguire una valutazione diagnostica integrata e una stratificazione iniziale del rischio a breve termine della SCA basata sulla combinazione sistematica di: anamnesi clinica (inclusa storia cardiologica, fattori di rischio cardiovascolare, terapie in corso), valutazione dei sintomi (caratteristiche del dolore toracico, sintomi associati), rilevazione dei segni vitali (pressione arteriosa, frequenza cardiaca, frequenza respiratoria, saturazione di ossigeno), esame obiettivo (inclusi segni di scompenso cardiaco, soffi, segni di ipoperfusione), registrazione e interpretazione dell'ECG a 12 derivazioni, e dosaggio della troponina cardiaca ad alta sensibilità (hs-cTn).",
+    "action_target": "Valutazione diagnostica integrata multiparametrica per SCA",
+    "action_parameters": [
+      {
+        "parameter_name": "Anamnesi clinica",
+        "parameter_description": "Raccolta dell'anamnesi completa inclusi fattori di rischio cardiovascolare, storia cardiologica, comorbilità, terapie farmacologiche in corso e anamnesi familiare per cardiopatia ischemica.",
+        "expected_value": "completata",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Valutazione dei sintomi",
+        "parameter_description": "Caratterizzazione dei sintomi di presentazione: tipo, localizzazione, irradiazione, durata, intensità del dolore toracico; presenza di sintomi associati quali dispnea, nausea, sudorazione, sincope.",
+        "expected_value": "completata",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Segni vitali",
+        "parameter_description": "Rilevazione di pressione arteriosa sistolica e diastolica, frequenza cardiaca, frequenza respiratoria, saturazione periferica di ossigeno e temperatura corporea.",
+        "expected_value": "completata",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Esame obiettivo",
+        "parameter_description": "Esame obiettivo cardiovascolare e sistemico con ricerca di segni di scompenso cardiaco, soffi cardiaci, segni di ipoperfusione periferica, turgore giugulare e rantoli polmonari.",
+        "expected_value": "completato",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "ECG a 12 derivazioni",
+        "parameter_description": "Registrazione e interpretazione di un elettrocardiogramma a 12 derivazioni standard per identificare sopraslivellamento del tratto ST, sottoslivellamento, inversione dell'onda T o altre anomalie suggestive di ischemia acuta.",
+        "expected_value": "eseguito e interpretato",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Troponina cardiaca ad alta sensibilità (hs-cTn)",
+        "parameter_description": "Dosaggio della troponina cardiaca ad alta sensibilità (hs-cTnI o hs-cTnT) su prelievo ematico per identificare danno miocardico acuto.",
+        "expected_value": "dosata",
+        "comparison_operator": "equals",
+        "unit": "ng/L",
+        "mandatory": true
+      }
+    ],
+    "alternative_compliant_actions": [
+      "In fase pre-ospedaliera, se il dosaggio della hs-cTn non è disponibile, eseguire tutte le altre componenti della valutazione e assicurare il prelievo ematico più precoce possibile all'arrivo in Pronto Soccorso."
+    ]
+  },
+  "completion_criteria": {
+    "description": "La regola è soddisfatta quando tutte e sei le componenti della valutazione diagnostica integrata sono state eseguite e documentate: anamnesi clinica, valutazione dei sintomi, rilevazione dei segni vitali, esame obiettivo, ECG a 12 derivazioni interpretato e dosaggio della hs-cTn con risultato disponibile. La diagnosi di lavoro e la stratificazione iniziale del rischio devono essere documentate.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "raccolta_anamnesi",
+      "valutazione_sintomi",
+      "rilevazione_segni_vitali",
+      "esame_obiettivo",
+      "registrazione_ECG_12_derivazioni",
+      "dosaggio_hs_cTn",
+      "formulazione_diagnosi_di_lavoro"
+    ],
+    "required_documentation_elements": [
+      "Referto anamnesi clinica nel verbale di Pronto Soccorso",
+      "Descrizione dei sintomi di presentazione",
+      "Parametri vitali registrati",
+      "Referto dell'esame obiettivo",
+      "Tracciato ECG a 12 derivazioni con interpretazione",
+      "Risultato del dosaggio della troponina ad alta sensibilità",
+      "Diagnosi di lavoro e stratificazione del rischio iniziale"
+    ],
+    "success_condition": "anamnesi_completata == true AND sintomi_valutati == true AND segni_vitali_rilevati == true AND esame_obiettivo_completato == true AND ECG_12_derivazioni_eseguito == true AND ECG_interpretato == true AND hs_cTn_dosata == true AND diagnosi_di_lavoro_formulata == true"
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "TC-001",
+      "description": "L'ECG a 12 derivazioni deve essere eseguito e interpretato entro 10 minuti dal primo contatto medico.",
+      "relation_to_anchor": "within",
+      "anchor_event": "primo_contatto_medico",
+      "duration_value": 10,
+      "duration_unit": "minuti",
+      "hard_deadline": true,
+      "alert_threshold_value": 7,
+      "alert_threshold_unit": "minuti"
+    },
+    {
+      "constraint_id": "TC-002",
+      "description": "Il prelievo ematico per il dosaggio della troponina ad alta sensibilità deve essere effettuato il prima possibile e comunque contestualmente al primo accesso venoso.",
+      "relation_to_anchor": "within",
+      "anchor_event": "primo_contatto_medico",
+      "duration_value": 20,
+      "duration_unit": "minuti",
+      "hard_deadline": false,
+      "alert_threshold_value": 15,
+      "alert_threshold_unit": "minuti"
+    },
+    {
+      "constraint_id": "TC-003",
+      "description": "La valutazione diagnostica integrata completa (inclusi anamnesi, sintomi, segni vitali, esame obiettivo, ECG interpretato e risultato hs-cTn) deve essere completata entro 60 minuti dal primo contatto medico.",
+      "relation_to_anchor": "within",
+      "anchor_event": "primo_contatto_medico",
+      "duration_value": 60,
+      "duration_unit": "minuti",
+      "hard_deadline": false,
+      "alert_threshold_value": 45,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "SC-001",
+      "description": "L'ECG a 12 derivazioni deve essere eseguito prima o contestualmente alla formulazione della diagnosi di lavoro e della stratificazione del rischio.",
+      "predecessor_event": "registrazione_ECG_12_derivazioni",
+      "successor_event": "formulazione_diagnosi_di_lavoro",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "La diagnosi di lavoro viene formulata senza che sia stato eseguito e interpretato un ECG a 12 derivazioni."
+    },
+    {
+      "constraint_id": "SC-002",
+      "description": "Il dosaggio della troponina ad alta sensibilità deve essere richiesto prima o in parallelo con il completamento dell'esame obiettivo.",
+      "predecessor_event": "richiesta_dosaggio_hs_cTn",
+      "successor_event": "completamento_esame_obiettivo",
+      "allowed_order": "any_order",
+      "violation_condition": "Il dosaggio della hs-cTn non viene richiesto durante l'intero corso della valutazione diagnostica iniziale."
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-001",
+      "name": "Età del paziente",
+      "description": "Età anagrafica del paziente al momento della presentazione.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Estrarre dalla scheda anagrafica del paziente nel sistema di Pronto Soccorso."
+    },
+    {
+      "data_element_id": "DE-002",
+      "name": "Motivo di accesso / sintomo principale",
+      "description": "Sintomo o motivo principale di presentazione del paziente (es. dolore toracico, dispnea, sincope).",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "ICD-10",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Campi di triage o motivo di accesso nel sistema di PS. Se non codificato, inferire dal testo libero di triage."
+    },
+    {
+      "data_element_id": "DE-003",
+      "name": "Timestamp primo contatto medico",
+      "description": "Data e ora del primo contatto medico (First Medical Contact - FMC) con il paziente.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Orario di presa in carico medica o primo contatto 118 nel sistema informatico del PS o del 118."
+    },
+    {
+      "data_element_id": "DE-004",
+      "name": "Anamnesi clinica documentata",
+      "description": "Documentazione dell'anamnesi clinica inclusi fattori di rischio cardiovascolare, storia cardiologica pregressa, comorbilità e terapie in corso.",
+      "source_location": "ehr_unstructured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Sezione anamnesi del verbale di Pronto Soccorso. Verificare la presenza di menzioni di fattori di rischio CV e storia cardiologica."
+    },
+    {
+      "data_element_id": "DE-005",
+      "name": "Segni vitali rilevati",
+      "description": "Set completo dei parametri vitali: pressione arteriosa sistolica e diastolica (mmHg), frequenza cardiaca (bpm), frequenza respiratoria (atti/min), saturazione O2 (%), temperatura corporea (°C).",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Tabella dei parametri vitali nel sistema di monitoraggio o nel modulo di triage/PS."
+    },
+    {
+      "data_element_id": "DE-006",
+      "name": "ECG a 12 derivazioni - timestamp esecuzione",
+      "description": "Data e ora di esecuzione dell'elettrocardiogramma a 12 derivazioni.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Timestamp di acquisizione dal sistema ECG o dall'ordine/risultato nel sistema informatico di PS."
+    },
+    {
+      "data_element_id": "DE-007",
+      "name": "ECG a 12 derivazioni - referto interpretativo",
+      "description": "Interpretazione clinica dell'ECG a 12 derivazioni con identificazione di eventuali segni di ischemia, sopraslivellamento ST, sottoslivellamento ST, inversione onde T, aritmie.",
+      "source_location": "ehr_unstructured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Referto ECG nel sistema di refertazione o nel verbale di PS. Cercare menzioni di STEMI, sopraslivellamento ST, ischemia."
+    },
+    {
+      "data_element_id": "DE-008",
+      "name": "Risultato troponina ad alta sensibilità (hs-cTn)",
+      "description": "Valore numerico del dosaggio della troponina cardiaca ad alta sensibilità (hs-cTnI o hs-cTnT) con timestamp del prelievo e del risultato.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Risultato di laboratorio con codice LOINC 89579-7 (hs-cTnI) o 67151-1 (hs-cTnT). Verificare unità di misura (ng/L o pg/mL)."
+    },
+    {
+      "data_element_id": "DE-009",
+      "name": "Esame obiettivo documentato",
+      "description": "Documentazione dell'esame obiettivo cardiovascolare e sistemico, con menzione di eventuali segni di scompenso cardiaco, soffi, rantoli, turgore giugulare, segni di ipoperfusione.",
+      "source_location": "ehr_unstructured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Sezione esame obiettivo del verbale di Pronto Soccorso."
+    },
+    {
+      "data_element_id": "DE-010",
+      "name": "Diagnosi alternativa non cardiaca confermata",
+      "description": "Eventuale diagnosi alternativa non cardiaca confermata che escluda il paziente dal sospetto di SCA.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "ICD-10",
+      "required_for_evaluation": false,
+      "extraction_method": "hybrid",
+      "query_hint": "Campo diagnosi nel sistema di PS. Se assente, verificare note cliniche per esclusione SCA documentata."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "EOC-001",
+      "description": "Presenza di documentazione dell'anamnesi clinica nel verbale di Pronto Soccorso con menzione di fattori di rischio cardiovascolare e storia cardiologica.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 60 minuti dal primo contatto medico.",
+      "derived_from_data_elements": [
+        "DE-004"
+      ]
+    },
+    {
+      "evidence_id": "EOC-002",
+      "description": "Registrazione completa dei segni vitali (PA, FC, FR, SpO2) nel sistema informatico.",
+      "evidence_type": "result",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 10 minuti dal primo contatto medico.",
+      "derived_from_data_elements": [
+        "DE-005"
+      ]
+    },
+    {
+      "evidence_id": "EOC-003",
+      "description": "Presenza di un ECG a 12 derivazioni eseguito e interpretato con timestamp coerente con i vincoli temporali.",
+      "evidence_type": "result",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 10 minuti dal primo contatto medico.",
+      "derived_from_data_elements": [
+        "DE-006",
+        "DE-007"
+      ]
+    },
+    {
+      "evidence_id": "EOC-004",
+      "description": "Risultato numerico disponibile del dosaggio della troponina cardiaca ad alta sensibilità (hs-cTn).",
+      "evidence_type": "result",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 60 minuti dal primo contatto medico.",
+      "derived_from_data_elements": [
+        "DE-008"
+      ]
+    },
+    {
+      "evidence_id": "EOC-005",
+      "description": "Documentazione dell'esame obiettivo cardiovascolare nel verbale di Pronto Soccorso.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 60 minuti dal primo contatto medico.",
+      "derived_from_data_elements": [
+        "DE-009"
+      ]
+    },
+    {
+      "evidence_id": "EOC-006",
+      "description": "Diagnosi di lavoro e stratificazione del rischio iniziale documentate nel verbale di PS, con menzione esplicita dell'integrazione dei dati clinici, strumentali e di laboratorio.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 60 minuti dal primo contatto medico.",
+      "derived_from_data_elements": [
+        "DE-004",
+        "DE-005",
+        "DE-007",
+        "DE-008",
+        "DE-009"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "EONC-001",
+      "description": "Assenza di ECG a 12 derivazioni eseguito o assenza di interpretazione documentata entro i tempi previsti.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Oltre 10 minuti dal primo contatto medico senza evidenza di ECG.",
+      "derived_from_data_elements": [
+        "DE-006",
+        "DE-007"
+      ]
+    },
+    {
+      "evidence_id": "EONC-002",
+      "description": "Assenza di dosaggio della troponina ad alta sensibilità o risultato non disponibile durante la fase diagnostica iniziale.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 60 minuti dal primo contatto medico senza risultato hs-cTn.",
+      "derived_from_data_elements": [
+        "DE-008"
+      ]
+    },
+    {
+      "evidence_id": "EONC-003",
+      "description": "Assenza di documentazione dell'anamnesi clinica o dell'esame obiettivo nel verbale di Pronto Soccorso.",
+      "evidence_type": "documentation_gap",
+      "minimum_occurrences": 1,
+      "time_reference": "Al momento della chiusura del percorso diagnostico iniziale.",
+      "derived_from_data_elements": [
+        "DE-004",
+        "DE-009"
+      ]
+    },
+    {
+      "evidence_id": "EONC-004",
+      "description": "Diagnosi di lavoro formulata senza integrazione documentata di tutte le componenti previste (anamnesi, sintomi, segni vitali, esame obiettivo, ECG, hs-cTn).",
+      "evidence_type": "documentation_gap",
+      "minimum_occurrences": 1,
+      "time_reference": "Al momento della formulazione della diagnosi di lavoro.",
+      "derived_from_data_elements": [
+        "DE-004",
+        "DE-005",
+        "DE-007",
+        "DE-008",
+        "DE-009"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Verificare che per il paziente con sospetta SCA siano presenti e documentate tutte e sei le componenti della valutazione diagnostica integrata: (1) anamnesi clinica, (2) valutazione dei sintomi, (3) segni vitali, (4) esame obiettivo, (5) ECG a 12 derivazioni eseguito e interpretato, (6) dosaggio della troponina ad alta sensibilità con risultato disponibile. Inoltre, verificare che sia stata formulata e documentata una diagnosi di lavoro con stratificazione del rischio iniziale basata sull'integrazione di tali elementi.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF (anamnesi_documentata == true AND sintomi_valutati == true AND segni_vitali_completi == true AND esame_obiettivo_documentato == true AND ECG_12_derivazioni_eseguito == true AND ECG_interpretato == true AND hs_cTn_risultato_disponibile == true AND diagnosi_di_lavoro_formulata == true) THEN status = 'compliant' ELIF (exception_documented == true AND required_justification_present == true) THEN status = 'justified_deviation' ELIF (any_component_missing == true AND no_justification == true) THEN status = 'non_compliant' ELSE status = 'not_evaluable'",
+    "missing_data_policy": "review_required",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "human_review",
+    "notes": "Alcune componenti (anamnesi, esame obiettivo, valutazione dei sintomi) sono tipicamente documentate in formato narrativo non strutturato e possono richiedere estrazione inferenziale tramite NLP. La completezza della documentazione è l'indicatore primario di compliance."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "Verbale di Pronto Soccorso",
+      "Note cliniche di triage",
+      "Note cliniche del medico di PS",
+      "Referto ECG",
+      "Risultati di laboratorio",
+      "Scheda 118 pre-ospedaliera"
+    ],
+    "human_review_required": true,
+    "minimum_confidence": 0.85,
+    "notes": "L'estrazione deterministica è possibile per segni vitali, timestamp ECG e risultato hs-cTn. Per anamnesi, esame obiettivo e valutazione dei sintomi è necessaria l'analisi del testo libero con verifica umana. La revisione manuale è raccomandata per la conferma della completezza dell'integrazione diagnostica."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable",
+    "probable_non_compliance"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "critical",
+    "process_risk_severity": "high",
+    "likelihood_if_violated": "likely",
+    "detectability": "moderate",
+    "priority_score": 95,
+    "rationale": "La mancata esecuzione di una valutazione diagnostica integrata completa per la SCA può portare a diagnosi mancate o ritardate, con conseguenze potenzialmente fatali (infarto miocardico non riconosciuto, ritardo nella riperfusione). L'omissione di singole componenti (es. ECG o troponina) riduce significativamente la sensibilità diagnostica e compromette la stratificazione del rischio."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Anamnesi clinica con fattori di rischio cardiovascolare",
+      "Descrizione dei sintomi di presentazione",
+      "Parametri vitali completi (PA, FC, FR, SpO2)",
+      "Esame obiettivo cardiovascolare e generale",
+      "Tracciato ECG a 12 derivazioni con interpretazione",
+      "Risultato dosaggio hs-cTn con timestamp",
+      "Diagnosi di lavoro e stratificazione del rischio"
+    ],
+    "acceptable_evidence_sources": [
+      "Verbale di Pronto Soccorso",
+      "Scheda di triage",
+      "Sistema di refertazione ECG",
+      "Sistema informativo di laboratorio (LIS)",
+      "Scheda del Servizio 118",
+      "Cartella clinica elettronica",
+      "Sistema di monitoraggio parametri vitali"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Nota clinica nel verbale di Pronto Soccorso con motivazione della deviazione",
+      "Campo note di eccezione nel sistema informativo di PS"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "STEMI-WS-003",
+    "STEMI-WS-004"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "La raccomandazione originale ESC è stata tradotta e contestualizzata al sistema sanitario italiano. Il termine 'hs-cTn' è stato mantenuto come sigla internazionale con traduzione esplicita 'troponina cardiaca ad alta sensibilità'. La forza della raccomandazione ('It is recommended') è stata mappata a Classe I ESC e forza deontica 'mandatory'. I vincoli temporali (10 minuti per ECG, 60 minuti per valutazione completa) sono stati derivati da altre raccomandazioni delle stesse linee guida ESC e dal contesto STEMI.",
+    "extraction_confidence": 0.92,
+    "ambiguity_flags": [
+      "Il testo originale non specifica vincoli temporali espliciti per ciascuna componente; i tempi sono stati integrati da altre sezioni delle linee guida ESC 2023.",
+      "La raccomandazione si riferisce genericamente ad 'ACS' e non specificamente a STEMI; è stata contestualizzata al pathway STEMI ma si applica anche a NSTEMI e angina instabile.",
+      "Il livello di evidenza non è esplicitamente indicato nel frammento di testo fornito; è stato assegnato 'Livello B' sulla base della raccomandazione completa nel documento ESC."
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Gruppo di Lavoro PDTA STEMI - Rete Cardiologica",
+    "rule_owner": "Direttore Clinico del Dipartimento di Emergenza-Urgenza",
+    "effective_from": "2024-01-01",
+    "effective_to": null,
+    "review_cycle": "Ogni 12 mesi o in caso di aggiornamento delle linee guida ESC",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

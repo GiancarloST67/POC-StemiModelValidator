@@ -1,0 +1,1755 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Risk Weak Signal Schema",
+  "description": "Schema for an early warning or weak signal associated with a parent clinical rule.",
+  "type": "object",
+  "$defs": {
+    "source_reference": {
+      "type": "object",
+      "description": "Reference to a source document or source fragment from which the rule was derived.",
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "description": "Stable identifier of the source document in the local knowledge base."
+        },
+        "source_level": {
+          "type": "string",
+          "enum": [
+            "international",
+            "national",
+            "regional",
+            "local",
+            "institutional",
+            "other"
+          ],
+          "description": "Governance level of the source document."
+        },
+        "issuer": {
+          "type": "string",
+          "description": "Organization or authority that issued the source document."
+        },
+        "document_title": {
+          "type": "string",
+          "description": "Full title of the source document."
+        },
+        "document_version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Version, edition, or release identifier of the source document, if available."
+        },
+        "publication_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date",
+          "description": "Publication date of the source document, if known."
+        },
+        "section_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Section, chapter, paragraph, or recommendation identifier inside the source document."
+        },
+        "page_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Page or page range inside the source document, if relevant."
+        },
+        "statement_quote": {
+          "type": "string",
+          "description": "Short quoted or paraphrased source statement that grounds the rule."
+        },
+        "citation_uri": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "Canonical URI, repository URL, or document link for the source, if available."
+        },
+        "license_note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Any relevant usage, licensing, or reuse note attached to the source content."
+        }
+      },
+      "required": [
+        "source_id",
+        "source_level",
+        "issuer",
+        "document_title",
+        "document_version",
+        "publication_date",
+        "section_reference",
+        "page_reference",
+        "statement_quote",
+        "citation_uri",
+        "license_note"
+      ],
+      "additionalProperties": false
+    },
+    "actor_role": {
+      "type": "object",
+      "description": "Clinical or organizational role accountable for performing, supporting, or monitoring the rule.",
+      "properties": {
+        "role_name": {
+          "type": "string",
+          "description": "Human-readable name of the role, such as emergency physician, triage nurse, or cath lab team."
+        },
+        "responsibility_type": {
+          "type": "string",
+          "enum": [
+            "primary",
+            "supporting",
+            "consulted",
+            "informed",
+            "monitoring"
+          ],
+          "description": "Type of responsibility the role has with respect to the rule."
+        },
+        "organization_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional service, ward, department, or network node associated with the role."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional clarifying note about the role or its responsibility boundaries."
+        }
+      },
+      "required": [
+        "role_name",
+        "responsibility_type",
+        "organization_unit",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "criterion": {
+      "type": "object",
+      "description": "Formalized inclusion or exclusion criterion used to determine whether the rule applies.",
+      "properties": {
+        "criterion_id": {
+          "type": "string",
+          "description": "Stable identifier of the criterion inside the rule."
+        },
+        "label": {
+          "type": "string",
+          "description": "Short human-readable label for the criterion."
+        },
+        "description": {
+          "type": "string",
+          "description": "Clinical meaning of the criterion in plain language."
+        },
+        "logic_expression": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional computable or semi-computable expression representing the criterion."
+        },
+        "data_elements": {
+          "type": "array",
+          "description": "Identifiers of the data elements needed to test the criterion.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inference_allowed": {
+          "type": "boolean",
+          "description": "Whether the criterion may be satisfied by inferred evidence from unstructured text or derived signals."
+        }
+      },
+      "required": [
+        "criterion_id",
+        "label",
+        "description",
+        "logic_expression",
+        "data_elements",
+        "inference_allowed"
+      ],
+      "additionalProperties": false
+    },
+    "exception_condition": {
+      "type": "object",
+      "description": "Explicit exception, override, or clinically justified deviation condition associated with the rule.",
+      "properties": {
+        "exception_id": {
+          "type": "string",
+          "description": "Stable identifier of the exception inside the rule."
+        },
+        "label": {
+          "type": "string",
+          "description": "Short label for the exception or override condition."
+        },
+        "description": {
+          "type": "string",
+          "description": "Clinical meaning of the exception in plain language."
+        },
+        "condition_logic": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional computable or semi-computable expression that defines the exception."
+        },
+        "required_justification": {
+          "type": "boolean",
+          "description": "Whether explicit justification must be documented when this exception is used."
+        },
+        "required_evidence": {
+          "type": "array",
+          "description": "List of evidence items that should support the use of this exception.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "exception_id",
+        "label",
+        "description",
+        "condition_logic",
+        "required_justification",
+        "required_evidence"
+      ],
+      "additionalProperties": false
+    },
+    "trigger": {
+      "type": "object",
+      "description": "Event or condition that makes the rule applicable in a specific patient episode.",
+      "properties": {
+        "trigger_type": {
+          "type": "string",
+          "enum": [
+            "event",
+            "state",
+            "timepoint",
+            "diagnostic_finding",
+            "order",
+            "result",
+            "documented_symptom",
+            "derived_inference",
+            "other"
+          ],
+          "description": "Semantic category of the trigger."
+        },
+        "trigger_description": {
+          "type": "string",
+          "description": "Human-readable description of what starts applicability of the rule."
+        },
+        "anchor_event": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Canonical event name used as the temporal anchor for downstream constraints, if any."
+        },
+        "start_of_applicability": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Description of when the rule becomes active within the episode."
+        },
+        "end_of_applicability": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Description of when the rule ceases to be applicable."
+        },
+        "trigger_data_elements": {
+          "type": "array",
+          "description": "Identifiers of the data elements needed to detect the trigger.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inference_allowed": {
+          "type": "boolean",
+          "description": "Whether the trigger may be inferred from unstructured notes or derived evidence rather than directly observed structured data."
+        }
+      },
+      "required": [
+        "trigger_type",
+        "trigger_description",
+        "anchor_event",
+        "start_of_applicability",
+        "end_of_applicability",
+        "trigger_data_elements",
+        "inference_allowed"
+      ],
+      "additionalProperties": false
+    },
+    "time_constraint": {
+      "type": "object",
+      "description": "Temporal requirement attached to the rule, relative to an anchor event or timepoint.",
+      "properties": {
+        "constraint_id": {
+          "type": "string",
+          "description": "Stable identifier of the temporal constraint inside the rule."
+        },
+        "description": {
+          "type": "string",
+          "description": "Plain-language description of the temporal requirement."
+        },
+        "relation_to_anchor": {
+          "type": "string",
+          "enum": [
+            "before",
+            "after",
+            "within",
+            "no_later_than",
+            "not_before",
+            "immediate",
+            "continuous",
+            "until"
+          ],
+          "description": "Temporal relation between the constrained action and its anchor event."
+        },
+        "anchor_event": {
+          "type": "string",
+          "description": "Name of the event or timepoint used as the temporal anchor."
+        },
+        "duration_value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Numeric duration associated with the constraint, if applicable."
+        },
+        "duration_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Unit of the duration, such as seconds, minutes, hours, or days."
+        },
+        "hard_deadline": {
+          "type": "boolean",
+          "description": "Whether crossing the time limit directly produces non-compliance rather than early warning only."
+        },
+        "alert_threshold_value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Optional earlier threshold used to raise a weak signal before actual non-compliance."
+        },
+        "alert_threshold_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Unit associated with the alert threshold, if any."
+        }
+      },
+      "required": [
+        "constraint_id",
+        "description",
+        "relation_to_anchor",
+        "anchor_event",
+        "duration_value",
+        "duration_unit",
+        "hard_deadline",
+        "alert_threshold_value",
+        "alert_threshold_unit"
+      ],
+      "additionalProperties": false
+    },
+    "sequence_constraint": {
+      "type": "object",
+      "description": "Ordering requirement between clinical events relevant to the rule.",
+      "properties": {
+        "constraint_id": {
+          "type": "string",
+          "description": "Stable identifier of the sequence constraint inside the rule."
+        },
+        "description": {
+          "type": "string",
+          "description": "Plain-language description of the ordering requirement."
+        },
+        "predecessor_event": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Event expected to occur first in the compliant sequence."
+        },
+        "successor_event": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Event expected to occur after the predecessor event."
+        },
+        "allowed_order": {
+          "type": "string",
+          "enum": [
+            "predecessor_first",
+            "successor_first",
+            "same_encounter",
+            "any_order"
+          ],
+          "description": "Canonical allowed ordering pattern for the two events."
+        },
+        "violation_condition": {
+          "type": "string",
+          "description": "Human-readable or computable condition that defines when the required sequence is broken."
+        }
+      },
+      "required": [
+        "constraint_id",
+        "description",
+        "predecessor_event",
+        "successor_event",
+        "allowed_order",
+        "violation_condition"
+      ],
+      "additionalProperties": false
+    },
+    "data_element": {
+      "type": "object",
+      "description": "Data element required to evaluate the rule or the weak signal.",
+      "properties": {
+        "data_element_id": {
+          "type": "string",
+          "description": "Stable identifier of the data element in the local data dictionary."
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name of the data element."
+        },
+        "description": {
+          "type": "string",
+          "description": "Clinical or technical meaning of the data element."
+        },
+        "source_location": {
+          "type": "string",
+          "enum": [
+            "ehr_structured",
+            "ehr_unstructured",
+            "pdta_er_model",
+            "derived",
+            "manual_review",
+            "external_registry",
+            "other"
+          ],
+          "description": "Primary source location from which the data element is expected to be retrieved."
+        },
+        "data_type": {
+          "type": "string",
+          "description": "Data type or semantic type of the element, such as datetime, coded concept, numeric, text, or boolean."
+        },
+        "coding_system": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional coding system or terminology used by the data element, such as ICD-10, SNOMED CT, LOINC, or local code set."
+        },
+        "required_for_evaluation": {
+          "type": "boolean",
+          "description": "Whether the data element is strictly necessary to evaluate the rule or signal."
+        },
+        "extraction_method": {
+          "type": "string",
+          "enum": [
+            "deterministic",
+            "inferential",
+            "hybrid",
+            "manual"
+          ],
+          "description": "Method by which the data element is expected to be extracted or derived."
+        },
+        "query_hint": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional implementation note, query hint, or extraction hint for engineering teams."
+        }
+      },
+      "required": [
+        "data_element_id",
+        "name",
+        "description",
+        "source_location",
+        "data_type",
+        "coding_system",
+        "required_for_evaluation",
+        "extraction_method",
+        "query_hint"
+      ],
+      "additionalProperties": false
+    },
+    "evidence_pattern": {
+      "type": "object",
+      "description": "Pattern of observable evidence used to support compliance, non-compliance, violation, or override states.",
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "description": "Stable identifier of the evidence pattern inside the schema instance."
+        },
+        "description": {
+          "type": "string",
+          "description": "Plain-language description of the evidence pattern."
+        },
+        "evidence_type": {
+          "type": "string",
+          "enum": [
+            "order",
+            "execution",
+            "result",
+            "documentation",
+            "timestamp",
+            "absence_of_event",
+            "sequence",
+            "derived_fact",
+            "justification",
+            "other"
+          ],
+          "description": "Type of evidence represented by the pattern."
+        },
+        "minimum_occurrences": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Minimum number of matching observations required for the evidence pattern to be satisfied."
+        },
+        "time_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional temporal reference that constrains when the evidence should appear relative to the episode."
+        },
+        "derived_from_data_elements": {
+          "type": "array",
+          "description": "Identifiers of the data elements used to instantiate this evidence pattern.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "evidence_id",
+        "description",
+        "evidence_type",
+        "minimum_occurrences",
+        "time_reference",
+        "derived_from_data_elements"
+      ],
+      "additionalProperties": false
+    },
+    "action_parameter": {
+      "type": "object",
+      "description": "Parameter that refines the expected or prohibited action, such as urgency, dosage, route, modality, or threshold.",
+      "properties": {
+        "parameter_name": {
+          "type": "string",
+          "description": "Name of the action parameter."
+        },
+        "parameter_description": {
+          "type": "string",
+          "description": "Meaning of the parameter in plain language."
+        },
+        "expected_value": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Expected or prohibited value of the parameter, if known."
+        },
+        "comparison_operator": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Operator used to compare observed data to the expected value, such as equals, less_than, greater_than, or within."
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Measurement unit associated with the parameter value, if relevant."
+        },
+        "mandatory": {
+          "type": "boolean",
+          "description": "Whether the parameter must be satisfied for the action requirement or prohibition to hold."
+        }
+      },
+      "required": [
+        "parameter_name",
+        "parameter_description",
+        "expected_value",
+        "comparison_operator",
+        "unit",
+        "mandatory"
+      ],
+      "additionalProperties": false
+    },
+    "completion_criteria": {
+      "type": "object",
+      "description": "Definition of what constitutes completion of the expected action for a do rule.",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Plain-language definition of action completion."
+        },
+        "minimum_occurrences": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Minimum number of successful action occurrences required to count the rule as fulfilled."
+        },
+        "required_event_types": {
+          "type": "array",
+          "description": "Types of events that must be present to claim completion.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_documentation_elements": {
+          "type": "array",
+          "description": "Documentation artifacts that must exist to support completion, if any.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "success_condition": {
+          "type": "string",
+          "description": "Human-readable or semi-formal expression that defines the completion state."
+        }
+      },
+      "required": [
+        "description",
+        "minimum_occurrences",
+        "required_event_types",
+        "required_documentation_elements",
+        "success_condition"
+      ],
+      "additionalProperties": false
+    },
+    "evaluation_logic": {
+      "type": "object",
+      "description": "Logical specification used to decide rule or signal status from observed data.",
+      "properties": {
+        "natural_language_test": {
+          "type": "string",
+          "description": "Plain-language test that a reviewer or engineer can understand without reading source code."
+        },
+        "formal_expression_language": {
+          "type": "string",
+          "enum": [
+            "none",
+            "pseudocode",
+            "cql",
+            "fhirpath",
+            "sql",
+            "rule_dsl",
+            "other"
+          ],
+          "description": "Language used for the optional computable expression."
+        },
+        "formal_expression": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional computable or semi-computable expression implementing the logic."
+        },
+        "missing_data_policy": {
+          "type": "string",
+          "enum": [
+            "not_evaluable",
+            "assume_absent",
+            "assume_present",
+            "review_required",
+            "probabilistic_inference"
+          ],
+          "description": "Policy to apply when required data are missing."
+        },
+        "ambiguity_policy": {
+          "type": "string",
+          "enum": [
+            "review_required",
+            "use_best_supported_interpretation",
+            "mark_probable_non_compliance",
+            "mark_not_evaluable"
+          ],
+          "description": "Policy to apply when textual or semantic ambiguity remains after extraction."
+        },
+        "conflict_resolution_policy": {
+          "type": "string",
+          "enum": [
+            "source_priority",
+            "most_recent_source",
+            "human_review",
+            "highest_risk_interpretation"
+          ],
+          "description": "Policy to apply when data sources disagree."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional implementation notes or caveats about the logical evaluation."
+        }
+      },
+      "required": [
+        "natural_language_test",
+        "formal_expression_language",
+        "formal_expression",
+        "missing_data_policy",
+        "ambiguity_policy",
+        "conflict_resolution_policy",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "evaluation_method": {
+      "type": "object",
+      "description": "Operational method used to evaluate the rule or detect the weak signal.",
+      "properties": {
+        "primary_method": {
+          "type": "string",
+          "enum": [
+            "deterministic",
+            "inferential",
+            "hybrid",
+            "manual"
+          ],
+          "description": "Primary evaluation method."
+        },
+        "allowed_inference_sources": {
+          "type": "array",
+          "description": "Source types that may be used for inference, such as notes, discharge summaries, waveform reports, or derived features.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "human_review_required": {
+          "type": "boolean",
+          "description": "Whether a human reviewer must confirm the final status before operational use."
+        },
+        "minimum_confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum confidence score required for automated acceptance, if the method is inferential or hybrid."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional notes on model behavior, extraction assumptions, or operational constraints."
+        }
+      },
+      "required": [
+        "primary_method",
+        "allowed_inference_sources",
+        "human_review_required",
+        "minimum_confidence",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "risk_classification": {
+      "type": "object",
+      "description": "Risk profile associated with violating the rule or observing the weak signal.",
+      "properties": {
+        "clinical_risk_severity": {
+          "type": "string",
+          "enum": [
+            "negligible",
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "description": "Expected patient-level clinical severity if the rule is violated or the signal materializes."
+        },
+        "process_risk_severity": {
+          "type": "string",
+          "enum": [
+            "negligible",
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "description": "Expected process-level severity, including pathway disruption and quality impact."
+        },
+        "likelihood_if_violated": {
+          "type": "string",
+          "enum": [
+            "rare",
+            "unlikely",
+            "possible",
+            "likely",
+            "almost_certain"
+          ],
+          "description": "Estimated likelihood of harm or process failure once the rule is violated."
+        },
+        "detectability": {
+          "type": "string",
+          "enum": [
+            "easy",
+            "moderate",
+            "hard"
+          ],
+          "description": "How easy it is to detect the violation or signal during routine operations."
+        },
+        "priority_score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Optional local numeric priority score used to rank rules or signals."
+        },
+        "rationale": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Short rationale for the assigned risk classification."
+        }
+      },
+      "required": [
+        "clinical_risk_severity",
+        "process_risk_severity",
+        "likelihood_if_violated",
+        "detectability",
+        "priority_score",
+        "rationale"
+      ],
+      "additionalProperties": false
+    },
+    "documentation_requirements": {
+      "type": "object",
+      "description": "Documentation requirements attached to the rule.",
+      "properties": {
+        "mandatory_fields": {
+          "type": "array",
+          "description": "Structured or narrative fields that must be documented to support rule evaluation.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "acceptable_evidence_sources": {
+          "type": "array",
+          "description": "Accepted evidence sources for documentation purposes, such as EHR forms, notes, orders, procedure logs, or device outputs.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "justification_required_when_deviating": {
+          "type": "boolean",
+          "description": "Whether a documented justification is required when the rule is not followed or an exception is invoked."
+        },
+        "justification_fields": {
+          "type": "array",
+          "description": "Fields or artifacts that should contain the deviation or override justification.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "free_text_allowed": {
+          "type": "boolean",
+          "description": "Whether free-text documentation is accepted as valid supporting evidence."
+        }
+      },
+      "required": [
+        "mandatory_fields",
+        "acceptable_evidence_sources",
+        "justification_required_when_deviating",
+        "justification_fields",
+        "free_text_allowed"
+      ],
+      "additionalProperties": false
+    },
+    "extraction_metadata": {
+      "type": "object",
+      "description": "Metadata about how the schema instance was generated or curated.",
+      "properties": {
+        "generation_mode": {
+          "type": "string",
+          "enum": [
+            "manual_authoring",
+            "assisted_extraction",
+            "llm_inference",
+            "hybrid"
+          ],
+          "description": "Method used to create the schema instance."
+        },
+        "source_interpretation_notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Notes about interpretation choices, semantic normalization, or unresolved ambiguities in the source text."
+        },
+        "extraction_confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Confidence assigned to the generated schema instance."
+        },
+        "ambiguity_flags": {
+          "type": "array",
+          "description": "List of ambiguity flags or warnings that should be reviewed by a human expert.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "human_validation_status": {
+          "type": "string",
+          "enum": [
+            "not_reviewed",
+            "reviewed",
+            "approved",
+            "rejected"
+          ],
+          "description": "Current human validation state of the schema instance."
+        },
+        "validated_by": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Person or role that performed the latest human validation, if any."
+        },
+        "validated_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Timestamp of the latest human validation, if any."
+        }
+      },
+      "required": [
+        "generation_mode",
+        "source_interpretation_notes",
+        "extraction_confidence",
+        "ambiguity_flags",
+        "human_validation_status",
+        "validated_by",
+        "validated_at"
+      ],
+      "additionalProperties": false
+    },
+    "governance_metadata": {
+      "type": "object",
+      "description": "Lifecycle and governance metadata for operational management of the schema instance.",
+      "properties": {
+        "lifecycle_status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "reviewed",
+            "approved",
+            "retired"
+          ],
+          "description": "Lifecycle state of the rule or weak signal."
+        },
+        "version": {
+          "type": "string",
+          "description": "Version identifier of the schema instance."
+        },
+        "authoring_body": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Committee, team, or organization that authored the instance."
+        },
+        "rule_owner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Operational owner responsible for maintaining the instance over time."
+        },
+        "effective_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date",
+          "description": "Date from which the instance is considered effective."
+        },
+        "effective_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date",
+          "description": "Date after which the instance is no longer effective, if applicable."
+        },
+        "review_cycle": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Planned review interval or cadence, such as every 12 months."
+        },
+        "last_reviewed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Timestamp of the latest formal review."
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Approver name, role, or committee, if formally approved."
+        }
+      },
+      "required": [
+        "lifecycle_status",
+        "version",
+        "authoring_body",
+        "rule_owner",
+        "effective_from",
+        "effective_to",
+        "review_cycle",
+        "last_reviewed_at",
+        "approved_by"
+      ],
+      "additionalProperties": false
+    },
+    "applicability": {
+      "type": "object",
+      "description": "Definition of the patient population and care context in which the rule applies.",
+      "properties": {
+        "population_description": {
+          "type": "string",
+          "description": "Narrative description of the patient population covered by the rule."
+        },
+        "clinical_context": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Clinical situation or disease state in which the rule applies."
+        },
+        "care_context": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Operational or encounter context in which the rule applies, such as pre-hospital, emergency department, ICU, or discharge."
+        },
+        "inclusion_criteria": {
+          "type": "array",
+          "description": "Criteria that make a patient episode eligible for the rule.",
+          "items": {
+            "$ref": "#/$defs/criterion"
+          }
+        },
+        "exclusion_criteria": {
+          "type": "array",
+          "description": "Criteria that make a patient episode ineligible for the rule.",
+          "items": {
+            "$ref": "#/$defs/criterion"
+          }
+        }
+      },
+      "required": [
+        "population_description",
+        "clinical_context",
+        "care_context",
+        "inclusion_criteria",
+        "exclusion_criteria"
+      ],
+      "additionalProperties": false
+    },
+    "override_justification_requirements": {
+      "type": "object",
+      "description": "Documentation requirements that apply when a do-not rule is intentionally overridden.",
+      "properties": {
+        "mandatory": {
+          "type": "boolean",
+          "description": "Whether explicit override justification is mandatory."
+        },
+        "required_fields": {
+          "type": "array",
+          "description": "Fields or artifacts that must capture the override justification.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_evidence_sources": {
+          "type": "array",
+          "description": "Evidence sources that may legitimately support the override.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional note about acceptable override scenarios or reviewer expectations."
+        }
+      },
+      "required": [
+        "mandatory",
+        "required_fields",
+        "required_evidence_sources",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "triggering_pattern": {
+      "type": "object",
+      "description": "Observable pattern that defines the weak signal.",
+      "properties": {
+        "pattern_type": {
+          "type": "string",
+          "enum": [
+            "absence_of_expected_event",
+            "presence_of_prohibited_event",
+            "delay_threshold",
+            "sequence_mismatch",
+            "anomalous_combination",
+            "trend_shift",
+            "documentation_gap",
+            "context_conflict",
+            "derived_inference",
+            "other"
+          ],
+          "description": "Canonical category of the weak signal pattern."
+        },
+        "pattern_description": {
+          "type": "string",
+          "description": "Human-readable description of the pattern to be detected."
+        },
+        "anchor_event": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional reference event used as the temporal anchor for pattern detection."
+        },
+        "target_event": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Event whose absence, presence, or timing contributes to the weak signal."
+        },
+        "supporting_context": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Additional context needed to interpret the pattern correctly."
+        },
+        "inference_allowed": {
+          "type": "boolean",
+          "description": "Whether the pattern may rely on inferred evidence from unstructured text or derived variables."
+        }
+      },
+      "required": [
+        "pattern_type",
+        "pattern_description",
+        "anchor_event",
+        "target_event",
+        "supporting_context",
+        "inference_allowed"
+      ],
+      "additionalProperties": false
+    },
+    "precursor_window": {
+      "type": "object",
+      "description": "Time window within which the weak signal is meaningful relative to rule applicability or process anchors.",
+      "properties": {
+        "start_anchor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Anchor event that defines the beginning of the precursor window."
+        },
+        "start_offset_value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Numeric offset from the start anchor, if applicable."
+        },
+        "start_offset_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Unit of the start offset, if applicable."
+        },
+        "end_anchor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Anchor event that defines the end of the precursor window."
+        },
+        "end_offset_value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Numeric offset from the end anchor, if applicable."
+        },
+        "end_offset_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Unit of the end offset, if applicable."
+        },
+        "description": {
+          "type": "string",
+          "description": "Plain-language description of the precursor window."
+        }
+      },
+      "required": [
+        "start_anchor",
+        "start_offset_value",
+        "start_offset_unit",
+        "end_anchor",
+        "end_offset_value",
+        "end_offset_unit",
+        "description"
+      ],
+      "additionalProperties": false
+    },
+    "signal_threshold": {
+      "type": "object",
+      "description": "Threshold or boundary used to convert raw observations into a weak signal state.",
+      "properties": {
+        "threshold_name": {
+          "type": "string",
+          "description": "Name of the threshold."
+        },
+        "threshold_description": {
+          "type": "string",
+          "description": "Meaning of the threshold in plain language."
+        },
+        "comparison_operator": {
+          "type": "string",
+          "description": "Operator used to compare observed data to the threshold value."
+        },
+        "threshold_value": {
+          "type": [
+            "string",
+            "number",
+            "null"
+          ],
+          "description": "Threshold value, which may be numeric or categorical."
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Measurement unit for the threshold, if relevant."
+        },
+        "severity_when_crossed": {
+          "type": "string",
+          "enum": [
+            "informational",
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "description": "Severity assigned when the threshold is crossed."
+        }
+      },
+      "required": [
+        "threshold_name",
+        "threshold_description",
+        "comparison_operator",
+        "threshold_value",
+        "unit",
+        "severity_when_crossed"
+      ],
+      "additionalProperties": false
+    },
+    "risk_implication": {
+      "type": "object",
+      "description": "Expected downstream impact of a weak signal on rule non-compliance or pathway safety.",
+      "properties": {
+        "expected_non_compliance_type": {
+          "type": "string",
+          "enum": [
+            "omission",
+            "commission",
+            "delay",
+            "sequence_error",
+            "documentation_gap",
+            "context_error",
+            "mixed"
+          ],
+          "description": "Most likely category of downstream non-compliance indicated by the weak signal."
+        },
+        "contribution_severity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "moderate",
+            "high",
+            "critical"
+          ],
+          "description": "Severity of the signal's contribution to downstream risk."
+        },
+        "likelihood_contribution": {
+          "type": "string",
+          "enum": [
+            "weak",
+            "moderate",
+            "strong"
+          ],
+          "description": "Strength of the association between the signal and downstream non-compliance."
+        },
+        "expected_time_to_failure": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Estimated time horizon within which non-compliance may occur after the signal appears."
+        },
+        "escalation_priority": {
+          "type": "string",
+          "enum": [
+            "routine",
+            "urgent",
+            "immediate"
+          ],
+          "description": "Operational urgency with which the signal should be escalated."
+        },
+        "explanation": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Short rationale explaining why the signal implies downstream risk."
+        }
+      },
+      "required": [
+        "expected_non_compliance_type",
+        "contribution_severity",
+        "likelihood_contribution",
+        "expected_time_to_failure",
+        "escalation_priority",
+        "explanation"
+      ],
+      "additionalProperties": false
+    },
+    "recommended_response": {
+      "type": "object",
+      "description": "Recommended operational response when the weak signal is detected.",
+      "properties": {
+        "immediate_action": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Action to perform immediately when the signal is detected."
+        },
+        "follow_up_action": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Subsequent action to perform after the immediate response, if any."
+        },
+        "responsible_role": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Role expected to own the response."
+        },
+        "max_response_time_value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Maximum allowed response time before escalation, if applicable."
+        },
+        "max_response_time_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Unit of the maximum response time, if applicable."
+        },
+        "requires_human_review": {
+          "type": "boolean",
+          "description": "Whether a human review step is mandatory before acting on the signal."
+        }
+      },
+      "required": [
+        "immediate_action",
+        "follow_up_action",
+        "responsible_role",
+        "max_response_time_value",
+        "max_response_time_unit",
+        "requires_human_review"
+      ],
+      "additionalProperties": false
+    },
+    "validation_requirements": {
+      "type": "object",
+      "description": "Requirements for confirming that the weak signal is valid and operationally trustworthy.",
+      "properties": {
+        "must_be_reviewed_by_human": {
+          "type": "boolean",
+          "description": "Whether the signal requires human confirmation before being used operationally."
+        },
+        "minimum_supporting_evidence_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum number of supporting evidence items required for acceptance."
+        },
+        "acceptable_confirmation_sources": {
+          "type": "array",
+          "description": "Sources that may confirm the signal, such as notes, telemetry, order logs, or procedure records.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "retrospective_validation_possible": {
+          "type": "boolean",
+          "description": "Whether the signal can be validated reliably in retrospective review."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Optional validation note or warning."
+        }
+      },
+      "required": [
+        "must_be_reviewed_by_human",
+        "minimum_supporting_evidence_count",
+        "acceptable_confirmation_sources",
+        "retrospective_validation_possible",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "derivation_metadata": {
+      "type": "object",
+      "description": "Metadata describing how the weak signal was derived from the parent rule and process-risk analysis.",
+      "properties": {
+        "derived_from_rule_id": {
+          "type": "string",
+          "description": "Identifier of the parent rule from which the weak signal was derived."
+        },
+        "derivation_method": {
+          "type": "string",
+          "enum": [
+            "fmea",
+            "hfmea",
+            "expert_panel",
+            "historical_incident_analysis",
+            "llm_inference",
+            "hybrid",
+            "other"
+          ],
+          "description": "Method used to derive the weak signal."
+        },
+        "derivation_rationale": {
+          "type": "string",
+          "description": "Narrative explanation of why this signal is considered an early indicator of downstream risk."
+        },
+        "derivation_confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Confidence assigned to the derivation of the weak signal."
+        },
+        "supporting_rule_fragments": {
+          "type": "array",
+          "description": "Relevant fragments, conditions, or elements of the parent rule that support this weak signal.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "derived_from_rule_id",
+        "derivation_method",
+        "derivation_rationale",
+        "derivation_confidence",
+        "supporting_rule_fragments"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Version of this JSON schema used to encode the weak signal instance."
+    },
+    "weak_signal_id": {
+      "type": "string",
+      "description": "Stable unique identifier of the weak signal."
+    },
+    "title": {
+      "type": "string",
+      "description": "Full human-readable title of the weak signal."
+    },
+    "short_label": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Optional short label for dashboards, tables, or alert cards."
+    },
+    "linked_rule_id": {
+      "type": "string",
+      "description": "Identifier of the parent rule with which the weak signal is associated."
+    },
+    "linked_rule_type": {
+      "type": "string",
+      "enum": [
+        "do",
+        "do_not"
+      ],
+      "description": "Type of the parent rule associated with this weak signal."
+    },
+    "association_strength": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "strong",
+        "moderate",
+        "weak",
+        "hypothesized"
+      ],
+      "description": "Strength of the conceptual association between the weak signal and downstream rule non-compliance."
+    },
+    "clinical_pathway_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Identifier of the clinical pathway or PDTA to which the weak signal belongs."
+    },
+    "clinical_pathway_name": {
+      "type": "string",
+      "description": "Human-readable name of the clinical pathway or PDTA."
+    },
+    "clinical_phase": {
+      "type": "string",
+      "description": "Phase of the pathway in which the weak signal is meaningful."
+    },
+    "care_settings": {
+      "type": "array",
+      "description": "Care settings in which the weak signal may appear.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "monitoring_actors": {
+      "type": "array",
+      "description": "Roles responsible for monitoring, triaging, or acting on the weak signal.",
+      "items": {
+        "$ref": "#/$defs/actor_role"
+      }
+    },
+    "signal_category": {
+      "type": "string",
+      "enum": [
+        "timing_drift",
+        "omission_risk",
+        "commission_risk",
+        "sequence_break",
+        "documentation_gap",
+        "context_conflict",
+        "data_quality_issue",
+        "resource_delay",
+        "escalation_failure",
+        "clinical_deterioration_proxy",
+        "other"
+      ],
+      "description": "Primary category of the weak signal."
+    },
+    "signal_direction": {
+      "type": "string",
+      "enum": [
+        "increasing_risk",
+        "decreasing_risk",
+        "neutral_context_marker"
+      ],
+      "description": "Direction of association between the signal and downstream non-compliance risk."
+    },
+    "description": {
+      "type": "string",
+      "description": "Plain-language description of the weak signal."
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Why the weak signal is considered an early indicator of downstream risk."
+    },
+    "related_failure_mode": {
+      "type": "string",
+      "description": "Failure mode that the weak signal is intended to anticipate."
+    },
+    "related_hazard": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Hazard or adverse scenario that may follow if the weak signal is ignored."
+    },
+    "detection_objective": {
+      "type": "string",
+      "description": "Operational objective of detecting the weak signal."
+    },
+    "derivation_metadata": {
+      "$ref": "#/$defs/derivation_metadata"
+    },
+    "triggering_pattern": {
+      "$ref": "#/$defs/triggering_pattern"
+    },
+    "precursor_window": {
+      "$ref": "#/$defs/precursor_window"
+    },
+    "required_data_elements": {
+      "type": "array",
+      "description": "Data elements required to detect the weak signal reliably.",
+      "items": {
+        "$ref": "#/$defs/data_element"
+      }
+    },
+    "detection_logic": {
+      "$ref": "#/$defs/evaluation_logic"
+    },
+    "detection_method": {
+      "$ref": "#/$defs/evaluation_method"
+    },
+    "signal_thresholds": {
+      "type": "array",
+      "description": "Thresholds used to determine whether the weak signal is present or significant.",
+      "items": {
+        "$ref": "#/$defs/signal_threshold"
+      }
+    },
+    "possible_signal_states": {
+      "type": "array",
+      "description": "Operational states that may be assigned to the weak signal.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "not_present",
+          "present",
+          "uncertain",
+          "overridden",
+          "closed"
+        ]
+      }
+    },
+    "risk_implication": {
+      "$ref": "#/$defs/risk_implication"
+    },
+    "recommended_response": {
+      "$ref": "#/$defs/recommended_response"
+    },
+    "false_positive_scenarios": {
+      "type": "array",
+      "description": "Situations in which the weak signal may appear even though downstream risk is low or absent.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "false_negative_scenarios": {
+      "type": "array",
+      "description": "Situations in which downstream risk may exist even though the weak signal is not detected.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validation_requirements": {
+      "$ref": "#/$defs/validation_requirements"
+    },
+    "extraction_metadata": {
+      "$ref": "#/$defs/extraction_metadata"
+    },
+    "governance_metadata": {
+      "$ref": "#/$defs/governance_metadata"
+    }
+  },
+  "required": [
+    "schema_version",
+    "weak_signal_id",
+    "title",
+    "short_label",
+    "linked_rule_id",
+    "linked_rule_type",
+    "association_strength",
+    "clinical_pathway_id",
+    "clinical_pathway_name",
+    "clinical_phase",
+    "care_settings",
+    "monitoring_actors",
+    "signal_category",
+    "signal_direction",
+    "description",
+    "rationale",
+    "related_failure_mode",
+    "related_hazard",
+    "detection_objective",
+    "derivation_metadata",
+    "triggering_pattern",
+    "precursor_window",
+    "required_data_elements",
+    "detection_logic",
+    "detection_method",
+    "signal_thresholds",
+    "possible_signal_states",
+    "risk_implication",
+    "recommended_response",
+    "false_positive_scenarios",
+    "false_negative_scenarios",
+    "validation_requirements",
+    "extraction_metadata",
+    "governance_metadata"
+  ],
+  "additionalProperties": false
+}

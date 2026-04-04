@@ -1,0 +1,16 @@
+# Python virtual environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local environment/secrets
+.env
+.env.*
+
+# Editor and OS artifacts
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Generated comparison outputs
+CARDIO/STEMI/EPISODES/**/CHECK_*.json

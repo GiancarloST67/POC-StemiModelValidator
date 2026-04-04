@@ -1,0 +1,448 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DONOT-001",
+  "rule_type": "do_not",
+  "title": "Non eseguire di routine angio-TC coronarica precoce nei pazienti con sospetta sindrome coronarica acuta",
+  "short_label": "No angio-TC coronarica di routine in SCA sospetta",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "diagnosi",
+  "care_settings": [
+    "Pronto Soccorso",
+    "Dipartimento di Emergenza e Accettazione",
+    "Unità di Terapia Intensiva Coronarica"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "Medico di Pronto Soccorso",
+      "responsibility_type": "primary",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Responsabile primario della fase diagnostica iniziale e della decisione di non richiedere angio-TC coronarica di routine."
+    },
+    {
+      "role_name": "Cardiologo di guardia",
+      "responsibility_type": "consulted",
+      "organization_unit": "Cardiologia / UTIC",
+      "notes": "Consultato per la stratificazione diagnostica e per eventuali eccezioni cliniche alla regola."
+    },
+    {
+      "role_name": "Radiologo interventista",
+      "responsibility_type": "informed",
+      "organization_unit": "Radiologia",
+      "notes": "Informato della politica di non esecuzione routinaria per evitare richieste inappropriate."
+    }
+  ],
+  "deontic_strength": "recommended",
+  "recommendation_strength": "Classe III (nessun beneficio)",
+  "evidence_level": "C",
+  "original_statement": "Routine, early coronary computed tomography angiography in patients with suspected ACS is not recommended.",
+  "normalized_statement": "Non è raccomandata l'esecuzione routinaria e precoce di angio-TC coronarica nei pazienti con sospetta sindrome coronarica acuta.",
+  "intent": "Evitare l'uso inappropriato e routinario della angio-TC coronarica nella fase acuta della gestione dei pazienti con sospetta SCA, al fine di non ritardare il trattamento riperfusivo e di non esporre il paziente a rischi inutili.",
+  "rationale": "Nei pazienti con sospetta sindrome coronarica acuta (SCA), l'angio-TC coronarica eseguita di routine in fase precoce non apporta benefici diagnostici incrementali significativi rispetto al percorso standard basato su ECG, biomarcatori cardiaci e coronarografia invasiva. Inoltre, può ritardare i tempi di riperfusione, esporre il paziente a mezzo di contrasto iodato e radiazioni ionizzanti non necessari e sottrarre risorse diagnostiche ad altri pazienti.",
+  "source_references": [
+    {
+      "source_id": "ESC-GUIDELINES-ACS-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione raccomandazioni diagnostiche - Imaging non invasivo",
+      "page_reference": null,
+      "statement_quote": "Routine, early coronary computed tomography angiography in patients with suspected ACS is not recommended.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto soggetto a copyright ESC. Utilizzo a fini clinici e di implementazione locale del PDTA."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti che si presentano con sospetta sindrome coronarica acuta (SCA), inclusi STEMI, NSTEMI e angina instabile, nella fase diagnostica iniziale.",
+    "clinical_context": "Sospetta sindrome coronarica acuta in fase acuta, incluso lo STEMI, dove la priorità è la conferma diagnostica rapida e l'avvio tempestivo della strategia riperfusiva.",
+    "care_context": "Pronto Soccorso, Dipartimento di Emergenza e Accettazione, fase diagnostica pre-coronarografia.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "INC-001",
+        "label": "Sospetta SCA",
+        "description": "Il paziente presenta segni, sintomi o referti compatibili con una sindrome coronarica acuta (dolore toracico, alterazioni ECG, elevazione dei biomarcatori cardiaci).",
+        "logic_expression": "diagnosis.suspected IN ('STEMI', 'NSTEMI', 'UA') OR ecg.ischemic_changes = true OR troponin.elevated = true",
+        "data_elements": [
+          "DE-001",
+          "DE-002",
+          "DE-003"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "INC-002",
+        "label": "Fase precoce della presentazione",
+        "description": "Il paziente si trova nella fase precoce dell'episodio acuto, prima dell'esecuzione della coronarografia invasiva o della definizione completa della strategia terapeutica.",
+        "logic_expression": "time_since_presentation <= 24h AND coronary_angiography.status != 'completed'",
+        "data_elements": [
+          "DE-004",
+          "DE-005"
+        ],
+        "inference_allowed": false
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "EXC-001",
+        "label": "Diagnosi alternativa confermata",
+        "description": "Il paziente ha ricevuto una diagnosi alternativa definitiva che esclude la SCA (es. embolia polmonare, dissecazione aortica confermata con altra metodica).",
+        "logic_expression": "diagnosis.confirmed NOT IN ('STEMI', 'NSTEMI', 'UA') AND diagnosis.alternative_confirmed = true",
+        "data_elements": [
+          "DE-001"
+        ],
+        "inference_allowed": true
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "order",
+    "trigger_description": "Richiesta o prescrizione di angio-TC coronarica in un paziente con sospetta sindrome coronarica acuta in fase precoce.",
+    "anchor_event": "Presentazione in Pronto Soccorso con sospetta SCA",
+    "start_of_applicability": "Dal momento della presentazione del paziente con sospetta SCA.",
+    "end_of_applicability": "Fino alla definizione diagnostica definitiva o all'esecuzione della coronarografia invasiva.",
+    "trigger_data_elements": [
+      "DE-006",
+      "DE-001"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "EXP-001",
+      "label": "Coronarografia invasiva controindicata",
+      "description": "L'angio-TC coronarica può essere considerata quando la coronarografia invasiva è controindicata o non disponibile e vi è necessità clinica urgente di definizione anatomica coronarica.",
+      "condition_logic": "coronary_angiography.contraindicated = true OR cath_lab.available = false",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione della controindicazione alla coronarografia invasiva",
+        "Valutazione collegiale cardiologo-radiologo",
+        "Nota clinica motivata nel verbale di PS"
+      ]
+    },
+    {
+      "exception_id": "EXP-002",
+      "label": "Probabilità pre-test bassa/intermedia con diagnosi incerta",
+      "description": "In casi selezionati con probabilità pre-test bassa o intermedia di SCA e diagnosi ancora incerta dopo ECG e biomarcatori iniziali, l'angio-TC coronarica può essere considerata come alternativa dopo consulenza cardiologica.",
+      "condition_logic": "pretest_probability IN ('low', 'intermediate') AND ecg.diagnostic = false AND troponin.serial_negative = true",
+      "required_justification": true,
+      "required_evidence": [
+        "ECG seriali non diagnostici",
+        "Troponina seriata negativa",
+        "Consulenza cardiologica documentata",
+        "Score di rischio calcolato (es. HEART score)"
+      ]
+    }
+  ],
+  "prohibited_action": {
+    "action_verb": "richiedere",
+    "action_description": "Richiedere o eseguire di routine e in fase precoce un'angio-TC coronarica (coronary computed tomography angiography, CCTA) nei pazienti con sospetta sindrome coronarica acuta.",
+    "action_target": "Angio-TC coronarica (CCTA)",
+    "prohibition_parameters": [
+      {
+        "parameter_name": "modalità di utilizzo",
+        "parameter_description": "L'esame è proibito quando richiesto in modalità routinaria e non selettiva.",
+        "expected_value": "routine",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "tempistica",
+        "parameter_description": "La proibizione riguarda specificamente la fase precoce dell'episodio acuto.",
+        "expected_value": "precoce",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      }
+    ],
+    "known_risk_if_performed": "Ritardo nella strategia riperfusiva (aumento del tempo door-to-balloon), esposizione non necessaria a mezzo di contrasto iodato e radiazioni ionizzanti, falsa rassicurazione o ritardo diagnostico, spreco di risorse diagnostiche."
+  },
+  "override_conditions": [
+    {
+      "exception_id": "OVR-001",
+      "label": "Override per controindicazione alla coronarografia invasiva",
+      "description": "L'angio-TC coronarica può essere eseguita se la coronarografia invasiva è controindicata o non disponibile e sussiste necessità clinica urgente.",
+      "condition_logic": "coronary_angiography.contraindicated = true OR cath_lab.available = false",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione della controindicazione alla coronarografia invasiva nel verbale clinico",
+        "Consulenza cardiologica documentata"
+      ]
+    },
+    {
+      "exception_id": "OVR-002",
+      "label": "Override per decisione collegiale in caso dubbio",
+      "description": "Decisione motivata e collegiale tra cardiologo e medico d'urgenza in caso di diagnosi differenziale complessa dove l'angio-TC può fornire informazioni decisive.",
+      "condition_logic": "collegial_decision = true AND clinical_justification.documented = true",
+      "required_justification": true,
+      "required_evidence": [
+        "Nota clinica collegiale firmata",
+        "Motivazione esplicita della necessità dell'esame"
+      ]
+    }
+  ],
+  "override_justification_requirements": {
+    "mandatory": true,
+    "required_fields": [
+      "Motivazione clinica dell'override nel verbale di Pronto Soccorso",
+      "Nome e qualifica del medico autorizzante",
+      "Data e ora della decisione",
+      "Esito della consulenza cardiologica"
+    ],
+    "required_evidence_sources": [
+      "Verbale di Pronto Soccorso",
+      "Consulenza cardiologica",
+      "Cartella clinica elettronica"
+    ],
+    "notes": "L'override deve essere sempre documentato prima dell'esecuzione dell'esame. La motivazione deve essere clinicamente fondata e non basata su sola preferenza del clinico."
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "TC-001",
+      "description": "La proibizione è attiva dalla presentazione del paziente in PS fino alla definizione diagnostica o all'esecuzione della coronarografia invasiva, tipicamente entro le prime 24 ore.",
+      "relation_to_anchor": "within",
+      "anchor_event": "Presentazione in Pronto Soccorso con sospetta SCA",
+      "duration_value": 24,
+      "duration_unit": "ore",
+      "hard_deadline": false,
+      "alert_threshold_value": null,
+      "alert_threshold_unit": null
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "SC-001",
+      "description": "L'angio-TC coronarica non deve essere eseguita prima della valutazione clinica completa (ECG, biomarcatori) e della consulenza cardiologica nei pazienti con sospetta SCA.",
+      "predecessor_event": "Valutazione clinica completa (ECG + biomarcatori + consulenza cardiologica)",
+      "successor_event": "Eventuale angio-TC coronarica (solo se override giustificato)",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "Angio-TC coronarica richiesta o eseguita prima del completamento della valutazione clinica standard."
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-001",
+      "name": "Diagnosi sospetta",
+      "description": "Diagnosi clinica sospetta o confermata al momento della presentazione (es. STEMI, NSTEMI, angina instabile, SCA indifferenziata).",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "ICD-10",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare codici ICD-10 I21.x, I20.0 o diagnosi di triage contenenti 'SCA', 'STEMI', 'infarto'."
+    },
+    {
+      "data_element_id": "DE-002",
+      "name": "Referto ECG",
+      "description": "Risultato dell'elettrocardiogramma a 12 derivazioni eseguito alla presentazione, con particolare attenzione a sopraslivellamento ST, sottoslivellamento ST, o altre alterazioni ischemiche.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare referto ECG con interpretazione automatica o manuale; parole chiave: sopraslivellamento ST, STEMI, ischemia."
+    },
+    {
+      "data_element_id": "DE-003",
+      "name": "Troponina cardiaca",
+      "description": "Valore della troponina cardiaca ad alta sensibilità (hs-cTn) alla presentazione e nei controlli seriati.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "LOINC 89579-7 (hs-cTnT) o 49563-0 (hs-cTnI). Verificare valore e cut-off del laboratorio locale."
+    },
+    {
+      "data_element_id": "DE-004",
+      "name": "Data e ora di presentazione in PS",
+      "description": "Timestamp di arrivo del paziente in Pronto Soccorso o primo contatto medico.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Campo 'data_ora_accettazione' o 'triage_timestamp' nel sistema di PS."
+    },
+    {
+      "data_element_id": "DE-005",
+      "name": "Stato coronarografia invasiva",
+      "description": "Stato della coronarografia invasiva (non eseguita, programmata, in corso, completata).",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare ordini o referti di coronarografia nel sistema di emodinamica o nel RIS/PACS."
+    },
+    {
+      "data_element_id": "DE-006",
+      "name": "Richiesta angio-TC coronarica",
+      "description": "Presenza di una richiesta o ordine per angio-TC coronarica (CCTA) nel sistema informativo.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare ordini radiologici con descrizione 'angio-TC coronarica', 'CCTA', 'TC coronarica' nel RIS o nel sistema ordini."
+    },
+    {
+      "data_element_id": "DE-007",
+      "name": "Esecuzione angio-TC coronarica",
+      "description": "Evidenza dell'effettiva esecuzione dell'angio-TC coronarica (referto presente nel PACS/RIS).",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare referti radiologici con modalità CT e descrizione 'coronarica' o 'CCTA' nel PACS."
+    },
+    {
+      "data_element_id": "DE-008",
+      "name": "Documentazione di giustificazione override",
+      "description": "Presenza di una nota clinica o documentazione strutturata che giustifica l'eventuale override della proibizione.",
+      "source_location": "ehr_unstructured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "inferential",
+      "query_hint": "Cercare nelle note cliniche del verbale di PS parole chiave: 'motivazione', 'controindicazione coronarografia', 'decisione collegiale', 'angio-TC giustificata'."
+    }
+  ],
+  "evidence_of_violation": [
+    {
+      "evidence_id": "EV-VIOL-001",
+      "description": "Presenza di un ordine o di un referto di angio-TC coronarica in un paziente con sospetta SCA nella fase precoce, senza documentazione di override giustificato.",
+      "evidence_type": "order",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 24 ore dalla presentazione in PS con sospetta SCA",
+      "derived_from_data_elements": [
+        "DE-006",
+        "DE-007",
+        "DE-001",
+        "DE-004"
+      ]
+    },
+    {
+      "evidence_id": "EV-VIOL-002",
+      "description": "Referto di angio-TC coronarica completata nel PACS/RIS durante la fase acuta dell'episodio di sospetta SCA.",
+      "evidence_type": "execution",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 24 ore dalla presentazione in PS con sospetta SCA",
+      "derived_from_data_elements": [
+        "DE-007",
+        "DE-001",
+        "DE-004"
+      ]
+    }
+  ],
+  "evidence_of_allowed_override": [
+    {
+      "evidence_id": "EV-OVR-001",
+      "description": "Documentazione clinica strutturata o narrativa che attesta la controindicazione alla coronarografia invasiva e la necessità dell'angio-TC coronarica, con firma del cardiologo.",
+      "evidence_type": "justification",
+      "minimum_occurrences": 1,
+      "time_reference": "Prima dell'esecuzione dell'angio-TC coronarica",
+      "derived_from_data_elements": [
+        "DE-008"
+      ]
+    },
+    {
+      "evidence_id": "EV-OVR-002",
+      "description": "Nota di consulenza cardiologica che supporta la decisione di eseguire l'angio-TC coronarica come alternativa alla coronarografia invasiva.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Prima dell'esecuzione dell'angio-TC coronarica",
+      "derived_from_data_elements": [
+        "DE-008"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Verificare se è stata richiesta o eseguita un'angio-TC coronarica in un paziente con sospetta SCA nella fase precoce (entro 24 ore dalla presentazione). Se l'esame è stato richiesto o eseguito, verificare la presenza di documentazione di override giustificato (controindicazione alla coronarografia invasiva o decisione collegiale documentata). Se l'esame è stato eseguito senza giustificazione, la regola è violata.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF (DE-001.value IN ['STEMI','NSTEMI','SCA','angina_instabile']) AND (DE-006.value = true OR DE-007.value = true) AND (time(DE-006 OR DE-007) - time(DE-004) <= 24h) THEN IF (DE-008.override_justified = true) THEN outcome = 'justified_deviation' ELSE outcome = 'non_compliant' ELSE outcome = 'compliant'",
+    "missing_data_policy": "review_required",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "human_review",
+    "notes": "Prestare attenzione ai casi in cui la diagnosi sospetta viene modificata durante l'episodio; la regola si applica solo finché la sospetta SCA è attiva. Le angio-TC eseguite per altre indicazioni (es. sospetta dissecazione aortica, embolia polmonare) non costituiscono violazione."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "Note cliniche di Pronto Soccorso",
+      "Verbale di dimissione dal PS",
+      "Consulenze cardiologiche",
+      "Referti radiologici"
+    ],
+    "human_review_required": true,
+    "minimum_confidence": 0.85,
+    "notes": "L'identificazione dell'ordine e dell'esecuzione dell'angio-TC è deterministica tramite dati strutturati. La verifica della giustificazione dell'override può richiedere estrazione inferenziale da testo libero e conferma umana."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable",
+    "probable_non_compliance"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "moderate",
+    "process_risk_severity": "moderate",
+    "likelihood_if_violated": "possible",
+    "detectability": "easy",
+    "priority_score": 6,
+    "rationale": "L'esecuzione routinaria di angio-TC coronarica nella fase acuta può ritardare la riperfusione coronarica (aumentando il tempo door-to-balloon), esporre il paziente a mezzo di contrasto e radiazioni non necessari, e consumare risorse diagnostiche. La severità clinica è moderata poiché il danno dipende dall'entità del ritardo e dalle condizioni del paziente. La rilevabilità è elevata perché l'ordine e il referto dell'esame sono facilmente tracciabili nei sistemi informativi."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Diagnosi sospetta all'ingresso",
+      "ECG a 12 derivazioni",
+      "Troponina cardiaca",
+      "Eventuali ordini di imaging cardiaco"
+    ],
+    "acceptable_evidence_sources": [
+      "Cartella clinica elettronica di PS",
+      "Sistema RIS/PACS",
+      "Sistema ordini diagnostici",
+      "Consulenze cardiologiche"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Nota clinica motivata nel verbale di PS",
+      "Consulenza cardiologica con indicazione all'angio-TC",
+      "Documentazione della controindicazione alla coronarografia invasiva"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "STEMI-WS-001"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "La raccomandazione originale in lingua inglese è stata tradotta e contestualizzata per il PDTA STEMI italiano. Il termine 'routine, early' è stato interpretato come uso non selettivo in fase precoce (entro 24 ore). La raccomandazione è classificata come Classe III (nessun beneficio) secondo la terminologia ESC.",
+    "extraction_confidence": 0.92,
+    "ambiguity_flags": [
+      "Il confine tra uso 'routinario' e uso 'selettivo/mirato' dell'angio-TC può variare tra centri e richiede definizione operativa locale.",
+      "La definizione di 'fase precoce' non è quantificata nella fonte originale; è stata interpretata come entro 24 ore dalla presentazione.",
+      "La regola copre la SCA in generale (incluso STEMI); verificare se il contesto locale richiede distinzioni più granulari."
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Gruppo di lavoro PDTA STEMI",
+    "rule_owner": "Direttore UOC Cardiologia / Responsabile PDTA STEMI",
+    "effective_from": null,
+    "effective_to": null,
+    "review_cycle": "12 mesi",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

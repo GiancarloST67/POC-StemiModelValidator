@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-006-20260322-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-22T12:00:00+01:00",
+  "rule_id": "STEMI-DO-006",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "not_applicable",
+  "confidence": 0.93,
+  "rationale": "La regola STEMI-DO-006 richiede l'esecuzione di un ECG a 12 derivazioni aggiuntivo in caso di sintomi ricorrenti o incertezza diagnostica. Nell'episodio in esame: (1) il primo ECG pre-ospedaliero (ore 07:44) era chiaramente diagnostico per STEMI antero-laterale (ST elevato 3 mm in V2-V4, 2 mm in V5-V6 con sottoslivellamento reciproco), senza alcuna incertezza diagnostica documentata; (2) la rete IMA è stata attivata immediatamente alle 07:47 e la strategia di riperfusione con PCI primaria è stata confermata e completata con successo (door-to-balloon 53 minuti); (3) non risultano documentati episodi di sintomi ischemici ricorrenti dopo l'ECG iniziale – il dolore toracico era in corso fin dall'esordio e si è progressivamente ridotto (NRS 9→6→0) fino alla completa risoluzione dopo PCI; (4) nessun clinico ha documentato incertezza diagnostica in nessuna fase del percorso. Pertanto, nessun criterio di inclusione (sintomi ricorrenti o incertezza diagnostica) risulta soddisfatto e il criterio di esclusione (STEMI confermato con riperfusione attivata) è pienamente soddisfatto. L'ECG post-PCI (ore 10:15, record #10) è stato eseguito per valutazione della riperfusione e non in risposta a trigger della regola. Secondo la logica valutativa formale della regola, l'esito è 'not_applicable'. La documentazione è completa e dettagliata, conferendo elevata confidenza alla valutazione."
+}

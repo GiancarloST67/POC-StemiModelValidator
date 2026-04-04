@@ -1,0 +1,566 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-009",
+  "rule_type": "do",
+  "title": "Eseguire test aggiuntivo di hs-cTn dopo 3 ore in caso di risultati inconcludenti dell'algoritmo 0 h/1 h",
+  "short_label": "hs-cTn aggiuntiva a 3 h se inconcludente",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "diagnosi",
+  "care_settings": [
+    "pronto soccorso",
+    "unità di dolore toracico",
+    "medicina d'urgenza"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "medico di pronto soccorso",
+      "responsibility_type": "primary",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Responsabile della decisione di richiedere il terzo dosaggio di hs-cTn dopo 3 ore e della rivalutazione clinica."
+    },
+    {
+      "role_name": "infermiere di triage/pronto soccorso",
+      "responsibility_type": "supporting",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Responsabile dell'esecuzione del prelievo ematico al tempo stabilito e dell'invio del campione al laboratorio."
+    },
+    {
+      "role_name": "laboratorista",
+      "responsibility_type": "supporting",
+      "organization_unit": "Laboratorio Analisi Urgenti",
+      "notes": "Responsabile dell'esecuzione e refertazione tempestiva del dosaggio hs-cTn."
+    },
+    {
+      "role_name": "cardiologo",
+      "responsibility_type": "consulted",
+      "organization_unit": "Cardiologia",
+      "notes": "Consultato in caso di risultati persistentemente dubbi o peggioramento clinico."
+    }
+  ],
+  "deontic_strength": "recommended",
+  "recommendation_strength": "Classe I",
+  "evidence_level": "B",
+  "original_statement": "Additional testing after 3 h is recommended if the first two hs-cTn measurements of the 0 h/1 h algorithm are inconclusive and no alternative diagnoses explaining the condition have been made.",
+  "normalized_statement": "Si raccomanda l'esecuzione di un dosaggio aggiuntivo di troponina cardiaca ad alta sensibilità (hs-cTn) dopo 3 ore dalla presentazione quando le prime due misurazioni dell'algoritmo 0 h/1 h risultano inconcludenti e non è stata formulata alcuna diagnosi alternativa che spieghi la condizione clinica.",
+  "intent": "Garantire che i pazienti con sospetta sindrome coronarica acuta e risultati inconcludenti dell'algoritmo rapido 0 h/1 h di hs-cTn ricevano un ulteriore dosaggio a 3 ore per raggiungere una diagnosi definitiva, evitando dimissioni inappropriate o ritardi diagnostici.",
+  "rationale": "L'algoritmo 0 h/1 h di hs-cTn consente di escludere o confermare l'infarto miocardico nella maggior parte dei pazienti, ma una quota di casi rimane nella zona inconcludente. Il dosaggio aggiuntivo a 3 ore, in assenza di diagnosi alternative, aumenta la sensibilità diagnostica e permette di identificare pazienti con infarto miocardico a cinetica più lenta della troponina, riducendo il rischio di mancata diagnosi.",
+  "source_references": [
+    {
+      "source_id": "ESC-ACS-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione Diagnosi - Algoritmo 0 h/1 h hs-cTn, raccomandazione sui casi inconcludenti",
+      "page_reference": null,
+      "statement_quote": "Additional testing after 3 h is recommended if the first two hs-cTn measurements of the 0 h/1 h algorithm are inconclusive and no alternative diagnoses explaining the condition have been made.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto utilizzato a fini di supporto decisionale clinico conformemente alle linee guida ESC."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti che si presentano in pronto soccorso con sospetta sindrome coronarica acuta e dolore toracico, sottoposti all'algoritmo rapido 0 h/1 h di troponina cardiaca ad alta sensibilità (hs-cTn), i cui risultati sono risultati inconcludenti.",
+    "clinical_context": "Sospetta sindrome coronarica acuta (SCA) con risultati inconcludenti dell'algoritmo diagnostico rapido 0 h/1 h di hs-cTn, in assenza di una diagnosi alternativa definita.",
+    "care_context": "Pronto soccorso o unità di dolore toracico durante la fase diagnostica iniziale.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-009-INC-01",
+        "label": "Risultato inconcludente algoritmo 0 h/1 h",
+        "description": "Le prime due misurazioni di hs-cTn eseguite secondo l'algoritmo 0 h/1 h non hanno consentito né di escludere né di confermare l'infarto miocardico acuto (risultato nella zona grigia/inconcludente).",
+        "logic_expression": "hs_cTn_0h_result == 'inconcludente' AND hs_cTn_1h_result == 'inconcludente' AND algoritmo_0h1h_esito == 'inconcludente'",
+        "data_elements": [
+          "DE-hs_cTn_0h_valore",
+          "DE-hs_cTn_1h_valore",
+          "DE-algoritmo_0h1h_esito"
+        ],
+        "inference_allowed": false
+      },
+      {
+        "criterion_id": "STEMI-DO-009-INC-02",
+        "label": "Assenza di diagnosi alternativa",
+        "description": "Non è stata formulata alcuna diagnosi alternativa che possa spiegare adeguatamente il quadro clinico del paziente (ad esempio embolia polmonare, miocardite, dissecazione aortica, cause non cardiache).",
+        "logic_expression": "diagnosi_alternativa_formulata == false",
+        "data_elements": [
+          "DE-diagnosi_alternativa"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-009-INC-03",
+        "label": "Sospetto clinico di SCA",
+        "description": "Paziente con presentazione clinica compatibile con sindrome coronarica acuta (dolore toracico, dispnea, alterazioni ECG suggestive o anamnesi compatibile).",
+        "logic_expression": "sospetto_SCA == true",
+        "data_elements": [
+          "DE-sospetto_SCA",
+          "DE-sintomo_dolore_toracico"
+        ],
+        "inference_allowed": true
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-009-EXC-01",
+        "label": "Diagnosi alternativa confermata",
+        "description": "È stata identificata e confermata una diagnosi alternativa che spiega completamente il quadro clinico del paziente.",
+        "logic_expression": "diagnosi_alternativa_formulata == true AND diagnosi_alternativa_confermata == true",
+        "data_elements": [
+          "DE-diagnosi_alternativa",
+          "DE-diagnosi_alternativa_confermata"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-009-EXC-02",
+        "label": "Algoritmo 0 h/1 h già conclusivo",
+        "description": "L'algoritmo 0 h/1 h ha già fornito un risultato conclusivo (rule-in o rule-out definitivo per infarto miocardico acuto).",
+        "logic_expression": "algoritmo_0h1h_esito IN ('rule_in', 'rule_out')",
+        "data_elements": [
+          "DE-algoritmo_0h1h_esito"
+        ],
+        "inference_allowed": false
+      },
+      {
+        "criterion_id": "STEMI-DO-009-EXC-03",
+        "label": "STEMI evidente all'ECG",
+        "description": "Il paziente presenta un sopraslivellamento del segmento ST diagnostico all'ECG che configura uno STEMI franco e richiede un percorso di riperfusione immediata senza necessità di ulteriori dosaggi di troponina.",
+        "logic_expression": "ECG_STEMI == true",
+        "data_elements": [
+          "DE-ECG_risultato"
+        ],
+        "inference_allowed": false
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "result",
+    "trigger_description": "Il risultato dell'algoritmo 0 h/1 h di hs-cTn è classificato come inconcludente (zona grigia) dopo la valutazione delle prime due misurazioni, e non è stata formulata alcuna diagnosi alternativa plausibile.",
+    "anchor_event": "completamento_algoritmo_0h1h_inconcludente",
+    "start_of_applicability": "Dal momento in cui l'esito dell'algoritmo 0 h/1 h viene classificato come inconcludente e si conferma l'assenza di diagnosi alternative.",
+    "end_of_applicability": "Fino all'esecuzione del dosaggio aggiuntivo di hs-cTn a 3 ore o fino alla formulazione di una diagnosi alternativa che spieghi il quadro clinico.",
+    "trigger_data_elements": [
+      "DE-algoritmo_0h1h_esito",
+      "DE-hs_cTn_0h_valore",
+      "DE-hs_cTn_1h_valore",
+      "DE-diagnosi_alternativa"
+    ],
+    "inference_allowed": false
+  },
+  "exceptions": [
+    {
+      "exception_id": "STEMI-DO-009-EXP-01",
+      "label": "Diagnosi alternativa sopravvenuta",
+      "description": "Una diagnosi alternativa plausibile viene formulata e documentata tra il completamento dell'algoritmo 0 h/1 h e il tempo previsto per il dosaggio aggiuntivo a 3 ore, rendendo non necessario il prelievo aggiuntivo.",
+      "condition_logic": "diagnosi_alternativa_formulata == true AND tempo_diagnosi < tempo_prelievo_3h",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione della diagnosi alternativa nel referto clinico",
+        "Esami o indagini a supporto della diagnosi alternativa"
+      ]
+    },
+    {
+      "exception_id": "STEMI-DO-009-EXP-02",
+      "label": "Instabilità emodinamica con necessità di intervento urgente",
+      "description": "Il paziente sviluppa instabilità emodinamica o deterioramento clinico acuto che richiede un intervento terapeutico immediato (es. coronarografia urgente, rianimazione), rendendo il dosaggio aggiuntivo di hs-cTn non prioritario.",
+      "condition_logic": "instabilita_emodinamica == true OR intervento_urgente_richiesto == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione di parametri vitali indicativi di instabilità",
+        "Registrazione dell'intervento urgente e sua motivazione"
+      ]
+    },
+    {
+      "exception_id": "STEMI-DO-009-EXP-03",
+      "label": "Dimissione volontaria del paziente",
+      "description": "Il paziente rifiuta il completamento dell'iter diagnostico e richiede la dimissione volontaria, impedendo il prelievo a 3 ore.",
+      "condition_logic": "dimissione_volontaria == true AND consenso_informato_rifiuto_documentato == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Modulo di dimissione volontaria firmato dal paziente",
+        "Documentazione dell'informazione fornita sui rischi"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "eseguire",
+    "action_description": "Eseguire un dosaggio aggiuntivo di troponina cardiaca ad alta sensibilità (hs-cTn) mediante prelievo ematico a 3 ore dalla presentazione iniziale (tempo 0), in seguito a risultati inconcludenti dell'algoritmo 0 h/1 h e in assenza di diagnosi alternative.",
+    "action_target": "Dosaggio hs-cTn (troponina cardiaca ad alta sensibilità) a 3 ore",
+    "action_parameters": [
+      {
+        "parameter_name": "tempo_prelievo",
+        "parameter_description": "Tempo di esecuzione del prelievo aggiuntivo rispetto alla presentazione iniziale (tempo 0).",
+        "expected_value": "3",
+        "comparison_operator": "equals",
+        "unit": "ore",
+        "mandatory": true
+      },
+      {
+        "parameter_name": "analita",
+        "parameter_description": "Tipo di biomarcatore da dosare nel prelievo aggiuntivo.",
+        "expected_value": "hs-cTn (troponina cardiaca ad alta sensibilità)",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "tipo_campione",
+        "parameter_description": "Tipo di campione biologico richiesto per il dosaggio.",
+        "expected_value": "sangue venoso",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      }
+    ],
+    "alternative_compliant_actions": [
+      "Dosaggio hs-cTn a 3 ore con differente assay hs-cTn validato, se il medesimo assay non è disponibile",
+      "Dosaggio hs-cTn a 3 ore associato a rivalutazione clinica ed ECG come parte di un approccio integrato"
+    ]
+  },
+  "completion_criteria": {
+    "description": "Il dosaggio aggiuntivo di hs-cTn è considerato completato quando il prelievo ematico è stato eseguito a circa 3 ore dalla presentazione, il campione è stato analizzato dal laboratorio e il risultato è stato refertato e reso disponibile al medico richiedente, che lo ha integrato nella valutazione diagnostica.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "prelievo ematico a 3 ore",
+      "refertazione risultato hs-cTn",
+      "valutazione clinica del risultato"
+    ],
+    "required_documentation_elements": [
+      "Orario del prelievo ematico a 3 ore",
+      "Valore numerico del dosaggio hs-cTn a 3 ore",
+      "Interpretazione clinica del risultato nel contesto dell'algoritmo diagnostico"
+    ],
+    "success_condition": "risultato_hs_cTn_3h IS NOT NULL AND timestamp_prelievo_3h IS NOT NULL AND valutazione_clinica_3h_documentata == true"
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "STEMI-DO-009-TC-01",
+      "description": "Il prelievo aggiuntivo di hs-cTn deve essere eseguito a 3 ore dalla presentazione iniziale del paziente (tempo 0). Una tolleranza ragionevole di circa ±30 minuti è accettabile nella pratica clinica.",
+      "relation_to_anchor": "after",
+      "anchor_event": "presentazione_iniziale_tempo_0",
+      "duration_value": 3,
+      "duration_unit": "ore",
+      "hard_deadline": false,
+      "alert_threshold_value": 2.5,
+      "alert_threshold_unit": "ore"
+    },
+    {
+      "constraint_id": "STEMI-DO-009-TC-02",
+      "description": "Il risultato del dosaggio a 3 ore deve essere disponibile al medico entro 60 minuti dall'esecuzione del prelievo per garantire una decisione tempestiva.",
+      "relation_to_anchor": "within",
+      "anchor_event": "prelievo_ematico_3h",
+      "duration_value": 60,
+      "duration_unit": "minuti",
+      "hard_deadline": false,
+      "alert_threshold_value": 45,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "STEMI-DO-009-SC-01",
+      "description": "Le prime due misurazioni di hs-cTn dell'algoritmo 0 h/1 h devono essere state completate e classificate come inconcludenti prima dell'esecuzione del dosaggio aggiuntivo a 3 ore.",
+      "predecessor_event": "completamento_algoritmo_0h1h_inconcludente",
+      "successor_event": "prelievo_hs_cTn_3h",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "prelievo_hs_cTn_3h eseguito PRIMA del completamento e classificazione dell'algoritmo 0 h/1 h come inconcludente"
+    },
+    {
+      "constraint_id": "STEMI-DO-009-SC-02",
+      "description": "La rivalutazione clinica del paziente deve essere effettuata dopo la disponibilità del risultato del dosaggio aggiuntivo a 3 ore.",
+      "predecessor_event": "refertazione_hs_cTn_3h",
+      "successor_event": "rivalutazione_clinica_post_3h",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "rivalutazione_clinica_post_3h non effettuata OPPURE effettuata prima della disponibilità del referto hs-cTn a 3 ore"
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-hs_cTn_0h_valore",
+      "name": "Valore hs-cTn al tempo 0",
+      "description": "Valore numerico del dosaggio di troponina cardiaca ad alta sensibilità al momento della presentazione iniziale (tempo 0).",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare risultato di laboratorio con codice LOINC per hs-cTn (es. 89579-7 per hs-cTnI o 67151-1 per hs-cTnT) con timestamp corrispondente al tempo 0."
+    },
+    {
+      "data_element_id": "DE-hs_cTn_1h_valore",
+      "name": "Valore hs-cTn a 1 ora",
+      "description": "Valore numerico del dosaggio di troponina cardiaca ad alta sensibilità a 1 ora dalla presentazione iniziale.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare risultato di laboratorio hs-cTn con timestamp circa 1 ora dopo il tempo 0."
+    },
+    {
+      "data_element_id": "DE-algoritmo_0h1h_esito",
+      "name": "Esito algoritmo 0 h/1 h",
+      "description": "Classificazione dell'esito dell'algoritmo diagnostico rapido 0 h/1 h di hs-cTn: rule-in, rule-out o inconcludente.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Verificare se esiste un campo strutturato per l'esito dell'algoritmo. In alternativa, derivare dai valori di hs-cTn 0h e 1h e dalla variazione assoluta secondo i cut-off del kit diagnostico in uso."
+    },
+    {
+      "data_element_id": "DE-diagnosi_alternativa",
+      "name": "Diagnosi alternativa formulata",
+      "description": "Indicatore della presenza di una diagnosi alternativa documentata che spieghi il quadro clinico, rendendo non necessario il dosaggio aggiuntivo.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": "ICD-10",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare diagnosi codificate in cartella clinica o note cliniche che documentino una diagnosi alternativa alla SCA (es. embolia polmonare, miocardite, scompenso cardiaco, cause muscoloscheletriche)."
+    },
+    {
+      "data_element_id": "DE-hs_cTn_3h_valore",
+      "name": "Valore hs-cTn a 3 ore",
+      "description": "Valore numerico del dosaggio aggiuntivo di troponina cardiaca ad alta sensibilità eseguito a 3 ore dalla presentazione iniziale.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare risultato di laboratorio hs-cTn con timestamp circa 3 ore dopo il tempo 0."
+    },
+    {
+      "data_element_id": "DE-timestamp_presentazione",
+      "name": "Timestamp presentazione iniziale (tempo 0)",
+      "description": "Data e ora della presentazione iniziale del paziente in pronto soccorso, utilizzata come riferimento temporale per l'algoritmo 0 h/1 h/3 h.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Utilizzare il timestamp di registrazione in triage o di primo accesso al pronto soccorso."
+    },
+    {
+      "data_element_id": "DE-timestamp_prelievo_3h",
+      "name": "Timestamp prelievo ematico a 3 ore",
+      "description": "Data e ora dell'esecuzione del prelievo ematico per il dosaggio aggiuntivo di hs-cTn a 3 ore.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare il timestamp di prelievo del campione associato al terzo dosaggio di hs-cTn."
+    },
+    {
+      "data_element_id": "DE-sospetto_SCA",
+      "name": "Sospetto clinico di SCA",
+      "description": "Indicatore del sospetto clinico di sindrome coronarica acuta formulato dal medico al momento della valutazione iniziale.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Cercare nelle note cliniche di accesso indicatori di sospetto SCA, dolore toracico acuto, o richiesta di dosaggio troponina con motivazione clinica compatibile."
+    },
+    {
+      "data_element_id": "DE-sintomo_dolore_toracico",
+      "name": "Dolore toracico",
+      "description": "Presenza documentata di dolore toracico o equivalente anginoso come sintomo di presentazione.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": "ICD-10",
+      "required_for_evaluation": false,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare codice ICD-10 R07.9 o equivalente, oppure nota clinica che riporti dolore toracico."
+    },
+    {
+      "data_element_id": "DE-ECG_risultato",
+      "name": "Risultato ECG",
+      "description": "Esito dell'elettrocardiogramma eseguito all'arrivo, in particolare la presenza o assenza di sopraslivellamento del tratto ST.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare referto ECG e classificazione (STEMI, NSTEMI, alterazioni aspecifiche, normale)."
+    },
+    {
+      "data_element_id": "DE-diagnosi_alternativa_confermata",
+      "name": "Diagnosi alternativa confermata",
+      "description": "Indicatore che la diagnosi alternativa è stata confermata mediante esami o indagini complementari.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "inferential",
+      "query_hint": "Verificare nelle note cliniche o referti diagnostici la conferma di una diagnosi alternativa alla SCA."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "STEMI-DO-009-EOC-01",
+      "description": "Presenza di un risultato di laboratorio per hs-cTn con timestamp compatibile con 3 ore (±30 minuti) dalla presentazione iniziale, successivo a un esito inconcludente dell'algoritmo 0 h/1 h.",
+      "evidence_type": "result",
+      "minimum_occurrences": 1,
+      "time_reference": "Circa 3 ore dopo la presentazione iniziale (tempo 0), con tolleranza ±30 minuti",
+      "derived_from_data_elements": [
+        "DE-hs_cTn_3h_valore",
+        "DE-timestamp_prelievo_3h",
+        "DE-timestamp_presentazione"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-009-EOC-02",
+      "description": "Documentazione clinica della rivalutazione del paziente basata sul risultato del dosaggio aggiuntivo di hs-cTn a 3 ore, inclusa l'interpretazione diagnostica.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Dopo la disponibilità del risultato hs-cTn a 3 ore",
+      "derived_from_data_elements": [
+        "DE-hs_cTn_3h_valore",
+        "DE-algoritmo_0h1h_esito"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-009-EOC-03",
+      "description": "Ordine di laboratorio per dosaggio hs-cTn a 3 ore presente nel sistema informativo, con motivazione clinica coerente.",
+      "evidence_type": "order",
+      "minimum_occurrences": 1,
+      "time_reference": "Tra il completamento dell'algoritmo 0 h/1 h inconcludente e le 3 ore dalla presentazione",
+      "derived_from_data_elements": [
+        "DE-hs_cTn_3h_valore",
+        "DE-timestamp_prelievo_3h"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "STEMI-DO-009-EONC-01",
+      "description": "Assenza di un terzo dosaggio di hs-cTn entro 4 ore dalla presentazione iniziale, in un paziente con esito inconcludente dell'algoritmo 0 h/1 h e senza diagnosi alternativa documentata.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 4 ore dalla presentazione iniziale (tempo 0)",
+      "derived_from_data_elements": [
+        "DE-hs_cTn_3h_valore",
+        "DE-timestamp_presentazione",
+        "DE-algoritmo_0h1h_esito",
+        "DE-diagnosi_alternativa"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-009-EONC-02",
+      "description": "Il paziente viene dimesso o trasferito dal pronto soccorso senza che sia stato eseguito il dosaggio aggiuntivo a 3 ore e senza una diagnosi alternativa documentata né una giustificazione clinica per la deviazione.",
+      "evidence_type": "sequence",
+      "minimum_occurrences": 1,
+      "time_reference": "Prima delle 3 ore dalla presentazione o senza dosaggio hs-cTn a 3 ore",
+      "derived_from_data_elements": [
+        "DE-hs_cTn_3h_valore",
+        "DE-diagnosi_alternativa",
+        "DE-algoritmo_0h1h_esito"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-009-EONC-03",
+      "description": "Dosaggio aggiuntivo eseguito ma con ritardo significativo (oltre 4.5 ore dalla presentazione) senza giustificazione documentata.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Oltre 4.5 ore dalla presentazione iniziale",
+      "derived_from_data_elements": [
+        "DE-timestamp_prelievo_3h",
+        "DE-timestamp_presentazione"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Verificare se, in un paziente con sospetta SCA il cui algoritmo 0 h/1 h di hs-cTn ha dato esito inconcludente e per il quale non è stata formulata alcuna diagnosi alternativa, è stato eseguito un dosaggio aggiuntivo di hs-cTn a circa 3 ore dalla presentazione iniziale, e se il risultato è stato valutato clinicamente. Se il dosaggio è presente con timestamp appropriato e la rivalutazione è documentata, la regola è conforme. Se il dosaggio è assente oppure molto ritardato senza giustificazione, la regola è non conforme.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF algoritmo_0h1h_esito == 'inconcludente' AND diagnosi_alternativa_formulata == false THEN IF EXISTS(hs_cTn_3h_valore) AND ABS(timestamp_prelievo_3h - timestamp_presentazione - 3h) <= 30min AND valutazione_clinica_3h_documentata == true THEN 'compliant' ELSE IF EXISTS(diagnosi_alternativa_sopravvenuta) AND diagnosi_alternativa_sopravvenuta_documentata == true THEN 'justified_deviation' ELSE IF hs_cTn_3h_valore IS NULL AND tempo_attuale - timestamp_presentazione > 4h THEN 'non_compliant' ELSE 'not_evaluable' END",
+    "missing_data_policy": "review_required",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "human_review",
+    "notes": "La classificazione dell'esito dell'algoritmo 0 h/1 h come inconcludente può dipendere dal kit diagnostico e dai cut-off locali. È necessario verificare la coerenza tra i valori di hs-cTn e i soglie specifiche del saggio in uso. Il termine 'circa 3 ore' ammette una tolleranza ragionevole di ±30 minuti."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "note cliniche di pronto soccorso",
+      "referti di laboratorio",
+      "lettere di dimissione",
+      "schede di triage",
+      "ordini di laboratorio nel sistema informativo"
+    ],
+    "human_review_required": true,
+    "minimum_confidence": 0.85,
+    "notes": "L'assenza di diagnosi alternativa richiede spesso inferenza da note cliniche non strutturate. La classificazione dell'esito dell'algoritmo 0 h/1 h come inconcludente può non essere sempre codificata in modo strutturato e potrebbe richiedere derivazione dai valori numerici di hs-cTn rispetto ai cut-off del saggio locale."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable",
+    "probable_non_compliance"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "high",
+    "process_risk_severity": "high",
+    "likelihood_if_violated": "possible",
+    "detectability": "moderate",
+    "priority_score": 8.5,
+    "rationale": "La mancata esecuzione del dosaggio aggiuntivo di hs-cTn a 3 ore in pazienti con risultato inconcludente dell'algoritmo 0 h/1 h può portare a dimissioni inappropriate di pazienti con infarto miocardico acuto non diagnosticato, con elevato rischio di eventi avversi maggiori (morte cardiaca improvvisa, scompenso cardiaco acuto, aritmie fatali). Il rischio clinico è classificato come alto perché l'omissione diagnostica può avere conseguenze potenzialmente fatali."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Valore hs-cTn al tempo 0",
+      "Valore hs-cTn a 1 ora",
+      "Esito algoritmo 0 h/1 h (rule-in, rule-out, inconcludente)",
+      "Valore hs-cTn a 3 ore (se applicabile)",
+      "Timestamp di ciascun prelievo",
+      "Valutazione clinica del risultato a 3 ore",
+      "Eventuale diagnosi alternativa formulata"
+    ],
+    "acceptable_evidence_sources": [
+      "Sistema informativo di laboratorio (LIS)",
+      "Cartella clinica elettronica di pronto soccorso",
+      "Note cliniche strutturate e narrative",
+      "Ordini di laboratorio",
+      "Scheda di osservazione breve"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Nota clinica motivante la deviazione",
+      "Diagnosi alternativa documentata con relativa evidenza",
+      "Motivo del mancato prelievo a 3 ore",
+      "Modulo di dimissione volontaria (se applicabile)"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "STEMI-WS-009-01",
+    "STEMI-WS-009-02"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "Il testo originale in inglese utilizza il termine 'recommended' che è stato mappato a forza deontica 'recommended'. L'algoritmo 0 h/1 h si riferisce al protocollo rapido ESC per il dosaggio seriale di hs-cTn con prelievi al tempo 0 e a 1 ora. Il termine 'inconclusive' è stato tradotto come 'inconcludente' e si riferisce ai pazienti che non soddisfano i criteri di rule-in né di rule-out dopo le prime due misurazioni. La condizione 'no alternative diagnoses' è stata interpretata come assenza di qualsiasi diagnosi alternativa plausibile documentata.",
+    "extraction_confidence": 0.92,
+    "ambiguity_flags": [
+      "I cut-off per definire l'esito 'inconcludente' dell'algoritmo 0 h/1 h variano in base al tipo di saggio hs-cTn utilizzato (hs-cTnI vs hs-cTnT) e al produttore del kit diagnostico.",
+      "Il testo non specifica una tolleranza temporale esatta per il prelievo a 3 ore; è stata assunta una tolleranza di ±30 minuti come ragionevole nella pratica clinica.",
+      "La definizione di 'diagnosi alternativa' è ampia e richiede giudizio clinico per stabilire se una diagnosi sia sufficientemente plausibile da spiegare il quadro."
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Gruppo di Lavoro PDTA STEMI",
+    "rule_owner": "Direttore UOC Cardiologia e Pronto Soccorso",
+    "effective_from": null,
+    "effective_to": null,
+    "review_cycle": "12 mesi",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

@@ -1,0 +1,432 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-006",
+  "rule_type": "do",
+  "title": "Esecuzione di un ECG a 12 derivazioni aggiuntivo in caso di sintomi ricorrenti o incertezza diagnostica",
+  "short_label": "ECG aggiuntivo per sintomi ricorrenti/incertezza",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "diagnosi",
+  "care_settings": [
+    "pronto soccorso",
+    "unità di terapia intensiva coronarica",
+    "pre-ospedaliero",
+    "reparto di cardiologia"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "Medico d'emergenza",
+      "responsibility_type": "primary",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Responsabile della decisione clinica di eseguire un ECG aggiuntivo e dell'interpretazione del tracciato."
+    },
+    {
+      "role_name": "Infermiere di pronto soccorso",
+      "responsibility_type": "supporting",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Responsabile dell'esecuzione tecnica dell'ECG a 12 derivazioni su indicazione medica."
+    },
+    {
+      "role_name": "Cardiologo di guardia",
+      "responsibility_type": "consulted",
+      "organization_unit": "Cardiologia / UTIC",
+      "notes": "Consultato in caso di persistenza dell'incertezza diagnostica dopo l'ECG aggiuntivo."
+    }
+  ],
+  "deontic_strength": "recommended",
+  "recommendation_strength": "Classe I",
+  "evidence_level": "Livello di evidenza C",
+  "original_statement": "An additional 12-lead ECG is recommended in cases with recurrent symptoms or diagnostic uncertainty.",
+  "normalized_statement": "In presenza di sintomi ricorrenti o incertezza diagnostica, è raccomandata l'esecuzione di un ECG a 12 derivazioni aggiuntivo.",
+  "intent": "Garantire una rivalutazione elettrocardiografica tempestiva nei pazienti con sospetto STEMI che presentano sintomi ricorrenti o in cui persiste incertezza diagnostica, al fine di identificare variazioni ischemiche evolutive e supportare decisioni terapeutiche appropriate.",
+  "rationale": "Un ECG a 12 derivazioni aggiuntivo consente di identificare alterazioni del segmento ST di nuova insorgenza o in evoluzione, migliorando l'accuratezza diagnostica nei casi di incertezza e nei pazienti con sintomi ricorrenti suggestivi di ischemia in corso. L'omissione di tale controllo potrebbe ritardare il riconoscimento di uno STEMI e la conseguente rivascolarizzazione.",
+  "source_references": [
+    {
+      "source_id": "ESC-STEMI-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione Diagnosi – Elettrocardiogramma",
+      "page_reference": null,
+      "statement_quote": "An additional 12-lead ECG is recommended in cases with recurrent symptoms or diagnostic uncertainty.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto soggetto a copyright ESC. Uso a fini clinici e di ricerca secondo i termini dell'editore."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti con sospetto clinico di infarto miocardico con sopraslivellamento del tratto ST (STEMI) che presentano sintomi ricorrenti o in cui persiste incertezza diagnostica dopo l'ECG iniziale.",
+    "clinical_context": "Sospetto STEMI con sintomatologia ricorrente (es. dolore toracico recidivante) o tracciato ECG iniziale non conclusivo per la diagnosi.",
+    "care_context": "Fase diagnostica del percorso STEMI, applicabile in ambito pre-ospedaliero, pronto soccorso e unità di terapia intensiva coronarica.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-006-INC-01",
+        "label": "Sintomi ricorrenti suggestivi di ischemia",
+        "description": "Il paziente presenta recidiva di dolore toracico o sintomi equivalenti ischemici dopo l'esecuzione del primo ECG a 12 derivazioni.",
+        "logic_expression": "recurrent_ischemic_symptoms == true",
+        "data_elements": [
+          "DE-STEMI-006-01",
+          "DE-STEMI-006-02"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-006-INC-02",
+        "label": "Incertezza diagnostica persistente",
+        "description": "Il tracciato ECG iniziale non è conclusivo per la diagnosi di STEMI (es. blocco di branca sinistra preesistente, ritmo da pacemaker, alterazioni aspecifiche del tratto ST) oppure il quadro clinico è discordante rispetto ai reperti elettrocardiografici.",
+        "logic_expression": "diagnostic_uncertainty == true",
+        "data_elements": [
+          "DE-STEMI-006-03",
+          "DE-STEMI-006-04"
+        ],
+        "inference_allowed": true
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-006-EXC-01",
+        "label": "Diagnosi STEMI già confermata e trattamento avviato",
+        "description": "Il paziente ha già una diagnosi STEMI confermata e la strategia di riperfusione è già stata attivata. In questo caso l'ECG aggiuntivo non modifica la gestione immediata.",
+        "logic_expression": "stemi_confirmed == true AND reperfusion_activated == true",
+        "data_elements": [
+          "DE-STEMI-006-05",
+          "DE-STEMI-006-06"
+        ],
+        "inference_allowed": false
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "documented_symptom",
+    "trigger_description": "Il trigger si attiva quando il paziente con sospetto STEMI presenta una recidiva di sintomi ischemici (es. dolore toracico, dispnea, sudorazione) dopo l'ECG iniziale, oppure quando il clinico documenta un'incertezza diagnostica relativa all'interpretazione dell'ECG iniziale.",
+    "anchor_event": "Esecuzione del primo ECG a 12 derivazioni",
+    "start_of_applicability": "Dal momento della comparsa di sintomi ricorrenti o della documentazione di incertezza diagnostica dopo il primo ECG.",
+    "end_of_applicability": "Fino alla conferma o all'esclusione della diagnosi di STEMI, oppure fino all'attivazione della strategia di riperfusione.",
+    "trigger_data_elements": [
+      "DE-STEMI-006-01",
+      "DE-STEMI-006-02",
+      "DE-STEMI-006-03"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "STEMI-DO-006-EXP-01",
+      "label": "Paziente in arresto cardiaco non recuperato",
+      "description": "Il paziente è in arresto cardiaco refrattario e l'esecuzione di un ECG aggiuntivo non è tecnicamente praticabile o clinicamente prioritaria rispetto alle manovre rianimatorie in corso.",
+      "condition_logic": "cardiac_arrest_ongoing == true AND ROSC == false",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dello stato di arresto cardiaco",
+        "Registrazione delle manovre rianimatorie in corso"
+      ]
+    },
+    {
+      "exception_id": "STEMI-DO-006-EXP-02",
+      "label": "Trasferimento emergente in atto verso sala di emodinamica",
+      "description": "Il paziente è già in trasferimento emergente verso il laboratorio di emodinamica e la sosta per un ECG aggiuntivo comporterebbe un ritardo clinicamente inaccettabile nella riperfusione.",
+      "condition_logic": "emergent_transfer_to_cath_lab == true AND delay_unacceptable == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione del trasferimento emergente in corso",
+        "Motivazione clinica del mancato ECG aggiuntivo"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "eseguire",
+    "action_description": "Eseguire un ECG a 12 derivazioni aggiuntivo con acquisizione completa di tutte le derivazioni standard, provvedendo a un'interpretazione rapida del tracciato con ricerca di alterazioni del tratto ST, nuove onde Q, o altri segni indicativi di ischemia acuta.",
+    "action_target": "ECG a 12 derivazioni",
+    "action_parameters": [
+      {
+        "parameter_name": "Numero di derivazioni",
+        "parameter_description": "L'ECG deve includere almeno tutte le 12 derivazioni standard.",
+        "expected_value": "12",
+        "comparison_operator": "equals",
+        "unit": "derivazioni",
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Interpretazione clinica documentata",
+        "parameter_description": "Il tracciato deve essere interpretato da un medico e l'esito documentato nel fascicolo clinico.",
+        "expected_value": "presente",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Derivazioni aggiuntive opzionali",
+        "parameter_description": "In caso di sospetto infarto posteriore o del ventricolo destro, possono essere aggiunte derivazioni V7-V9 e V3R-V4R.",
+        "expected_value": null,
+        "comparison_operator": null,
+        "unit": null,
+        "mandatory": false
+      }
+    ],
+    "alternative_compliant_actions": [
+      "Monitoraggio ECG continuo con registrazione periodica del tracciato a 12 derivazioni se l'ECG aggiuntivo non è immediatamente disponibile"
+    ]
+  },
+  "completion_criteria": {
+    "description": "L'azione è considerata completata quando un ECG a 12 derivazioni aggiuntivo è stato acquisito, interpretato da un medico e il risultato è stato documentato nel fascicolo clinico del paziente.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "acquisizione_ecg_12_derivazioni",
+      "interpretazione_ecg",
+      "documentazione_referto_ecg"
+    ],
+    "required_documentation_elements": [
+      "Tracciato ECG a 12 derivazioni acquisito",
+      "Referto di interpretazione con indicazione della presenza o assenza di alterazioni ischemiche",
+      "Timestamp di acquisizione dell'ECG aggiuntivo"
+    ],
+    "success_condition": "ECG a 12 derivazioni aggiuntivo acquisito AND interpretazione documentata nel fascicolo clinico AND timestamp registrato"
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "STEMI-DO-006-TC-01",
+      "description": "L'ECG aggiuntivo a 12 derivazioni deve essere eseguito entro 10 minuti dalla comparsa dei sintomi ricorrenti o dal riconoscimento dell'incertezza diagnostica.",
+      "relation_to_anchor": "within",
+      "anchor_event": "Comparsa di sintomi ricorrenti o riconoscimento di incertezza diagnostica",
+      "duration_value": 10,
+      "duration_unit": "minuti",
+      "hard_deadline": false,
+      "alert_threshold_value": 5,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "STEMI-DO-006-SC-01",
+      "description": "L'ECG aggiuntivo deve essere eseguito dopo la comparsa dei sintomi ricorrenti o della documentazione di incertezza diagnostica, e prima della decisione definitiva sulla strategia di riperfusione.",
+      "predecessor_event": "Comparsa di sintomi ricorrenti o incertezza diagnostica documentata",
+      "successor_event": "Esecuzione ECG a 12 derivazioni aggiuntivo",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "L'ECG aggiuntivo non è stato eseguito nonostante la documentazione di sintomi ricorrenti o incertezza diagnostica."
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-STEMI-006-01",
+      "name": "Presenza di sintomi ricorrenti",
+      "description": "Indicazione della recidiva di sintomi ischemici (dolore toracico, dispnea, sudorazione) dopo l'ECG iniziale.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare documentazione di recidiva di dolore toracico o sintomi equivalenti ischemici nelle note cliniche o nel sistema di monitoraggio."
+    },
+    {
+      "data_element_id": "DE-STEMI-006-02",
+      "name": "Timestamp comparsa sintomi ricorrenti",
+      "description": "Data e ora della comparsa dei sintomi ischemici ricorrenti.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare la registrazione temporale degli eventi clinici nel sistema di gestione del pronto soccorso."
+    },
+    {
+      "data_element_id": "DE-STEMI-006-03",
+      "name": "Incertezza diagnostica documentata",
+      "description": "Documentazione da parte del clinico di un'incertezza nell'interpretazione dell'ECG iniziale o nel quadro clinico complessivo.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Analizzare le note cliniche per espressioni di dubbio diagnostico, ECG non conclusivo, alterazioni aspecifiche del tratto ST."
+    },
+    {
+      "data_element_id": "DE-STEMI-006-04",
+      "name": "Referto ECG iniziale",
+      "description": "Referto dell'ECG a 12 derivazioni iniziale con interpretazione clinica.",
+      "source_location": "ehr_structured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Recuperare il referto del primo ECG eseguito nel percorso STEMI dal sistema di cardiologia o dal fascicolo di PS."
+    },
+    {
+      "data_element_id": "DE-STEMI-006-05",
+      "name": "Diagnosi STEMI confermata",
+      "description": "Indicazione se la diagnosi di STEMI è stata confermata definitivamente.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": "ICD-10",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare la presenza di codice ICD-10 I21.x confermato o diagnosi clinica di STEMI."
+    },
+    {
+      "data_element_id": "DE-STEMI-006-06",
+      "name": "Attivazione strategia di riperfusione",
+      "description": "Indicazione se la strategia di riperfusione (PCI primaria o fibrinolisi) è già stata attivata.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare l'attivazione del percorso emodinamica o la somministrazione di fibrinolitico nel sistema ordini."
+    },
+    {
+      "data_element_id": "DE-STEMI-006-07",
+      "name": "Timestamp ECG aggiuntivo",
+      "description": "Data e ora di acquisizione dell'ECG a 12 derivazioni aggiuntivo.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Recuperare il timestamp del secondo o successivo ECG a 12 derivazioni dal sistema ECG o dal fascicolo clinico."
+    },
+    {
+      "data_element_id": "DE-STEMI-006-08",
+      "name": "Referto ECG aggiuntivo",
+      "description": "Referto dell'ECG a 12 derivazioni aggiuntivo con interpretazione clinica documentata.",
+      "source_location": "ehr_structured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Recuperare il referto dell'ECG aggiuntivo dal sistema di cardiologia o dal fascicolo di PS."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "STEMI-DO-006-EOC-01",
+      "description": "Presenza di un tracciato ECG a 12 derivazioni aggiuntivo acquisito e documentato nel fascicolo clinico del paziente dopo la comparsa di sintomi ricorrenti o incertezza diagnostica.",
+      "evidence_type": "execution",
+      "minimum_occurrences": 1,
+      "time_reference": "Dopo la comparsa dei sintomi ricorrenti o la documentazione di incertezza diagnostica",
+      "derived_from_data_elements": [
+        "DE-STEMI-006-07",
+        "DE-STEMI-006-08"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-006-EOC-02",
+      "description": "Documentazione dell'interpretazione clinica del tracciato ECG aggiuntivo con valutazione delle alterazioni ischemiche.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Contestualmente o immediatamente dopo l'acquisizione dell'ECG aggiuntivo",
+      "derived_from_data_elements": [
+        "DE-STEMI-006-08"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "STEMI-DO-006-EONC-01",
+      "description": "Assenza di un ECG a 12 derivazioni aggiuntivo nel fascicolo clinico nonostante la documentazione di sintomi ricorrenti o di incertezza diagnostica.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Dall'insorgenza dei sintomi ricorrenti o dell'incertezza diagnostica fino alla chiusura dell'episodio diagnostico",
+      "derived_from_data_elements": [
+        "DE-STEMI-006-01",
+        "DE-STEMI-006-03",
+        "DE-STEMI-006-07"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-006-EONC-02",
+      "description": "ECG aggiuntivo eseguito ma privo di referto o interpretazione clinica documentata.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Dopo l'acquisizione dell'ECG aggiuntivo",
+      "derived_from_data_elements": [
+        "DE-STEMI-006-07",
+        "DE-STEMI-006-08"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Verificare se, in presenza di sintomi ricorrenti documentati OPPURE incertezza diagnostica documentata dopo il primo ECG, è stato eseguito almeno un ECG a 12 derivazioni aggiuntivo con relativa interpretazione clinica registrata nel fascicolo del paziente. La regola è soddisfatta se il tracciato ECG aggiuntivo e il referto sono presenti; è non conforme se mancano nonostante la presenza dei trigger.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF (recurrent_symptoms == TRUE OR diagnostic_uncertainty == TRUE) AND NOT (stemi_confirmed == TRUE AND reperfusion_activated == TRUE) THEN IF additional_ecg_performed == TRUE AND ecg_interpretation_documented == TRUE THEN status = 'compliant' ELSE IF exception_documented == TRUE THEN status = 'justified_deviation' ELSE status = 'non_compliant' ELSE status = 'not_applicable'",
+    "missing_data_policy": "review_required",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "human_review",
+    "notes": "L'incertezza diagnostica è spesso documentata in formato narrativo e richiede estrazione inferenziale dalle note cliniche. In caso di dubbio sulla presenza del trigger, è necessaria la revisione umana."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "note cliniche di pronto soccorso",
+      "referti ECG",
+      "lettere di dimissione",
+      "registrazioni infermieristiche",
+      "sistema di gestione emergenze"
+    ],
+    "human_review_required": true,
+    "minimum_confidence": 0.8,
+    "notes": "L'identificazione dell'incertezza diagnostica richiede analisi testuale inferenziale. La verifica dell'avvenuta esecuzione dell'ECG aggiuntivo può essere deterministica se il timestamp è disponibile nel sistema ECG. La revisione umana è consigliata per confermare la corretta identificazione del trigger."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "high",
+    "process_risk_severity": "moderate",
+    "likelihood_if_violated": "possible",
+    "detectability": "moderate",
+    "priority_score": 7.5,
+    "rationale": "La mancata esecuzione di un ECG aggiuntivo in caso di sintomi ricorrenti o incertezza diagnostica può portare al mancato riconoscimento di uno STEMI in evoluzione, con conseguente ritardo nella riperfusione e aumento del rischio di danno miocardico irreversibile e mortalità."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Tracciato ECG a 12 derivazioni aggiuntivo",
+      "Referto di interpretazione dell'ECG aggiuntivo",
+      "Timestamp di acquisizione dell'ECG aggiuntivo",
+      "Indicazione clinica per l'esecuzione dell'ECG aggiuntivo (sintomi ricorrenti o incertezza diagnostica)"
+    ],
+    "acceptable_evidence_sources": [
+      "Sistema ECG digitale",
+      "Fascicolo clinico elettronico",
+      "Note mediche di pronto soccorso",
+      "Registrazioni infermieristiche",
+      "Sistema di gestione emergenze"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Motivazione clinica per la mancata esecuzione dell'ECG aggiuntivo",
+      "Condizione clinica del paziente al momento della decisione"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "STEMI-WS-006-01",
+    "STEMI-WS-006-02"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "La raccomandazione originale utilizza il termine 'recommended', interpretato come forza deontica 'raccomandato' (non obbligatorio). I trigger 'recurrent symptoms' e 'diagnostic uncertainty' sono stati tradotti e operazionalizzati rispettivamente come sintomi ischemici ricorrenti e incertezza diagnostica documentata. L'incertezza diagnostica è un concetto soggettivo che richiede estrazione inferenziale dalle note cliniche.",
+    "extraction_confidence": 0.88,
+    "ambiguity_flags": [
+      "Il concetto di 'incertezza diagnostica' non è definito in modo univoco nella linea guida; la sua operazionalizzazione dipende dall'interpretazione clinica locale.",
+      "Non è specificato un vincolo temporale esplicito nella raccomandazione originale; il limite di 10 minuti è stato derivato dalla pratica clinica standard per ECG in contesto emergenziale."
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Gruppo di lavoro PDTA STEMI",
+    "rule_owner": "Dipartimento di Cardiologia d'Urgenza",
+    "effective_from": "2024-01-01",
+    "effective_to": null,
+    "review_cycle": "ogni 12 mesi",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

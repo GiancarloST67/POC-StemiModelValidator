@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-006-20260323-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-23T11:00:00+01:00",
+  "rule_id": "STEMI-DO-006",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "compliant",
+  "confidence": 0.95,
+  "rationale": "Entrambi i trigger della regola sono chiaramente documentati: (1) Incertezza diagnostica: l'ECG pre-ospedaliero delle 07:48 è descritto come 'non dirimente per STEMI conclamato' (record #1), la valutazione medica di PS delle 08:11 conferma che il tracciato è 'non nettamente diagnostico' per STEMI impostando un iter per SCA senza ST con ECG seriati (record #4), e l'ECG delle 09:36 è ancora definito 'non francamente conclusivo per STEMI' (record #8). (2) Sintomi ricorrenti: documentata persistenza di sintomatologia costrittiva toracica (record #8, ore 09:36) e successiva recrudescenza del dolore toracico con nausea e sudorazione (record #9, ore 11:02). In risposta a tali trigger sono stati eseguiti almeno tre ECG a 12 derivazioni aggiuntivi: ECG seriato alle 09:36 (record #8), ECG alle 11:02 con riscontro di STEMI inferiore franco (record #9) e ECG con derivazioni aggiuntive V7-V9 e V3R-V4R alle 11:18 (record #10). Tutti i tracciati sono corredati di referto con interpretazione clinica documentata, indicazione clinica e timestamp. I criteri di esclusione non si applicano poiché, al momento dell'esecuzione degli ECG aggiuntivi, la diagnosi di STEMI non era ancora confermata e la strategia di riperfusione non era ancora attivata (attivazione emodinamica documentata solo alle 11:40, record #11). La regola è pienamente soddisfatta."
+}

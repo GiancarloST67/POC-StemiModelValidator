@@ -1,0 +1,594 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-008",
+  "rule_type": "do",
+  "title": "Utilizzo dell'approccio algoritmico ESC con dosaggi seriati di troponina cardiaca ad alta sensibilità (hs-cTn) per confermare o escludere NSTEMI",
+  "short_label": "Algoritmo ESC hs-cTn 0h/1h o 0h/2h",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "diagnosi",
+  "care_settings": [
+    "pronto soccorso",
+    "dipartimento di emergenza-urgenza",
+    "unità di dolore toracico"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "Medico d'urgenza",
+      "responsibility_type": "primary",
+      "organization_unit": "Pronto Soccorso / Dipartimento di Emergenza-Urgenza",
+      "notes": "Responsabile della richiesta e interpretazione dei dosaggi seriati di hs-cTn secondo l'algoritmo ESC."
+    },
+    {
+      "role_name": "Cardiologo",
+      "responsibility_type": "consulted",
+      "organization_unit": "Cardiologia / Unità di Terapia Intensiva Coronarica",
+      "notes": "Consulente per interpretazione di risultati ambigui o per conferma diagnostica di NSTEMI."
+    },
+    {
+      "role_name": "Infermiere di triage",
+      "responsibility_type": "supporting",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Supporta il prelievo ematico al tempo 0 e garantisce il prelievo seriato nei tempi previsti dall'algoritmo."
+    },
+    {
+      "role_name": "Laboratorio analisi",
+      "responsibility_type": "supporting",
+      "organization_unit": "Laboratorio centralizzato / Point-of-care",
+      "notes": "Responsabile dell'esecuzione del dosaggio hs-cTn con tempi di refertazione rapidi (turn-around time ≤ 60 minuti)."
+    }
+  ],
+  "deontic_strength": "recommended",
+  "recommendation_strength": "Classe I",
+  "evidence_level": "Livello di evidenza B",
+  "original_statement": "It is recommended to use an ESC algorithmic approach with serial hs-cTn measurements (0 h/1 h or 0 h/2 h) to rule in and rule out NSTEMI.",
+  "normalized_statement": "Si raccomanda di utilizzare l'approccio algoritmico ESC con dosaggi seriati di troponina cardiaca ad alta sensibilità (hs-cTn) a 0h/1h oppure 0h/2h per confermare o escludere la diagnosi di NSTEMI.",
+  "intent": "Garantire una stratificazione diagnostica rapida e accurata dei pazienti con sospetta sindrome coronarica acuta senza sopraslivellamento del tratto ST, utilizzando un algoritmo validato basato su dosaggi seriati di hs-cTn per confermare o escludere NSTEMI.",
+  "rationale": "L'algoritmo ESC basato su dosaggi seriati di hs-cTn a 0h/1h o 0h/2h consente un rapido rule-in e rule-out dell'NSTEMI con elevata accuratezza diagnostica (VPN >99%), riducendo i tempi di permanenza in pronto soccorso, migliorando l'allocazione delle risorse e garantendo un trattamento tempestivo nei pazienti con infarto miocardico confermato.",
+  "source_references": [
+    {
+      "source_id": "ESC-ACS-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione 3.3 – Diagnosi biochimica: troponina cardiaca ad alta sensibilità",
+      "page_reference": null,
+      "statement_quote": "It is recommended to use an ESC algorithmic approach with serial hs-cTn measurements (0 h/1 h or 0 h/2 h) to rule in and rule out NSTEMI.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto soggetto a copyright ESC. Uso a fini clinici e di qualità interna."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti che si presentano in pronto soccorso con sospetta sindrome coronarica acuta, in particolare quelli senza sopraslivellamento persistente del tratto ST all'ECG, in cui è necessario confermare o escludere un NSTEMI.",
+    "clinical_context": "Sospetta sindrome coronarica acuta (SCA) senza sopraslivellamento persistente del tratto ST, nell'ambito del percorso diagnostico differenziale STEMI/NSTEMI.",
+    "care_context": "Fase diagnostica iniziale presso il pronto soccorso o l'unità di dolore toracico.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "IC-008-01",
+        "label": "Dolore toracico suggestivo di SCA",
+        "description": "Paziente con dolore toracico acuto o equivalente ischemico sospetto per sindrome coronarica acuta.",
+        "logic_expression": "presenting_complaint IN ('dolore toracico', 'dispnea acuta', 'sincope', 'equivalente ischemico')",
+        "data_elements": [
+          "DE-008-01"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "IC-008-02",
+        "label": "ECG senza sopraslivellamento persistente ST",
+        "description": "ECG al primo contatto che non mostra un sopraslivellamento persistente del tratto ST (esclusione di STEMI evidente).",
+        "logic_expression": "ecg_finding != 'STEMI_persistente'",
+        "data_elements": [
+          "DE-008-02"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "IC-008-03",
+        "label": "Disponibilità del dosaggio hs-cTn",
+        "description": "Il laboratorio o il sistema point-of-care deve disporre di un test di troponina cardiaca ad alta sensibilità validato.",
+        "logic_expression": "hs_cTn_assay_available == true",
+        "data_elements": [
+          "DE-008-03"
+        ],
+        "inference_allowed": false
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "EC-008-01",
+        "label": "STEMI conclamato all'ECG",
+        "description": "Paziente con sopraslivellamento persistente del tratto ST diagnostico di STEMI che richiede riperfusione immediata (percorso STEMI diretto).",
+        "logic_expression": "ecg_finding == 'STEMI_persistente'",
+        "data_elements": [
+          "DE-008-02"
+        ],
+        "inference_allowed": false
+      },
+      {
+        "criterion_id": "EC-008-02",
+        "label": "Arresto cardiaco in corso con instabilità emodinamica severa",
+        "description": "Pazienti in arresto cardiaco refrattario o con instabilità emodinamica critica che preclude l'attesa dei risultati seriati di troponina.",
+        "logic_expression": "hemodynamic_status == 'arresto_cardiaco_refrattario' OR hemodynamic_status == 'shock_cardiogeno_severo'",
+        "data_elements": [
+          "DE-008-04"
+        ],
+        "inference_allowed": true
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "documented_symptom",
+    "trigger_description": "Presentazione in pronto soccorso di un paziente con sintomatologia suggestiva di sindrome coronarica acuta e assenza di sopraslivellamento persistente del tratto ST all'ECG iniziale, con necessità di differenziazione diagnostica NSTEMI vs altre cause.",
+    "anchor_event": "primo_contatto_medico_PS",
+    "start_of_applicability": "Dal momento della presentazione in pronto soccorso con sospetto clinico di SCA e ECG non diagnostico per STEMI.",
+    "end_of_applicability": "Fino al completamento dell'algoritmo diagnostico hs-cTn con conferma o esclusione di NSTEMI, oppure fino a eventuale riclassificazione come STEMI.",
+    "trigger_data_elements": [
+      "DE-008-01",
+      "DE-008-02"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "EX-008-01",
+      "label": "Presentazione molto tardiva (>72 ore dall'esordio dei sintomi)",
+      "description": "In caso di presentazione molto tardiva con esordio dei sintomi oltre 72 ore prima, la troponina potrebbe essere in fase discendente e l'algoritmo 0h/1h-2h potrebbe non essere affidabile; in tal caso si richiede valutazione clinica individuale.",
+      "condition_logic": "symptom_onset_to_presentation > 72 hours",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione del tempo stimato dall'esordio dei sintomi",
+        "Nota clinica con giustificazione della variazione dell'approccio diagnostico"
+      ]
+    },
+    {
+      "exception_id": "EX-008-02",
+      "label": "Insufficienza renale terminale con troponina cronicamente elevata",
+      "description": "Nei pazienti con insufficienza renale cronica terminale (eGFR <15 ml/min o in dialisi), i livelli basali di hs-cTn possono essere cronicamente elevati, richiedendo soglie e interpretazioni differenti o l'uso di delta assoluti specifici.",
+      "condition_logic": "eGFR < 15 OR dialysis_status == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Valore di eGFR o stato di dialisi documentato",
+        "Valori basali noti di hs-cTn se disponibili",
+        "Nota clinica con motivazione dell'approccio diagnostico alternativo"
+      ]
+    },
+    {
+      "exception_id": "EX-008-03",
+      "label": "Test hs-cTn non disponibile",
+      "description": "In caso di indisponibilità temporanea del dosaggio ad alta sensibilità della troponina, si può ricorrere ad un dosaggio convenzionale con protocollo standard (0h/3h-6h) o trasferimento del paziente verso struttura dotata di hs-cTn.",
+      "condition_logic": "hs_cTn_assay_available == false",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dell'indisponibilità del test hs-cTn",
+        "Nota clinica indicante il protocollo alternativo adottato"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "eseguire",
+    "action_description": "Eseguire dosaggi seriati di troponina cardiaca ad alta sensibilità (hs-cTn) secondo l'approccio algoritmico ESC con protocollo 0h/1h o, in alternativa, 0h/2h, al fine di confermare (rule-in) o escludere (rule-out) la diagnosi di NSTEMI nei pazienti con sospetta sindrome coronarica acuta.",
+    "action_target": "Dosaggio seriato di troponina cardiaca ad alta sensibilità (hs-cTn)",
+    "action_parameters": [
+      {
+        "parameter_name": "Protocollo temporale primario",
+        "parameter_description": "Intervallo temporale tra il primo e il secondo dosaggio di hs-cTn secondo il protocollo ESC raccomandato.",
+        "expected_value": "1",
+        "comparison_operator": "equals",
+        "unit": "ora",
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Protocollo temporale alternativo",
+        "parameter_description": "Intervallo temporale alternativo tra il primo e il secondo dosaggio di hs-cTn quando il protocollo a 1 ora non è utilizzabile.",
+        "expected_value": "2",
+        "comparison_operator": "equals",
+        "unit": "ore",
+        "mandatory": false
+      },
+      {
+        "parameter_name": "Tipo di dosaggio",
+        "parameter_description": "Il dosaggio della troponina deve essere eseguito con un test ad alta sensibilità (hs-cTn, troponina T o I ad alta sensibilità) validato.",
+        "expected_value": "alta sensibilità (hs-cTn)",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Numero minimo di prelievi",
+        "parameter_description": "Numero minimo di prelievi seriati richiesti per l'applicazione dell'algoritmo ESC (tempo 0 + almeno un prelievo successivo).",
+        "expected_value": "2",
+        "comparison_operator": "greater_than",
+        "unit": "prelievi",
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Applicazione algoritmo ESC di rule-in/rule-out",
+        "parameter_description": "I risultati dei dosaggi seriati devono essere interpretati secondo le soglie e i delta previsti dall'algoritmo ESC specifico per il test hs-cTn utilizzato (rule-in, rule-out, zona grigia/osservazione).",
+        "expected_value": "Algoritmo ESC 0h/1h o 0h/2h applicato",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      }
+    ],
+    "alternative_compliant_actions": [
+      "Utilizzo del protocollo ESC 0h/2h in alternativa al protocollo 0h/1h quando quest'ultimo non è disponibile per il test hs-cTn utilizzato",
+      "In caso di zona grigia (observe zone), esecuzione di un ulteriore dosaggio di hs-cTn a 3 ore dal primo prelievo con rivalutazione clinica"
+    ]
+  },
+  "completion_criteria": {
+    "description": "L'azione è considerata completata quando sono stati eseguiti almeno due dosaggi seriati di hs-cTn secondo i tempi previsti dall'algoritmo ESC (0h e 1h o 0h e 2h), i risultati sono stati interpretati secondo le soglie algoritmiche ESC e la decisione clinica di rule-in, rule-out o osservazione è stata documentata.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "prelievo_hs_cTn_tempo_0",
+      "prelievo_hs_cTn_tempo_1h_o_2h",
+      "referto_laboratorio_hs_cTn",
+      "interpretazione_algoritmo_ESC"
+    ],
+    "required_documentation_elements": [
+      "Valore di hs-cTn al tempo 0 con timestamp del prelievo",
+      "Valore di hs-cTn al tempo 1h o 2h con timestamp del prelievo",
+      "Delta assoluto di hs-cTn calcolato",
+      "Classificazione algoritmata: rule-in, rule-out o zona di osservazione",
+      "Decisione clinica conseguente documentata in cartella"
+    ],
+    "success_condition": "Due dosaggi di hs-cTn eseguiti nei tempi previsti (0h e 1h oppure 0h e 2h) AND risultati interpretati secondo algoritmo ESC AND decisione documentata di rule-in, rule-out o prosecuzione dell'osservazione."
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "TC-008-01",
+      "description": "Il primo prelievo ematico per il dosaggio di hs-cTn (tempo 0) deve essere effettuato il prima possibile dopo il primo contatto medico in pronto soccorso.",
+      "relation_to_anchor": "immediate",
+      "anchor_event": "primo_contatto_medico_PS",
+      "duration_value": 10,
+      "duration_unit": "minuti",
+      "hard_deadline": false,
+      "alert_threshold_value": null,
+      "alert_threshold_unit": null
+    },
+    {
+      "constraint_id": "TC-008-02",
+      "description": "Il secondo prelievo ematico per hs-cTn deve essere eseguito a 1 ora dal primo prelievo nel protocollo 0h/1h.",
+      "relation_to_anchor": "after",
+      "anchor_event": "prelievo_hs_cTn_tempo_0",
+      "duration_value": 1,
+      "duration_unit": "ora",
+      "hard_deadline": true,
+      "alert_threshold_value": 50,
+      "alert_threshold_unit": "minuti"
+    },
+    {
+      "constraint_id": "TC-008-03",
+      "description": "In alternativa, il secondo prelievo ematico per hs-cTn deve essere eseguito a 2 ore dal primo prelievo nel protocollo 0h/2h.",
+      "relation_to_anchor": "after",
+      "anchor_event": "prelievo_hs_cTn_tempo_0",
+      "duration_value": 2,
+      "duration_unit": "ore",
+      "hard_deadline": true,
+      "alert_threshold_value": 100,
+      "alert_threshold_unit": "minuti"
+    },
+    {
+      "constraint_id": "TC-008-04",
+      "description": "I risultati del dosaggio di hs-cTn devono essere disponibili entro 60 minuti dal prelievo (turn-around time laboratorio).",
+      "relation_to_anchor": "within",
+      "anchor_event": "prelievo_hs_cTn",
+      "duration_value": 60,
+      "duration_unit": "minuti",
+      "hard_deadline": false,
+      "alert_threshold_value": 45,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "SC-008-01",
+      "description": "L'ECG a 12 derivazioni deve essere eseguito prima o contestualmente al primo prelievo di hs-cTn per escludere STEMI.",
+      "predecessor_event": "esecuzione_ECG_12_derivazioni",
+      "successor_event": "prelievo_hs_cTn_tempo_0",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "Il primo prelievo di hs-cTn viene eseguito senza un ECG precedente o concomitante che escluda STEMI."
+    },
+    {
+      "constraint_id": "SC-008-02",
+      "description": "Il prelievo di hs-cTn al tempo 0 deve precedere il prelievo seriato al tempo 1h o 2h.",
+      "predecessor_event": "prelievo_hs_cTn_tempo_0",
+      "successor_event": "prelievo_hs_cTn_tempo_1h_o_2h",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "Il prelievo seriato viene eseguito prima del prelievo basale o senza il prelievo basale documentato."
+    },
+    {
+      "constraint_id": "SC-008-03",
+      "description": "L'interpretazione dell'algoritmo ESC deve avvenire dopo la disponibilità dei risultati di entrambi i dosaggi seriati.",
+      "predecessor_event": "referto_hs_cTn_seriato_completo",
+      "successor_event": "interpretazione_algoritmo_ESC",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "La decisione diagnostica viene presa senza attendere i risultati completi dei dosaggi seriati."
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-008-01",
+      "name": "Sintomo di presentazione",
+      "description": "Motivo di accesso al pronto soccorso (dolore toracico, dispnea, sincope o equivalente ischemico).",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "ICD-10 / codifica locale di triage",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Campo motivo di accesso / chief complaint nella scheda di triage."
+    },
+    {
+      "data_element_id": "DE-008-02",
+      "name": "Referto ECG 12 derivazioni",
+      "description": "Risultato dell'elettrocardiogramma a 12 derivazioni con indicazione della presenza o assenza di sopraslivellamento del tratto ST.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "Codifica locale ECG / SNOMED CT",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Referto ECG strutturato o interpretazione automatica del dispositivo ECG; verificare anche note cliniche se non strutturato."
+    },
+    {
+      "data_element_id": "DE-008-03",
+      "name": "Disponibilità test hs-cTn",
+      "description": "Indicazione sulla disponibilità di un dosaggio di troponina cardiaca ad alta sensibilità nel laboratorio di riferimento.",
+      "source_location": "other",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Configurazione di sistema del catalogo analisi del laboratorio; verificare disponibilità del test hs-cTn."
+    },
+    {
+      "data_element_id": "DE-008-04",
+      "name": "Stato emodinamico del paziente",
+      "description": "Valutazione dello stato emodinamico (stabile, instabile, shock cardiogeno, arresto cardiaco).",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "Codifica locale / SNOMED CT",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Parametri vitali, note di triage, documentazione medica d'urgenza."
+    },
+    {
+      "data_element_id": "DE-008-05",
+      "name": "Valore hs-cTn al tempo 0",
+      "description": "Concentrazione di troponina cardiaca ad alta sensibilità misurata al momento del primo prelievo (baseline).",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Risultato di laboratorio per hs-cTnT (LOINC 67151-1) o hs-cTnI (LOINC 89579-7) con timestamp del prelievo."
+    },
+    {
+      "data_element_id": "DE-008-06",
+      "name": "Valore hs-cTn al tempo 1h o 2h",
+      "description": "Concentrazione di troponina cardiaca ad alta sensibilità misurata al secondo prelievo seriato (1 ora o 2 ore dopo il basale).",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Risultato di laboratorio per hs-cTn seriata con timestamp del prelievo; calcolare intervallo dal primo prelievo."
+    },
+    {
+      "data_element_id": "DE-008-07",
+      "name": "Timestamp prelievo hs-cTn tempo 0",
+      "description": "Data e ora del primo prelievo ematico per il dosaggio di hs-cTn.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Timestamp associato all'ordine o all'esecuzione del prelievo ematico per troponina basale."
+    },
+    {
+      "data_element_id": "DE-008-08",
+      "name": "Timestamp prelievo hs-cTn seriato",
+      "description": "Data e ora del secondo prelievo ematico per il dosaggio seriato di hs-cTn.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Timestamp associato all'ordine o all'esecuzione del secondo prelievo ematico per troponina seriata."
+    },
+    {
+      "data_element_id": "DE-008-09",
+      "name": "Delta assoluto hs-cTn",
+      "description": "Variazione assoluta della concentrazione di hs-cTn tra il primo e il secondo dosaggio, calcolata per l'applicazione dell'algoritmo ESC.",
+      "source_location": "derived",
+      "data_type": "numeric",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Calcolare: |hs-cTn(1h o 2h) - hs-cTn(0h)|. Utilizzare le soglie specifiche del test hs-cTn impiegato."
+    },
+    {
+      "data_element_id": "DE-008-10",
+      "name": "Esito algoritmo ESC (rule-in / rule-out / observe)",
+      "description": "Risultato dell'applicazione dell'algoritmo ESC: conferma (rule-in), esclusione (rule-out) o zona di osservazione.",
+      "source_location": "derived",
+      "data_type": "coded concept",
+      "coding_system": "Codifica locale (rule_in, rule_out, observe)",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Derivato dall'applicazione delle soglie algoritmiche ESC ai valori di hs-cTn basale e delta; verificare documentazione clinica."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "EOC-008-01",
+      "description": "Presenza nel sistema informativo di laboratorio di almeno due risultati di hs-cTn con timestamp compatibili con il protocollo 0h/1h o 0h/2h.",
+      "evidence_type": "result",
+      "minimum_occurrences": 2,
+      "time_reference": "Entro 3 ore dal primo contatto medico in pronto soccorso",
+      "derived_from_data_elements": [
+        "DE-008-05",
+        "DE-008-06",
+        "DE-008-07",
+        "DE-008-08"
+      ]
+    },
+    {
+      "evidence_id": "EOC-008-02",
+      "description": "Documentazione clinica della classificazione algoritmica ESC (rule-in, rule-out o zona di osservazione) con riferimento ai valori e al delta di hs-cTn.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Dopo la disponibilità del secondo dosaggio di hs-cTn",
+      "derived_from_data_elements": [
+        "DE-008-09",
+        "DE-008-10"
+      ]
+    },
+    {
+      "evidence_id": "EOC-008-03",
+      "description": "Ordine di laboratorio per dosaggio seriato di hs-cTn documentato nel sistema informatico ospedaliero.",
+      "evidence_type": "order",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 10 minuti dal primo contatto medico",
+      "derived_from_data_elements": [
+        "DE-008-05",
+        "DE-008-07"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "EONC-008-01",
+      "description": "Assenza di dosaggio seriato di hs-cTn: un solo valore di troponina disponibile oppure nessun dosaggio eseguito per il paziente con sospetta SCA.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 3 ore dal primo contatto medico in pronto soccorso",
+      "derived_from_data_elements": [
+        "DE-008-05",
+        "DE-008-06"
+      ]
+    },
+    {
+      "evidence_id": "EONC-008-02",
+      "description": "Intervallo tra i due prelievi di hs-cTn non conforme al protocollo ESC (significativamente diverso da 1 ora o 2 ore).",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Intervallo tra primo e secondo prelievo",
+      "derived_from_data_elements": [
+        "DE-008-07",
+        "DE-008-08"
+      ]
+    },
+    {
+      "evidence_id": "EONC-008-03",
+      "description": "Utilizzo di un dosaggio di troponina convenzionale (non ad alta sensibilità) senza giustificazione documentata.",
+      "evidence_type": "result",
+      "minimum_occurrences": 1,
+      "time_reference": null,
+      "derived_from_data_elements": [
+        "DE-008-03",
+        "DE-008-05"
+      ]
+    },
+    {
+      "evidence_id": "EONC-008-04",
+      "description": "Assenza di documentazione dell'interpretazione algoritmica ESC (rule-in/rule-out/observe) nonostante la disponibilità dei risultati di hs-cTn seriati.",
+      "evidence_type": "documentation_gap",
+      "minimum_occurrences": 1,
+      "time_reference": "Dopo la disponibilità del secondo risultato di hs-cTn",
+      "derived_from_data_elements": [
+        "DE-008-10"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Verificare che per il paziente con sospetta SCA senza STEMI siano stati eseguiti almeno due dosaggi di troponina cardiaca ad alta sensibilità (hs-cTn) con un intervallo conforme al protocollo ESC (circa 1 ora o circa 2 ore), che i risultati siano stati interpretati secondo l'algoritmo ESC con calcolo del delta assoluto e che la classificazione diagnostica risultante (rule-in, rule-out o osservazione) sia stata documentata in cartella clinica.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF (sospetta_SCA == true AND ecg_STEMI == false) THEN { ASSERT count(hs_cTn_results) >= 2; LET t0 = timestamp(hs_cTn_prelievo_0); LET t1 = timestamp(hs_cTn_prelievo_seriato); LET intervallo = t1 - t0; ASSERT (intervallo BETWEEN 50min AND 70min) OR (intervallo BETWEEN 110min AND 130min); LET delta = abs(hs_cTn_seriato - hs_cTn_basale); ASSERT esito_algoritmo_ESC IN ('rule_in', 'rule_out', 'observe'); ASSERT documentazione_esito_presente == true; RETURN 'compliant'; } ELSE IF (eccezione_documentata == true) THEN RETURN 'justified_deviation'; ELSE RETURN 'non_compliant';",
+    "missing_data_policy": "not_evaluable",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "human_review",
+    "notes": "L'intervallo accettabile tra i due prelievi include una tolleranza operativa di ±10 minuti rispetto ai tempi nominali (1h o 2h). Le soglie specifiche di rule-in/rule-out variano in base al tipo di test hs-cTn utilizzato (es. hs-cTnT Roche, hs-cTnI Abbott) e devono essere configurate localmente."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "referti di laboratorio strutturati",
+      "note cliniche del pronto soccorso",
+      "ordini di laboratorio nel sistema informatico ospedaliero",
+      "lettera di dimissione dal pronto soccorso"
+    ],
+    "human_review_required": false,
+    "minimum_confidence": 0.85,
+    "notes": "La valutazione primaria è deterministica basata sui dati strutturati di laboratorio (valori hs-cTn e timestamp). In caso di dati incompleti, si ricorre all'estrazione inferenziale dalle note cliniche per verificare la documentazione dell'interpretazione algoritmica."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable",
+    "probable_non_compliance"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "high",
+    "process_risk_severity": "high",
+    "likelihood_if_violated": "possible",
+    "detectability": "easy",
+    "priority_score": 8.5,
+    "rationale": "Il mancato utilizzo dell'algoritmo ESC con dosaggi seriati di hs-cTn può portare a una diagnosi errata o ritardata di NSTEMI, con conseguente ritardo nel trattamento antitrombotico e nella strategia invasiva, aumentando il rischio di eventi cardiovascolari avversi maggiori (MACE). La violazione è facilmente rilevabile tramite i dati strutturati di laboratorio."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Valore di hs-cTn al tempo 0 con timestamp",
+      "Valore di hs-cTn al tempo 1h o 2h con timestamp",
+      "Delta assoluto di hs-cTn",
+      "Classificazione algoritmo ESC (rule-in / rule-out / observe)",
+      "Decisione clinica conseguente (ricovero, dimissione, osservazione)"
+    ],
+    "acceptable_evidence_sources": [
+      "Sistema informativo di laboratorio (LIS)",
+      "Cartella clinica elettronica del pronto soccorso",
+      "Ordini di laboratorio nel sistema informatico ospedaliero",
+      "Note cliniche strutturate o narrative del medico d'urgenza",
+      "Lettera di dimissione dal pronto soccorso"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Nota clinica di giustificazione nel diario medico di pronto soccorso",
+      "Motivazione documentata per l'utilizzo di protocollo alternativo",
+      "Documentazione dell'eccezione clinica applicabile"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "WS-STEMI-008-01",
+    "WS-STEMI-008-02",
+    "WS-STEMI-008-03"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "La raccomandazione originale è riferita specificamente all'NSTEMI ma è inserita nel contesto del percorso STEMI poiché la diagnosi differenziale STEMI/NSTEMI è parte integrante del pathway. Il testo originale è in inglese e utilizza 'is recommended' che corrisponde a Classe I ESC. I protocolli 0h/1h e 0h/2h sono presentati come alternative equivalenti.",
+    "extraction_confidence": 0.92,
+    "ambiguity_flags": [
+      "La raccomandazione si riferisce a NSTEMI ma è inserita nel percorso STEMI: verificare se il contesto clinico previsto è solo la diagnosi differenziale o include anche il monitoraggio post-STEMI.",
+      "Le soglie specifiche di rule-in/rule-out dipendono dal tipo di test hs-cTn utilizzato e devono essere configurate localmente.",
+      "Il livello di evidenza non è esplicitamente indicato nel testo sorgente; è stato assegnato Livello B come plausibile sulla base delle linee guida ESC 2023."
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Team Clinical Pathway STEMI - Qualità e Sicurezza delle Cure",
+    "rule_owner": "Direttore del Dipartimento di Emergenza-Urgenza",
+    "effective_from": null,
+    "effective_to": null,
+    "review_cycle": "12 mesi",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

@@ -1,0 +1,427 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-005",
+  "rule_type": "do",
+  "title": "Utilizzo di derivazioni ECG aggiuntive (V3R, V4R e V7–V9) in caso di STEMI inferiore o sospetta occlusione coronarica totale con derivazioni standard non conclusive",
+  "short_label": "ECG derivazioni aggiuntive STEMI inferiore",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico-Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "diagnosi",
+  "care_settings": [
+    "pronto soccorso",
+    "unità di terapia intensiva cardiologica",
+    "pre-ospedaliero (ambulanza medicalizzata)"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "Medico d'emergenza",
+      "responsibility_type": "primary",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Responsabile dell'esecuzione e dell'interpretazione dell'ECG a 12 derivazioni e delle derivazioni aggiuntive."
+    },
+    {
+      "role_name": "Infermiere di triage/emergenza",
+      "responsibility_type": "supporting",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Esegue materialmente la registrazione ECG con le derivazioni aggiuntive su indicazione medica."
+    },
+    {
+      "role_name": "Cardiologo interventista",
+      "responsibility_type": "consulted",
+      "organization_unit": "Emodinamica / UTIC",
+      "notes": "Può essere consultato per l'interpretazione delle derivazioni aggiuntive e per la pianificazione dell'eventuale coronarografia."
+    }
+  ],
+  "deontic_strength": "recommended",
+  "recommendation_strength": "Classe I",
+  "evidence_level": "Livello di evidenza C",
+  "original_statement": "The use of additional ECG leads (V3R, V4R, and V7–V9) is recommended in cases of inferior STEMI or if total vessel occlusion is suspected and standard leads are inconclusive.",
+  "normalized_statement": "In presenza di STEMI inferiore o di sospetta occlusione coronarica totale con derivazioni ECG standard non conclusive, si raccomanda l'esecuzione di un ECG con derivazioni aggiuntive V3R, V4R e V7–V9.",
+  "intent": "Migliorare la sensibilità diagnostica dell'ECG per identificare l'estensione dell'infarto al ventricolo destro e alla parete posteriore, nonché per confermare un'occlusione coronarica totale quando le derivazioni standard sono non conclusive.",
+  "rationale": "Le derivazioni standard a 12 canali possono non evidenziare il sopraslivellamento del tratto ST nel coinvolgimento del ventricolo destro o della parete posteriore. Le derivazioni destre (V3R, V4R) rilevano l'infarto del ventricolo destro, mentre le derivazioni posteriori (V7–V9) rilevano l'infarto posteriore. La mancata identificazione di tali territori può comportare una sottovalutazione dell'estensione dell'infarto e un trattamento inadeguato.",
+  "source_references": [
+    {
+      "source_id": "ESC-STEMI-GL-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione Diagnosi – Raccomandazioni ECG",
+      "page_reference": null,
+      "statement_quote": "The use of additional ECG leads (V3R, V4R, and V7–V9) is recommended in cases of inferior STEMI or if total vessel occlusion is suspected and standard leads are inconclusive.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto soggetto a copyright ESC. Utilizzato a scopo di sintesi clinica non commerciale."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti con sospetto clinico o diagnosi elettrocardiografica di STEMI inferiore oppure con sospetta occlusione coronarica totale e derivazioni ECG standard non conclusive.",
+    "clinical_context": "Infarto miocardico acuto con sopraslivellamento del tratto ST in sede inferiore (derivazioni II, III, aVF) oppure quadro clinico suggestivo di occlusione coronarica acuta con ECG standard non diagnostico.",
+    "care_context": "Fase diagnostica in pronto soccorso, in ambiente pre-ospedaliero o in UTIC.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "INCL-005-01",
+        "label": "STEMI inferiore all'ECG standard",
+        "description": "Sopraslivellamento del tratto ST ≥ 1 mm in almeno due derivazioni contigue tra II, III e aVF all'ECG a 12 derivazioni.",
+        "logic_expression": "ST_elevation(II) >= 1mm AND (ST_elevation(III) >= 1mm OR ST_elevation(aVF) >= 1mm)",
+        "data_elements": [
+          "DE-005-01",
+          "DE-005-02"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "INCL-005-02",
+        "label": "Sospetta occlusione coronarica totale con ECG standard non conclusivo",
+        "description": "Quadro clinico altamente suggestivo di sindrome coronarica acuta con occlusione totale (dolore toracico tipico, instabilità emodinamica) ma ECG a 12 derivazioni non diagnostico per sopraslivellamento ST.",
+        "logic_expression": "clinical_suspicion_total_occlusion == true AND standard_ECG_inconclusive == true",
+        "data_elements": [
+          "DE-005-03",
+          "DE-005-04"
+        ],
+        "inference_allowed": true
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "EXCL-005-01",
+        "label": "Impossibilità tecnica di posizionamento elettrodi aggiuntivi",
+        "description": "Condizioni cliniche o anatomiche che impediscono fisicamente il posizionamento degli elettrodi nelle sedi V3R, V4R, V7–V9 (ad es. estese lesioni cutanee toraciche, ustioni).",
+        "logic_expression": "electrode_placement_impossible == true",
+        "data_elements": [
+          "DE-005-05"
+        ],
+        "inference_allowed": true
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "diagnostic_finding",
+    "trigger_description": "Riscontro di sopraslivellamento del tratto ST in sede inferiore all'ECG standard a 12 derivazioni oppure elevato sospetto clinico di occlusione coronarica totale con ECG standard non conclusivo.",
+    "anchor_event": "Registrazione ECG a 12 derivazioni standard",
+    "start_of_applicability": "Immediatamente dopo l'identificazione di STEMI inferiore o del sospetto di occlusione coronarica totale con ECG non conclusivo.",
+    "end_of_applicability": "Fino al completamento della registrazione ECG con derivazioni aggiuntive o fino alla decisione definitiva sulla strategia di riperfusione.",
+    "trigger_data_elements": [
+      "DE-005-01",
+      "DE-005-02",
+      "DE-005-03",
+      "DE-005-04"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "EXC-005-01",
+      "label": "Impossibilità tecnica di posizionamento degli elettrodi aggiuntivi",
+      "description": "Lesioni cutanee estese, ustioni o altre condizioni anatomiche che rendono impossibile il posizionamento degli elettrodi nelle posizioni V3R, V4R, V7–V9.",
+      "condition_logic": "electrode_placement_impossible == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione clinica della condizione che impedisce il posizionamento",
+        "Nota infermieristica o medica nel verbale di pronto soccorso"
+      ]
+    },
+    {
+      "exception_id": "EXC-005-02",
+      "label": "Priorità di intervento immediato per instabilità emodinamica critica",
+      "description": "Il paziente presenta arresto cardiaco, shock cardiogeno grave o altra emergenza che richiede interventi salvavita immediati, rendendo la registrazione delle derivazioni aggiuntive non prioritaria in quel momento.",
+      "condition_logic": "hemodynamic_instability_critical == true AND life_saving_intervention_priority == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione dell'instabilità emodinamica critica",
+        "Registrazione delle manovre di rianimazione o stabilizzazione eseguite"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "eseguire",
+    "action_description": "Eseguire la registrazione di un ECG con derivazioni aggiuntive destre (V3R, V4R) e posteriori (V7, V8, V9) per valutare il coinvolgimento del ventricolo destro e della parete posteriore.",
+    "action_target": "ECG a derivazioni aggiuntive (V3R, V4R, V7–V9)",
+    "action_parameters": [
+      {
+        "parameter_name": "Derivazioni destre",
+        "parameter_description": "Derivazioni precordiali destre da registrare per identificare l'infarto del ventricolo destro.",
+        "expected_value": "V3R, V4R",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Derivazioni posteriori",
+        "parameter_description": "Derivazioni posteriori da registrare per identificare l'infarto della parete posteriore.",
+        "expected_value": "V7, V8, V9",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Soglia sopraslivellamento ST derivazioni posteriori",
+        "parameter_description": "Soglia di sopraslivellamento del tratto ST nelle derivazioni posteriori considerata significativa.",
+        "expected_value": "0.5",
+        "comparison_operator": "greater_than",
+        "unit": "mm",
+        "mandatory": false
+      }
+    ],
+    "alternative_compliant_actions": [
+      "Esecuzione di ECG a 15 derivazioni (12 standard + V3R, V4R, V7–V9) in unica registrazione",
+      "Esecuzione di ECG a 18 derivazioni se disponibile apparecchiatura idonea"
+    ]
+  },
+  "completion_criteria": {
+    "description": "La regola si considera soddisfatta quando è stata registrata e documentata in cartella clinica almeno una traccia ECG che includa le derivazioni aggiuntive V3R, V4R e V7–V9, con relativa interpretazione medica.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "Registrazione ECG con derivazioni aggiuntive",
+      "Interpretazione medica del tracciato ECG aggiuntivo"
+    ],
+    "required_documentation_elements": [
+      "Tracciato ECG con derivazioni aggiuntive allegato in cartella",
+      "Referto interpretativo delle derivazioni aggiuntive"
+    ],
+    "success_condition": "ECG_additional_leads_recorded == true AND ECG_additional_leads_interpreted == true AND leads_set CONTAINS {'V3R','V4R','V7','V8','V9'}"
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "TC-005-01",
+      "description": "L'ECG con derivazioni aggiuntive deve essere eseguito il prima possibile e comunque entro 10 minuti dalla registrazione dell'ECG standard che ha evidenziato lo STEMI inferiore o il sospetto di occlusione coronarica totale.",
+      "relation_to_anchor": "within",
+      "anchor_event": "Registrazione ECG standard a 12 derivazioni con riscontro diagnostico",
+      "duration_value": 10,
+      "duration_unit": "minuti",
+      "hard_deadline": false,
+      "alert_threshold_value": 5,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "SC-005-01",
+      "description": "L'ECG a 12 derivazioni standard deve essere stato eseguito e interpretato prima della registrazione delle derivazioni aggiuntive, in quanto il riscontro di STEMI inferiore o la non conclusività dell'ECG standard è il presupposto per l'indicazione alle derivazioni aggiuntive.",
+      "predecessor_event": "Registrazione e interpretazione ECG standard a 12 derivazioni",
+      "successor_event": "Registrazione ECG con derivazioni aggiuntive V3R, V4R, V7–V9",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "Le derivazioni aggiuntive vengono registrate senza che sia stato prima completato e interpretato l'ECG standard a 12 derivazioni."
+    },
+    {
+      "constraint_id": "SC-005-02",
+      "description": "L'ECG con derivazioni aggiuntive deve essere completato prima dell'attivazione del laboratorio di emodinamica, così da fornire informazioni diagnostiche complete per la pianificazione dell'intervento.",
+      "predecessor_event": "Registrazione ECG con derivazioni aggiuntive V3R, V4R, V7–V9",
+      "successor_event": "Attivazione laboratorio di emodinamica",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "Il laboratorio di emodinamica viene attivato senza aver prima registrato le derivazioni aggiuntive nei casi indicati, salvo giustificazione clinica documentata."
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-005-01",
+      "name": "Tracciato ECG a 12 derivazioni standard",
+      "description": "Registrazione elettrocardiografica completa a 12 derivazioni standard con timestamp e valori di sopraslivellamento ST.",
+      "source_location": "ehr_structured",
+      "data_type": "documento/tracciato",
+      "coding_system": "LOINC 11524-6",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare l'ultimo ECG registrato con timestamp nel contesto dell'episodio acuto."
+    },
+    {
+      "data_element_id": "DE-005-02",
+      "name": "Sopraslivellamento ST in derivazioni inferiori",
+      "description": "Presenza e misura del sopraslivellamento del tratto ST nelle derivazioni II, III e aVF.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric (mm)",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Estrarre i valori di ST elevation dalle derivazioni II, III, aVF dal referto ECG automatico o dal referto medico."
+    },
+    {
+      "data_element_id": "DE-005-03",
+      "name": "Sospetto clinico di occlusione coronarica totale",
+      "description": "Indicazione documentata del sospetto clinico di occlusione coronarica totale basata su sintomi, segni clinici ed eventuale imaging.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Cercare nelle note cliniche espressioni come 'sospetta occlusione totale', 'STEMI equivalente', 'occlusione acuta coronarica'."
+    },
+    {
+      "data_element_id": "DE-005-04",
+      "name": "ECG standard non conclusivo",
+      "description": "Indicazione che l'ECG a 12 derivazioni standard non è conclusivo per la diagnosi di STEMI o occlusione coronarica.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Cercare nel referto ECG o nelle note cliniche espressioni come 'non conclusivo', 'non diagnostico', 'dubbio', 'da completare con derivazioni aggiuntive'."
+    },
+    {
+      "data_element_id": "DE-005-05",
+      "name": "Impossibilità posizionamento elettrodi aggiuntivi",
+      "description": "Documentazione di condizioni cliniche o anatomiche che impediscono il posizionamento degli elettrodi nelle posizioni aggiuntive.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "inferential",
+      "query_hint": "Cercare nelle note cliniche o infermieristiche espressioni relative a impossibilità di posizionamento elettrodi."
+    },
+    {
+      "data_element_id": "DE-005-06",
+      "name": "Tracciato ECG con derivazioni aggiuntive",
+      "description": "Registrazione ECG che include le derivazioni V3R, V4R, V7, V8, V9 con relativo timestamp.",
+      "source_location": "ehr_structured",
+      "data_type": "documento/tracciato",
+      "coding_system": "LOINC 11524-6",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare tracciato ECG con indicazione di derivazioni aggiuntive (15 o 18 derivazioni) registrato dopo l'ECG standard nel contesto dell'episodio acuto."
+    },
+    {
+      "data_element_id": "DE-005-07",
+      "name": "Timestamp registrazione ECG aggiuntivo",
+      "description": "Data e ora di esecuzione dell'ECG con derivazioni aggiuntive.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Estrarre il timestamp dal tracciato ECG aggiuntivo o dal sistema di refertazione."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "EC-005-01",
+      "description": "Presenza in cartella clinica di un tracciato ECG con derivazioni aggiuntive V3R, V4R, V7–V9 registrato dopo l'identificazione dello STEMI inferiore o del sospetto di occlusione coronarica totale.",
+      "evidence_type": "execution",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 10 minuti dall'ECG standard diagnostico",
+      "derived_from_data_elements": [
+        "DE-005-06",
+        "DE-005-07"
+      ]
+    },
+    {
+      "evidence_id": "EC-005-02",
+      "description": "Referto medico che documenta l'interpretazione delle derivazioni aggiuntive con indicazione della presenza o assenza di sopraslivellamento ST nelle derivazioni destre e posteriori.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Contestualmente o subito dopo la registrazione dell'ECG aggiuntivo",
+      "derived_from_data_elements": [
+        "DE-005-06"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "ENC-005-01",
+      "description": "Assenza di tracciato ECG con derivazioni aggiuntive in cartella clinica nonostante la presenza di STEMI inferiore o sospetta occlusione coronarica totale con ECG standard non conclusivo, senza documentazione di eccezione o giustificazione clinica.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Nell'intero episodio di cura acuto",
+      "derived_from_data_elements": [
+        "DE-005-01",
+        "DE-005-02",
+        "DE-005-03",
+        "DE-005-04",
+        "DE-005-06"
+      ]
+    },
+    {
+      "evidence_id": "ENC-005-02",
+      "description": "Ritardo significativo (oltre 10 minuti) nell'esecuzione dell'ECG con derivazioni aggiuntive rispetto all'ECG standard diagnostico.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Differenza tra timestamp ECG aggiuntivo e timestamp ECG standard > 10 minuti",
+      "derived_from_data_elements": [
+        "DE-005-07",
+        "DE-005-01"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Verificare se, in presenza di STEMI inferiore (sopraslivellamento ST ≥ 1 mm in almeno due derivazioni tra II, III, aVF) oppure di sospetta occlusione coronarica totale con ECG standard non conclusivo, sia stato registrato e interpretato un ECG con derivazioni aggiuntive V3R, V4R, V7–V9 entro 10 minuti dall'ECG standard. Nel caso di eccezione documentata e giustificata, la deviazione è considerata giustificata.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF (ST_elevation_inferior == true OR (clinical_suspicion_total_occlusion == true AND standard_ECG_inconclusive == true)) THEN IF (ECG_additional_leads_recorded == true AND leads_include(V3R, V4R, V7, V8, V9) AND time_diff(ECG_additional_timestamp, ECG_standard_timestamp) <= 10 min) THEN 'compliant' ELSE IF (exception_documented == true AND justification_present == true) THEN 'justified_deviation' ELSE 'non_compliant' ELSE 'not_applicable'",
+    "missing_data_policy": "review_required",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "human_review",
+    "notes": "La valutazione può richiedere l'analisi del testo libero del referto ECG per determinare se le derivazioni aggiuntive sono state effettivamente registrate, in particolare quando il sistema non struttura automaticamente il tipo di derivazioni."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "Referti ECG in testo libero",
+      "Note cliniche del medico d'emergenza",
+      "Note infermieristiche",
+      "Tracciati ECG allegati in formato digitale"
+    ],
+    "human_review_required": true,
+    "minimum_confidence": 0.85,
+    "notes": "In molti sistemi informativi ospedalieri il tipo di derivazioni ECG non è codificato strutturalmente; potrebbe essere necessario analizzare il tracciato PDF o il referto testuale per verificare la presenza delle derivazioni aggiuntive."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "high",
+    "process_risk_severity": "moderate",
+    "likelihood_if_violated": "possible",
+    "detectability": "moderate",
+    "priority_score": 7.5,
+    "rationale": "La mancata esecuzione delle derivazioni aggiuntive può comportare il mancato riconoscimento dell'estensione dell'infarto al ventricolo destro o alla parete posteriore, con conseguente sottostima della gravità clinica e potenziale inadeguatezza del trattamento (ad es. mancata somministrazione di fluidi nello shock del ventricolo destro, ritardo nella strategia di riperfusione)."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Tracciato ECG con derivazioni aggiuntive V3R, V4R, V7–V9",
+      "Data e ora di esecuzione dell'ECG aggiuntivo",
+      "Referto interpretativo delle derivazioni aggiuntive",
+      "Indicazione clinica per l'esecuzione delle derivazioni aggiuntive"
+    ],
+    "acceptable_evidence_sources": [
+      "Tracciato ECG digitale in cartella clinica elettronica",
+      "Referto ECG firmato dal medico",
+      "Nota clinica del medico d'emergenza",
+      "Stampa cartacea del tracciato ECG allegata alla documentazione"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Nota clinica che documenta il motivo della mancata esecuzione delle derivazioni aggiuntive",
+      "Descrizione della condizione di emergenza che ha impedito l'esecuzione"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "STEMI-WS-005-01",
+    "STEMI-WS-005-02"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "Il testo originale in lingua inglese utilizza il termine 'recommended', interpretato come raccomandazione forte (Classe I). Le condizioni di applicabilità sono state suddivise in due criteri di inclusione distinti: STEMI inferiore e sospetta occlusione coronarica totale con ECG non conclusivo. Il vincolo temporale di 10 minuti è stato aggiunto come buona pratica clinica in analogia con le raccomandazioni ESC sull'ECG iniziale, poiché non è esplicitato nel testo originale.",
+    "extraction_confidence": 0.88,
+    "ambiguity_flags": [
+      "Il testo originale non specifica un limite temporale esplicito per l'esecuzione delle derivazioni aggiuntive; il vincolo di 10 minuti è stato derivato per analogia clinica.",
+      "Il termine 'inconclusive' per le derivazioni standard richiede interpretazione clinica contestuale e potrebbe avere soglie variabili in diversi contesti."
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Comitato PDTA Cardiovascolare",
+    "rule_owner": "Direttore UOC Cardiologia d'Urgenza",
+    "effective_from": null,
+    "effective_to": null,
+    "review_cycle": "12 mesi",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

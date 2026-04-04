@@ -1,0 +1,505 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-007",
+  "rule_type": "do",
+  "title": "Dosaggio delle troponine cardiache con metodo ad alta sensibilità immediatamente dopo la presentazione e ottenimento dei risultati entro 60 minuti dal prelievo ematico",
+  "short_label": "Troponina hs entro 60 min",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "diagnosi",
+  "care_settings": [
+    "pronto soccorso",
+    "dipartimento di emergenza-urgenza",
+    "unità di terapia intensiva cardiologica"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "medico di pronto soccorso",
+      "responsibility_type": "primary",
+      "organization_unit": "pronto soccorso",
+      "notes": "Responsabile della prescrizione del dosaggio della troponina ad alta sensibilità al momento della presentazione del paziente."
+    },
+    {
+      "role_name": "infermiere di triage",
+      "responsibility_type": "supporting",
+      "organization_unit": "pronto soccorso",
+      "notes": "Responsabile dell'esecuzione del prelievo ematico e dell'invio del campione al laboratorio secondo protocollo fast-track."
+    },
+    {
+      "role_name": "tecnico di laboratorio biomedico",
+      "responsibility_type": "primary",
+      "organization_unit": "laboratorio analisi d'urgenza",
+      "notes": "Responsabile dell'elaborazione del campione e della refertazione della troponina hs nel tempo stabilito."
+    },
+    {
+      "role_name": "cardiologo di guardia",
+      "responsibility_type": "consulted",
+      "organization_unit": "unità di terapia intensiva coronarica",
+      "notes": "Consultato per l'interpretazione clinica del risultato della troponina nel contesto del sospetto STEMI."
+    }
+  ],
+  "deontic_strength": "mandatory",
+  "recommendation_strength": "Classe I",
+  "evidence_level": "Livello B",
+  "original_statement": "It is recommended to measure cardiac troponins with high-sensitivity assays immediately after presentation and to obtain the results within 60 min of blood sampling.",
+  "normalized_statement": "Si raccomanda di dosare le troponine cardiache con metodo ad alta sensibilità immediatamente dopo la presentazione del paziente e di ottenere i risultati entro 60 minuti dal prelievo ematico.",
+  "intent": "Garantire una diagnosi biochimica tempestiva di necrosi miocardica mediante il dosaggio rapido delle troponine cardiache ad alta sensibilità per supportare la diagnosi differenziale e la stratificazione del rischio nei pazienti con sospetto STEMI.",
+  "rationale": "Il dosaggio precoce delle troponine cardiache con metodo ad alta sensibilità consente di confermare o escludere rapidamente la necrosi miocardica, supportando le decisioni terapeutiche urgenti come l'attivazione del laboratorio di emodinamica. Un tempo di refertazione entro 60 minuti dal prelievo è essenziale per non ritardare la strategia di riperfusione e migliorare gli outcome clinici.",
+  "source_references": [
+    {
+      "source_id": "ESC-STEMI-GL-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione 4 - Diagnosi",
+      "page_reference": null,
+      "statement_quote": "It is recommended to measure cardiac troponins with high-sensitivity assays immediately after presentation and to obtain the results within 60 min of blood sampling.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto utilizzato a scopo di derivazione di regole cliniche in conformità con le linee guida ESC. Copyright European Society of Cardiology."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti che si presentano al pronto soccorso con sospetta sindrome coronarica acuta con sopraslivellamento del tratto ST (STEMI).",
+    "clinical_context": "Sospetto clinico di infarto miocardico acuto con sopraslivellamento del tratto ST, fase diagnostica iniziale.",
+    "care_context": "Pronto soccorso o dipartimento di emergenza-urgenza, fase di valutazione diagnostica iniziale.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-007-INC-01",
+        "label": "Presentazione con dolore toracico sospetto per SCA",
+        "description": "Il paziente si presenta con dolore toracico o sintomi equivalenti suggestivi di sindrome coronarica acuta.",
+        "logic_expression": "symptom.chief_complaint IN ('dolore_toracico', 'dispnea_acuta', 'sincope', 'dolore_epigastrico_sospetto') OR clinical_suspicion.acs == true",
+        "data_elements": [
+          "DE-STEMI-007-01",
+          "DE-STEMI-007-02"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-007-INC-02",
+        "label": "Alterazioni ECG compatibili con STEMI",
+        "description": "L'elettrocardiogramma mostra un sopraslivellamento del tratto ST o equivalenti elettrocardiografici suggestivi di STEMI.",
+        "logic_expression": "ecg.st_elevation == true OR ecg.lbbb_new_onset == true OR ecg.stemi_equivalent == true",
+        "data_elements": [
+          "DE-STEMI-007-03"
+        ],
+        "inference_allowed": true
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-007-EXC-01",
+        "label": "Diagnosi alternativa certa all'arrivo",
+        "description": "È stata già identificata con certezza una diagnosi alternativa non cardiaca che spiega completamente il quadro clinico, rendendo non necessario il dosaggio delle troponine.",
+        "logic_expression": "diagnosis.alternative_confirmed == true AND diagnosis.cardiac_excluded == true",
+        "data_elements": [
+          "DE-STEMI-007-08"
+        ],
+        "inference_allowed": false
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "event",
+    "trigger_description": "Presentazione del paziente al pronto soccorso con sospetto clinico di STEMI o sindrome coronarica acuta con sopraslivellamento del tratto ST.",
+    "anchor_event": "presentazione_paziente_ps",
+    "start_of_applicability": "Immediatamente al momento della presentazione del paziente al pronto soccorso con sospetto di STEMI.",
+    "end_of_applicability": "Alla ricezione del risultato della troponina hs o alla conferma diagnostica attraverso altro percorso.",
+    "trigger_data_elements": [
+      "DE-STEMI-007-01",
+      "DE-STEMI-007-02",
+      "DE-STEMI-007-03"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "STEMI-DO-007-EXC-COND-01",
+      "label": "Diagnosi STEMI evidente con trasferimento immediato in sala di emodinamica",
+      "description": "Nei casi in cui la diagnosi di STEMI è chiaramente evidente dall'ECG e il paziente viene immediatamente trasferito al laboratorio di emodinamica per angioplastica primaria, il prelievo per la troponina può essere eseguito ma il risultato potrebbe non essere disponibile prima dell'inizio della procedura. L'assenza del risultato prima della procedura non costituisce una non conformità se il prelievo è stato effettuato.",
+      "condition_logic": "ecg.stemi_clear == true AND cath_lab.activation_immediate == true AND blood_sample.troponin_ordered == true",
+      "required_justification": true,
+      "required_evidence": [
+        "ECG con chiaro sopraslivellamento ST",
+        "Ordine di attivazione immediata della sala di emodinamica",
+        "Documentazione dell'avvenuto prelievo ematico per troponina"
+      ]
+    },
+    {
+      "exception_id": "STEMI-DO-007-EXC-COND-02",
+      "label": "Indisponibilità temporanea del metodo ad alta sensibilità",
+      "description": "Il metodo ad alta sensibilità non è temporaneamente disponibile per guasto strumentale o indisponibilità del reagente. In tal caso è accettabile l'uso di un metodo convenzionale come misura temporanea, con documentazione della causa.",
+      "condition_logic": "lab.hs_troponin_assay_available == false AND lab.instrument_failure == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione del guasto strumentale o della mancata disponibilità del reagente",
+        "Risultato con metodo convenzionale come alternativa"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "dosare",
+    "action_description": "Eseguire il prelievo ematico per il dosaggio delle troponine cardiache con metodo ad alta sensibilità (hs-cTn) immediatamente dopo la presentazione del paziente e garantire che i risultati siano disponibili entro 60 minuti dal momento del prelievo.",
+    "action_target": "troponina cardiaca ad alta sensibilità (hs-cTnI o hs-cTnT)",
+    "action_parameters": [
+      {
+        "parameter_name": "metodo_analitico",
+        "parameter_description": "Tipo di metodo analitico utilizzato per il dosaggio della troponina cardiaca.",
+        "expected_value": "alta sensibilità (hs)",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "tempistica_prelievo",
+        "parameter_description": "Momento in cui deve essere effettuato il prelievo ematico rispetto alla presentazione del paziente.",
+        "expected_value": "immediato",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "tempo_massimo_refertazione",
+        "parameter_description": "Tempo massimo entro il quale il risultato del dosaggio della troponina deve essere disponibile dal momento del prelievo ematico.",
+        "expected_value": "60",
+        "comparison_operator": "less_than",
+        "unit": "minuti",
+        "mandatory": true
+      }
+    ],
+    "alternative_compliant_actions": [
+      "Utilizzo di dosaggio della troponina con metodo point-of-care ad alta sensibilità se disponibile e validato, con refertazione entro 60 minuti dal prelievo"
+    ]
+  },
+  "completion_criteria": {
+    "description": "La regola è considerata soddisfatta quando il prelievo ematico per la troponina hs è stato eseguito immediatamente dopo la presentazione e il risultato è stato ricevuto e registrato nel sistema informativo clinico entro 60 minuti dal momento del prelievo.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "ordine_dosaggio_troponina_hs",
+      "prelievo_ematico",
+      "refertazione_troponina_hs"
+    ],
+    "required_documentation_elements": [
+      "timestamp_ordine_troponina",
+      "timestamp_prelievo_ematico",
+      "timestamp_refertazione_risultato",
+      "valore_troponina_hs",
+      "metodo_analitico_utilizzato"
+    ],
+    "success_condition": "(timestamp_prelievo - timestamp_presentazione <= 15 minuti) AND (timestamp_refertazione - timestamp_prelievo <= 60 minuti) AND metodo == 'alta_sensibilità'"
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "STEMI-DO-007-TC-01",
+      "description": "Il prelievo ematico per il dosaggio della troponina ad alta sensibilità deve essere eseguito immediatamente dopo la presentazione del paziente.",
+      "relation_to_anchor": "immediate",
+      "anchor_event": "presentazione_paziente_ps",
+      "duration_value": 15,
+      "duration_unit": "minuti",
+      "hard_deadline": true,
+      "alert_threshold_value": 10,
+      "alert_threshold_unit": "minuti"
+    },
+    {
+      "constraint_id": "STEMI-DO-007-TC-02",
+      "description": "I risultati del dosaggio della troponina cardiaca ad alta sensibilità devono essere disponibili entro 60 minuti dal prelievo ematico.",
+      "relation_to_anchor": "within",
+      "anchor_event": "prelievo_ematico_troponina",
+      "duration_value": 60,
+      "duration_unit": "minuti",
+      "hard_deadline": true,
+      "alert_threshold_value": 45,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "STEMI-DO-007-SC-01",
+      "description": "Il prelievo ematico per la troponina deve avvenire prima della refertazione del risultato.",
+      "predecessor_event": "prelievo_ematico_troponina",
+      "successor_event": "refertazione_troponina_hs",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "timestamp_refertazione <= timestamp_prelievo OR prelievo_ematico non documentato"
+    },
+    {
+      "constraint_id": "STEMI-DO-007-SC-02",
+      "description": "La presentazione del paziente deve precedere l'ordine e il prelievo per la troponina.",
+      "predecessor_event": "presentazione_paziente_ps",
+      "successor_event": "prelievo_ematico_troponina",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "timestamp_prelievo < timestamp_presentazione"
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-STEMI-007-01",
+      "name": "Motivo di accesso al pronto soccorso",
+      "description": "Motivo principale di presentazione del paziente, incluso il sintomo guida (es. dolore toracico).",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "ICD-10-CM",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Ricercare nei campi di triage il motivo di accesso con codici correlati a dolore toracico (R07.x) o infarto miocardico (I21.x)."
+    },
+    {
+      "data_element_id": "DE-STEMI-007-02",
+      "name": "Sospetto clinico di sindrome coronarica acuta",
+      "description": "Valutazione clinica iniziale che documenta il sospetto di SCA o STEMI.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Ricercare nelle note di triage e nella valutazione medica iniziale riferimenti a sospetto SCA, STEMI, infarto miocardico."
+    },
+    {
+      "data_element_id": "DE-STEMI-007-03",
+      "name": "Risultato ECG a 12 derivazioni",
+      "description": "Referto dell'ECG con indicazione di sopraslivellamento del tratto ST o equivalenti STEMI.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "SNOMED CT",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Ricercare nel referto ECG la presenza di sopraslivellamento ST, blocco di branca sinistra di nuova insorgenza, o equivalenti STEMI."
+    },
+    {
+      "data_element_id": "DE-STEMI-007-04",
+      "name": "Timestamp di presentazione del paziente",
+      "description": "Data e ora di registrazione del paziente al triage o al pronto soccorso.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Campo datetime del sistema di triage o del registro accessi di pronto soccorso."
+    },
+    {
+      "data_element_id": "DE-STEMI-007-05",
+      "name": "Timestamp del prelievo ematico per troponina",
+      "description": "Data e ora di esecuzione del prelievo ematico per il dosaggio della troponina cardiaca.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Ricercare il timestamp di raccolta campione associato all'ordine di troponina nel sistema di laboratorio (LIS) o nell'ordine infermieristico."
+    },
+    {
+      "data_element_id": "DE-STEMI-007-06",
+      "name": "Timestamp di refertazione del risultato della troponina",
+      "description": "Data e ora in cui il risultato del dosaggio della troponina hs è stato reso disponibile nel sistema informativo clinico.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Ricercare il timestamp di validazione/refertazione del risultato nel LIS o il timestamp di ricezione nel sistema di cartella clinica elettronica."
+    },
+    {
+      "data_element_id": "DE-STEMI-007-07",
+      "name": "Valore della troponina cardiaca ad alta sensibilità",
+      "description": "Valore numerico del risultato del dosaggio della troponina cardiaca (hs-cTnI o hs-cTnT).",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Ricercare i codici LOINC per hs-cTnI (89579-7) o hs-cTnT (67151-1) nel risultato di laboratorio."
+    },
+    {
+      "data_element_id": "DE-STEMI-007-08",
+      "name": "Diagnosi alternativa confermata",
+      "description": "Eventuale diagnosi alternativa non cardiaca confermata che esclude la necessità del dosaggio della troponina nel contesto STEMI.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "ICD-10-CM",
+      "required_for_evaluation": false,
+      "extraction_method": "hybrid",
+      "query_hint": "Ricercare diagnosi confermate non cardiache registrate nel sistema al momento del triage o della prima valutazione."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "STEMI-DO-007-EOC-01",
+      "description": "Ordine di dosaggio della troponina cardiaca con metodo ad alta sensibilità registrato nel sistema informativo clinico.",
+      "evidence_type": "order",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro i primi minuti dalla presentazione del paziente al pronto soccorso.",
+      "derived_from_data_elements": [
+        "DE-STEMI-007-04",
+        "DE-STEMI-007-05"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-007-EOC-02",
+      "description": "Prelievo ematico per troponina hs eseguito immediatamente dopo la presentazione del paziente.",
+      "evidence_type": "execution",
+      "minimum_occurrences": 1,
+      "time_reference": "Immediatamente dopo la presentazione (entro 15 minuti).",
+      "derived_from_data_elements": [
+        "DE-STEMI-007-04",
+        "DE-STEMI-007-05"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-007-EOC-03",
+      "description": "Risultato della troponina hs disponibile e registrato entro 60 minuti dal prelievo ematico.",
+      "evidence_type": "result",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 60 minuti dal prelievo ematico.",
+      "derived_from_data_elements": [
+        "DE-STEMI-007-05",
+        "DE-STEMI-007-06",
+        "DE-STEMI-007-07"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-007-EOC-04",
+      "description": "Presenza del timestamp di refertazione che conferma il rispetto del vincolo temporale di 60 minuti dal prelievo.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Differenza tra timestamp refertazione e timestamp prelievo ≤ 60 minuti.",
+      "derived_from_data_elements": [
+        "DE-STEMI-007-05",
+        "DE-STEMI-007-06"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "STEMI-DO-007-EONC-01",
+      "description": "Assenza di ordine per dosaggio della troponina cardiaca ad alta sensibilità in un paziente con sospetto STEMI.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Nessun ordine registrato entro 30 minuti dalla presentazione.",
+      "derived_from_data_elements": [
+        "DE-STEMI-007-04",
+        "DE-STEMI-007-05"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-007-EONC-02",
+      "description": "Risultato della troponina non disponibile entro 60 minuti dal prelievo ematico, indicando un ritardo nel processo di refertazione.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Differenza tra timestamp refertazione e timestamp prelievo > 60 minuti.",
+      "derived_from_data_elements": [
+        "DE-STEMI-007-05",
+        "DE-STEMI-007-06"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-007-EONC-03",
+      "description": "Utilizzo di un metodo non ad alta sensibilità per il dosaggio della troponina senza documentazione di giustificazione.",
+      "evidence_type": "derived_fact",
+      "minimum_occurrences": 1,
+      "time_reference": "Al momento della refertazione del risultato.",
+      "derived_from_data_elements": [
+        "DE-STEMI-007-07"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-007-EONC-04",
+      "description": "Ritardo significativo tra la presentazione del paziente e l'esecuzione del prelievo ematico (superiore a 15 minuti).",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Differenza tra timestamp prelievo e timestamp presentazione > 15 minuti.",
+      "derived_from_data_elements": [
+        "DE-STEMI-007-04",
+        "DE-STEMI-007-05"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Verificare che: (1) il paziente con sospetto STEMI abbia avuto un prelievo ematico per troponina hs eseguito immediatamente dopo la presentazione (entro 15 minuti); (2) il metodo analitico utilizzato sia ad alta sensibilità; (3) il risultato sia stato refertato e reso disponibile nel sistema informativo entro 60 minuti dal momento del prelievo ematico. Se tutti e tre i criteri sono soddisfatti, la regola è conforme. Se uno qualsiasi dei criteri non è soddisfatto, la regola è non conforme a meno che non sia presente una deviazione giustificata documentata.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF (patient.suspected_stemi == true) THEN { LET t_pres = timestamp_presentazione; LET t_prel = timestamp_prelievo_troponina; LET t_ref = timestamp_refertazione_troponina; LET method = metodo_analitico; IF (t_prel IS NOT NULL AND t_ref IS NOT NULL AND method == 'hs') THEN { IF ((t_prel - t_pres) <= 15 min AND (t_ref - t_prel) <= 60 min) THEN RETURN 'compliant'; ELSE IF (exception_documented == true) THEN RETURN 'justified_deviation'; ELSE RETURN 'non_compliant'; } ELSE IF (t_prel IS NULL OR t_ref IS NULL) THEN { IF (exception_documented == true) THEN RETURN 'justified_deviation'; ELSE RETURN 'non_compliant'; } } ELSE RETURN 'not_applicable';",
+    "missing_data_policy": "review_required",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "human_review",
+    "notes": "Il vincolo di 15 minuti per il prelievo è un'operazionalizzazione del termine 'immediatamente' presente nella raccomandazione originale. Il vincolo di 60 minuti dal prelievo alla refertazione è esplicito nel testo della linea guida. In caso di dati mancanti relativi ai timestamp, è necessaria una revisione manuale per determinare la conformità."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "note cliniche di pronto soccorso",
+      "registro di triage",
+      "sistema informativo di laboratorio (LIS)",
+      "cartella clinica elettronica"
+    ],
+    "human_review_required": false,
+    "minimum_confidence": 0.85,
+    "notes": "La valutazione primaria è deterministica basata sui timestamp strutturati. Il metodo inferenziale è necessario solo quando i timestamp strutturati non sono disponibili e occorre estrarre le informazioni temporali dalle note cliniche."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable",
+    "probable_non_compliance"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "high",
+    "process_risk_severity": "high",
+    "likelihood_if_violated": "possible",
+    "detectability": "easy",
+    "priority_score": 8.5,
+    "rationale": "Il ritardo nel dosaggio e nella refertazione della troponina hs può determinare un ritardo diagnostico significativo nei pazienti con STEMI, con conseguente ritardo nella strategia di riperfusione e peggioramento dell'outcome clinico. Il rischio clinico è elevato perché il mancato rispetto di questa regola può contribuire a un ritardo complessivo del door-to-balloon time. La violazione è facilmente rilevabile attraverso i timestamp registrati nei sistemi informativi."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "timestamp_presentazione_paziente",
+      "timestamp_prelievo_ematico_troponina",
+      "timestamp_refertazione_troponina",
+      "valore_troponina_hs",
+      "metodo_analitico_troponina",
+      "unità_di_misura_troponina"
+    ],
+    "acceptable_evidence_sources": [
+      "sistema informativo di laboratorio (LIS)",
+      "cartella clinica elettronica",
+      "sistema di gestione ordini",
+      "registro infermieristico di pronto soccorso",
+      "sistema di triage"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "nota_clinica_di_deviazione",
+      "motivo_di_ritardo_refertazione",
+      "motivo_di_utilizzo_metodo_non_hs"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "STEMI-WS-007-01",
+    "STEMI-WS-007-02",
+    "STEMI-WS-007-03"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "Il testo originale specifica 'immediately after presentation' che è stato operazionalizzato come entro 15 minuti dalla presentazione, un valore soglia comunemente adottato nella pratica clinica per definire l'immediatezza in contesto di emergenza. Il vincolo di 60 minuti dal prelievo alla disponibilità dei risultati è esplicito nel testo. Il termine 'high-sensitivity assays' è stato tradotto come 'metodo ad alta sensibilità (hs)' in conformità con la terminologia clinica italiana.",
+    "extraction_confidence": 0.93,
+    "ambiguity_flags": [
+      "Il termine 'immediately' è stato interpretato come 'entro 15 minuti' - soglia da validare con il comitato clinico locale",
+      "Non è specificato se il vincolo di 60 minuti si applica anche ai dosaggi point-of-care"
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Gruppo di lavoro PDTA STEMI",
+    "rule_owner": "Direttore del Dipartimento di Emergenza-Urgenza",
+    "effective_from": null,
+    "effective_to": null,
+    "review_cycle": "12 mesi",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

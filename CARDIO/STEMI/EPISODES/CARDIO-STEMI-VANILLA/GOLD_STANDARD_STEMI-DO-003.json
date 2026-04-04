@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-003-20260318-RSSMRA58",
+  "check_timestamp": "2026-03-22T12:00:00+01:00",
+  "rule_id": "STEMI-DO-003",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "compliant",
+  "confidence": 0.82,
+  "rationale": "ECG a 12 derivazioni pre-ospedaliero (record #1) eseguito e interpretato dalla Dr.ssa Gori (Medico 118) con timestamp 07:44. Il verbale 118 (record #2, timestamp 07:46) documenta che l'ECG era già stato acquisito e refertato al momento della compilazione, con descrizione dettagliata del sopraslivellamento ST in V2-V6, I e aVL e sottoslivellamento reciproco, diagnosi di STEMI antero-laterale e trasmissione del referto alla rete IMA e all'emodinamista reperibile. La rete IMA è stata attivata alle 07:47, coerente con il vincolo di sequenza (interpretazione ECG prima dell'attivazione emodinamica). Il numero di derivazioni è confermato come 12 ('ECG pre-ospedaliero a 12 derivazioni'). Il primo contatto medico (FMC) non è documentato con un timestamp esplicito separato dall'ECG, ma il timestamp dell'ECG (07:44) rappresenta il primo atto medico documentato e il verbale 118 (07:46) conferma che l'ECG è stato eseguito 'sul posto' immediatamente; pertanto si inferisce che l'intervallo FMC-ECG è stato di pochi minuti, ampiamente inferiore ai 10 minuti richiesti. Nessuna eccezione applicabile (paziente vigile, GCS 15, non in arresto cardiaco). La confidence non è massima (0.82) per l'assenza di un timestamp FMC strutturato e separato dal timestamp ECG, rendendo necessaria un'inferenza dal contesto narrativo."
+}

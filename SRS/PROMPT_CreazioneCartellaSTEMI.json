@@ -1,0 +1,178 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CartellaClinica",
+  "description": "Schema per la cartella clinica completa di un ricovero ospedaliero, contenente tutti i documenti clinici come health records strutturati.",
+  "type": "object",
+  "properties": {
+    "paziente": {
+      "type": "object",
+      "description": "Dati anagrafici sintetici del paziente simulato.",
+      "properties": {
+        "nome": {
+          "type": "string",
+          "description": "Nome fittizio del paziente."
+        },
+        "cognome": {
+          "type": "string",
+          "description": "Cognome fittizio del paziente."
+        },
+        "dataDiNascita": {
+          "type": "string",
+          "format": "date",
+          "description": "Data di nascita del paziente in formato YYYY-MM-DD."
+        },
+        "sesso": {
+          "type": "string",
+          "enum": ["M", "F"],
+          "description": "Sesso del paziente."
+        },
+        "codiceFiscale": {
+          "type": "string",
+          "description": "Codice fiscale fittizio del paziente."
+        },
+        "residenza": {
+          "type": "string",
+          "description": "Indirizzo di residenza fittizio."
+        }
+      },
+      "required": ["nome", "cognome", "dataDiNascita", "sesso", "codiceFiscale"],
+      "additionalProperties": false
+    },
+    "ricovero": {
+      "type": "object",
+      "description": "Dati sintetici del ricovero.",
+      "properties": {
+        "dataIngresso": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data e ora di ingresso in ospedale (ISO 8601)."
+        },
+        "dataDimissione": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data e ora di dimissione (ISO 8601)."
+        },
+        "reparto": {
+          "type": "string",
+          "description": "Reparto principale di ricovero (es. UTIC, Cardiologia Degenza)."
+        },
+        "diagnosiPrincipale": {
+          "type": "string",
+          "description": "Diagnosi principale alla dimissione con codice ICD-9/ICD-10."
+        },
+        "diagnosiSecondarie": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Diagnosi secondarie con codici ICD."
+        },
+        "esito": {
+          "type": "string",
+          "enum": [
+            "dimissione_ordinaria",
+            "dimissione_protetta",
+            "trasferimento",
+            "exitus",
+            "dimissione_volontaria"
+          ],
+          "description": "Esito del ricovero."
+        }
+      },
+      "required": [
+        "dataIngresso",
+        "dataDimissione",
+        "reparto",
+        "diagnosiPrincipale",
+        "esito"
+      ],
+      "additionalProperties": false
+    },
+    "healthRecords": {
+      "type": "array",
+      "description": "Array contenente tutti i documenti clinici della cartella, ordinati cronologicamente.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Identificativo univoco progressivo del documento clinico."
+          },
+          "dateTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e ora di redazione del documento in formato ISO 8601."
+          },
+          "type": {
+            "type": "string",
+            "description": "Tipologia del documento clinico.",
+            "enum": [
+              "Verbale Intervento 118",
+              "Scheda Triage Pronto Soccorso",
+              "Valutazione Medica Pronto Soccorso",
+              "Referto ECG",
+              "Anamnesi",
+              "Esame Obiettivo",
+              "Consenso Informato",
+              "Referto Emodinamica",
+              "Diario Clinico UTIC",
+              "Diario Infermieristico UTIC",
+              "Referto Laboratorio",
+              "Referto Ecocardiogramma",
+              "Consulenza Diabetologica",
+              "Diario Clinico Degenza",
+              "Valutazione Fisioterapica",
+              "Lettera di Dimissione Ospedaliera"
+            ]
+          },
+          "humanResource": {
+            "type": "string",
+            "description": "Nome e cognome (fittizi) dell'operatore sanitario che ha redatto il documento."
+          },
+          "role": {
+            "type": "string",
+            "description": "Ruolo professionale dell'operatore.",
+            "enum": [
+              "Medico 118",
+              "Infermiere 118",
+              "Infermiere Triage",
+              "Medico Pronto Soccorso",
+              "Cardiologo",
+              "Cardiologo Emodinamista",
+              "Infermiere UTIC",
+              "Infermiere Degenza",
+              "Medico Laboratorio",
+              "Diabetologo",
+              "Fisioterapista",
+              "Cardiologo Ecocardiografista"
+            ]
+          },
+          "narrative": {
+            "type": "string",
+            "description": "Testo clinico completo del documento: note cliniche, referti, descrizioni procedure, valutazioni, in stile ospedaliero italiano."
+          },
+          "observations": {
+            "type": "array",
+            "description": "Array di osservazioni cliniche strutturate. Ogni elemento è una stringa contenente nome del parametro, valore numerico o qualitativo, e unità di misura (ove applicabile).",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "dateTime",
+          "type",
+          "humanResource",
+          "role",
+          "narrative",
+          "observations"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 16
+    }
+  },
+  "required": ["paziente", "ricovero", "healthRecords"],
+  "additionalProperties": false
+}

@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-001-20260318-RSSMRA58",
+  "check_timestamp": "2026-03-23T12:00:00+01:00",
+  "rule_id": "STEMI-DO-001",
+  "patient_id_hash": "RSSMRA58L12H501X-SHA256",
+  "outcome": "non_compliant",
+  "confidence": 0.8,
+  "rationale": "Il paziente soddisfaceva i criteri di inclusione della regola già al primo ECG pre-ospedaliero (ore 07:48, 4 minuti dal FMC alle 07:44): dolore toracico tipico oppressivo con sudorazione e nausea, associato a sopraslivellamento ST ≥1 mm in almeno 2 derivazioni contigue (DIII 1.0 mm, aVF 1.0 mm) con sottoslivellamento reciproco in V1-V3 e aVL. Nonostante ciò, il quadro è stato giudicato 'non dirimente per STEMI conclamato' e non è stata attivata la sala di emodinamica né richiesta una consulenza cardiologica urgente al momento del FMC; il paziente è stato instradato in un percorso di osservazione per SCA senza ST. La diagnosi franca di STEMI è stata posta solo alle 11:02 (circa 3 ore e 14 minuti dopo il FMC), quando un ECG seriato ha mostrato sopraslivellamento netto in DII, DIII, aVF. Anche dopo la conferma diagnostica alle 11:02, la decisione sulla strategia di riperfusione è stata formalizzata alle 11:39 (37 minuti dopo) con attivazione dell'emodinamica alle 11:40, non rispettando il vincolo di immediatezza (TC-002). Il tempo FMC-to-balloon risulta di 285 minuti, ampiamente superiore al limite di 120 minuti (TC-003). Il vincolo TC-001 (ECG entro 10 minuti dal FMC) è stato rispettato (ECG a 4 minuti). Il FMC è stato registrato. Non sono presenti eccezioni documentate (arresto cardiaco, rifiuto del paziente, patologie terminali). Pur riconoscendo che il quadro ECG iniziale era borderline e la decisione clinica di osservazione è comprensibile dal punto di vista del giudizio clinico individuale, la regola richiede che il sospetto STEMI — tecnicamente presente secondo i criteri ECG — conduca a valutazione immediata per la strategia di riperfusione, cosa che non è avvenuta."
+}

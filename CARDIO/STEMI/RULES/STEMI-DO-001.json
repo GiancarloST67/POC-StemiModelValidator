@@ -1,0 +1,580 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-001",
+  "rule_type": "do",
+  "title": "Valutazione immediata per strategia di riperfusione d'emergenza nei pazienti con sospetto STEMI",
+  "short_label": "Valutazione riperfusione STEMI",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico Terapeutico Assistenziale per Infarto Miocardico con Sopraslivellamento del tratto ST (STEMI)",
+  "clinical_phase": "triage e valutazione iniziale",
+  "care_settings": [
+    "Pronto Soccorso",
+    "Sistema di Emergenza Territoriale 118",
+    "Unità di Terapia Intensiva Cardiologica"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "Medico d'emergenza-urgenza",
+      "responsibility_type": "primary",
+      "organization_unit": "Pronto Soccorso / Dipartimento di Emergenza e Accettazione (DEA)",
+      "notes": "Responsabile della valutazione clinica iniziale e dell'attivazione della strategia di riperfusione."
+    },
+    {
+      "role_name": "Cardiologo interventista",
+      "responsibility_type": "consulted",
+      "organization_unit": "Laboratorio di Emodinamica / Cardiologia Interventistica",
+      "notes": "Consulente per la definizione della strategia di riperfusione più appropriata (PCI primaria vs fibrinolisi)."
+    },
+    {
+      "role_name": "Infermiere di triage",
+      "responsibility_type": "supporting",
+      "organization_unit": "Pronto Soccorso",
+      "notes": "Supporto nell'identificazione precoce dei pazienti con sospetto STEMI e nell'esecuzione dell'ECG a 12 derivazioni."
+    },
+    {
+      "role_name": "Medico del Sistema di Emergenza Territoriale 118",
+      "responsibility_type": "primary",
+      "organization_unit": "Centrale Operativa 118 / Ambulanza medicalizzata",
+      "notes": "Responsabile della valutazione pre-ospedaliera e dell'attivazione del percorso STEMI in fase pre-ospedaliera."
+    },
+    {
+      "role_name": "Coordinatore della rete STEMI",
+      "responsibility_type": "monitoring",
+      "organization_unit": "Rete cardiologica regionale",
+      "notes": "Supervisione del rispetto dei tempi e delle procedure della rete per lo STEMI."
+    }
+  ],
+  "deontic_strength": "recommended",
+  "recommendation_strength": "Classe I (fortemente raccomandato)",
+  "evidence_level": "Livello di evidenza B",
+  "original_statement": "Si raccomanda che i pazienti con sospetto STEMI siano immediatamente valutati per una emergency reperfusion strategy.",
+  "normalized_statement": "Ogni paziente con sospetto clinico ed elettrocardiografico di STEMI deve essere immediatamente valutato per determinare la strategia di riperfusione d'emergenza più appropriata.",
+  "intent": "Garantire che ogni paziente con sospetto STEMI riceva una valutazione tempestiva finalizzata alla selezione e attivazione della strategia di riperfusione d'emergenza più appropriata, riducendo il tempo totale di ischemia miocardica.",
+  "rationale": "La tempestività della riperfusione miocardica è il principale determinante della prognosi nei pazienti con STEMI. La valutazione immediata per la strategia di riperfusione consente di ridurre il ritardo tra il primo contatto medico e l'apertura del vaso coronarico occluso, migliorando la sopravvivenza e riducendo l'estensione dell'infarto.",
+  "source_references": [
+    {
+      "source_id": "SRC-ESC-STEMI-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione 5 - Strategia di riperfusione",
+      "page_reference": "p. 28-35",
+      "statement_quote": "Si raccomanda che i pazienti con sospetto STEMI siano immediatamente valutati per una emergency reperfusion strategy.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto soggetto a copyright ESC. Utilizzo consentito per finalità cliniche e di ricerca secondo le condizioni d'uso dell'editore."
+    }
+  ],
+  "applicability": {
+    "population_description": "Pazienti adulti (età ≥ 18 anni) con sospetto clinico di infarto miocardico con sopraslivellamento del tratto ST (STEMI), inclusi pazienti con dolore toracico acuto e alterazioni ECG compatibili con STEMI.",
+    "clinical_context": "Sospetto clinico ed elettrocardiografico di STEMI in fase acuta, indipendentemente dal tempo di insorgenza dei sintomi.",
+    "care_context": "Fase pre-ospedaliera (ambulanza 118) e fase di accesso al Pronto Soccorso / DEA, fino alla decisione sulla strategia di riperfusione.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "INC-001",
+        "label": "Dolore toracico acuto suggestivo di sindrome coronarica acuta",
+        "description": "Paziente che presenta dolore toracico acuto, oppressivo, retrosternale, eventualmente irradiato, o equivalente anginoso, suggestivo di ischemia miocardica acuta.",
+        "logic_expression": "sintomo_dolore_toracico_acuto == true OR equivalente_anginoso == true",
+        "data_elements": [
+          "DE-001",
+          "DE-002"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "INC-002",
+        "label": "Sopraslivellamento del tratto ST all'ECG a 12 derivazioni",
+        "description": "ECG a 12 derivazioni che mostra sopraslivellamento del tratto ST in almeno due derivazioni contigue, oppure blocco di branca sinistra di nuova insorgenza, compatibile con diagnosi di STEMI.",
+        "logic_expression": "ecg_st_elevation >= 1mm IN >=2 derivazioni_contigue OR nuovo_BBS == true",
+        "data_elements": [
+          "DE-003",
+          "DE-004"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "INC-003",
+        "label": "Età adulta",
+        "description": "Paziente di età maggiore o uguale a 18 anni.",
+        "logic_expression": "età_paziente >= 18",
+        "data_elements": [
+          "DE-005"
+        ],
+        "inference_allowed": false
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "EXC-001",
+        "label": "Direttive anticipate di trattamento che escludono interventi invasivi",
+        "description": "Paziente con direttive anticipate di trattamento (DAT) valide che escludono esplicitamente interventi cardiologici invasivi o manovre di riperfusione.",
+        "logic_expression": "DAT_presente == true AND DAT_esclude_riperfusione == true",
+        "data_elements": [
+          "DE-006"
+        ],
+        "inference_allowed": false
+      },
+      {
+        "criterion_id": "EXC-002",
+        "label": "Diagnosi alternativa confermata",
+        "description": "Paziente per il quale è stata confermata una diagnosi alternativa che esclude lo STEMI, come pericardite acuta, sindrome di Takotsubo confermata, o artefatto ECG.",
+        "logic_expression": "diagnosi_alternativa_confermata == true AND diagnosi_stemi_esclusa == true",
+        "data_elements": [
+          "DE-007"
+        ],
+        "inference_allowed": true
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "diagnostic_finding",
+    "trigger_description": "Riscontro di sopraslivellamento del tratto ST su ECG a 12 derivazioni in un paziente con sintomatologia clinica compatibile con sindrome coronarica acuta, oppure sospetto clinico fondato di STEMI comunicato dal personale del 118 o dal medico di triage.",
+    "anchor_event": "Primo contatto medico con riscontro di sospetto STEMI (First Medical Contact - FMC)",
+    "start_of_applicability": "Dal momento del primo contatto medico (FMC) con riscontro di sospetto STEMI, sia in fase pre-ospedaliera che in Pronto Soccorso.",
+    "end_of_applicability": "Fino alla documentazione formale della decisione sulla strategia di riperfusione (PCI primaria, fibrinolisi, o esclusione motivata della riperfusione).",
+    "trigger_data_elements": [
+      "DE-001",
+      "DE-002",
+      "DE-003",
+      "DE-008"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "EXP-001",
+      "label": "Arresto cardiaco refrattario con prognosi infausta",
+      "description": "Paziente in arresto cardiaco refrattario a manovre di rianimazione cardiopolmonare avanzata prolungate, con segni di prognosi infausta, per il quale il team medico ritiene non indicato proseguire con la strategia di riperfusione.",
+      "condition_logic": "arresto_cardiaco == true AND RCP_prolungata > 30min AND segni_prognosi_infausta == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione del tempo di arresto cardiaco e delle manovre rianimatorie eseguite",
+        "Valutazione prognostica documentata dal medico responsabile"
+      ]
+    },
+    {
+      "exception_id": "EXP-002",
+      "label": "Rifiuto informato del paziente",
+      "description": "Il paziente, adeguatamente informato, rifiuta espressamente la valutazione o il trattamento di riperfusione.",
+      "condition_logic": "rifiuto_informato_paziente == true AND documentazione_rifiuto == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Modulo di rifiuto informato firmato dal paziente",
+        "Nota clinica attestante l'informazione fornita al paziente"
+      ]
+    },
+    {
+      "exception_id": "EXP-003",
+      "label": "Comorbidità terminali con aspettativa di vita molto limitata",
+      "description": "Paziente con patologie terminali preesistenti note (es. neoplasia in fase terminale) con aspettativa di vita molto limitata, per il quale il team medico concorda che la riperfusione non è nel miglior interesse del paziente.",
+      "condition_logic": "patologia_terminale == true AND aspettativa_vita_limitata == true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione clinica della patologia terminale",
+        "Discussione multidisciplinare documentata",
+        "Eventuale parere palliativista"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "valutare",
+    "action_description": "Valutare immediatamente il paziente con sospetto STEMI per determinare la strategia di riperfusione d'emergenza più appropriata, considerando: il tempo dall'insorgenza dei sintomi, la disponibilità di un laboratorio di emodinamica per PCI primaria entro i tempi raccomandati, le controindicazioni alla fibrinolisi, le condizioni cliniche del paziente e la logistica di trasporto.",
+    "action_target": "Strategia di riperfusione d'emergenza (PCI primaria, fibrinolisi sistemica, o strategia farmaco-invasiva)",
+    "action_parameters": [
+      {
+        "parameter_name": "Tempistica della valutazione",
+        "parameter_description": "La valutazione per la strategia di riperfusione deve essere effettuata immediatamente al momento del riconoscimento del sospetto STEMI.",
+        "expected_value": "immediata",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Esecuzione ECG a 12 derivazioni",
+        "parameter_description": "Un ECG a 12 derivazioni deve essere eseguito e interpretato entro 10 minuti dal primo contatto medico per confermare il sospetto STEMI.",
+        "expected_value": "10",
+        "comparison_operator": "less_than",
+        "unit": "minuti",
+        "mandatory": true
+      },
+      {
+        "parameter_name": "Valutazione disponibilità PCI primaria",
+        "parameter_description": "Deve essere verificata la possibilità di eseguire una PCI primaria entro 120 minuti dal primo contatto medico (o 90 minuti se il paziente si presenta precocemente).",
+        "expected_value": "120",
+        "comparison_operator": "less_than",
+        "unit": "minuti",
+        "mandatory": true
+      }
+    ],
+    "alternative_compliant_actions": [
+      "Se la PCI primaria non è disponibile entro i tempi raccomandati, considerare la fibrinolisi sistemica entro 10 minuti dalla diagnosi di STEMI, seguita da eventuale strategia farmaco-invasiva.",
+      "In caso di presentazione pre-ospedaliera, attivazione diretta del laboratorio di emodinamica con trasporto diretto del paziente, bypassando il Pronto Soccorso."
+    ]
+  },
+  "completion_criteria": {
+    "description": "La regola si considera soddisfatta quando è stata documentata formalmente la decisione sulla strategia di riperfusione d'emergenza più appropriata per il paziente con sospetto STEMI, con le relative motivazioni cliniche e la tempistica prevista.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "Interpretazione ECG a 12 derivazioni documentata",
+      "Decisione sulla strategia di riperfusione documentata"
+    ],
+    "required_documentation_elements": [
+      "Referto ECG con interpretazione e ora di esecuzione",
+      "Nota clinica con indicazione della strategia di riperfusione scelta",
+      "Ora del primo contatto medico (FMC)",
+      "Ora della diagnosi di STEMI"
+    ],
+    "success_condition": "ECG interpretato E strategia di riperfusione documentata E timestamp FMC registrato E decisione riperfusione avvenuta immediatamente dopo il riconoscimento del sospetto STEMI"
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "TC-001",
+      "description": "L'ECG a 12 derivazioni deve essere eseguito e interpretato entro 10 minuti dal primo contatto medico (FMC).",
+      "relation_to_anchor": "within",
+      "anchor_event": "Primo contatto medico (FMC)",
+      "duration_value": 10,
+      "duration_unit": "minuti",
+      "hard_deadline": true,
+      "alert_threshold_value": 7,
+      "alert_threshold_unit": "minuti"
+    },
+    {
+      "constraint_id": "TC-002",
+      "description": "La decisione sulla strategia di riperfusione deve essere presa immediatamente dopo la conferma diagnostica del sospetto STEMI all'ECG.",
+      "relation_to_anchor": "immediate",
+      "anchor_event": "Diagnosi di STEMI confermata all'ECG",
+      "duration_value": null,
+      "duration_unit": null,
+      "hard_deadline": true,
+      "alert_threshold_value": null,
+      "alert_threshold_unit": null
+    },
+    {
+      "constraint_id": "TC-003",
+      "description": "Se la strategia scelta è la PCI primaria, il tempo wire-crossing (apertura del vaso) deve avvenire entro 120 minuti dal FMC (o entro 90 minuti se il paziente si presenta entro 2 ore dall'insorgenza dei sintomi e in un centro con PCI).",
+      "relation_to_anchor": "no_later_than",
+      "anchor_event": "Primo contatto medico (FMC)",
+      "duration_value": 120,
+      "duration_unit": "minuti",
+      "hard_deadline": true,
+      "alert_threshold_value": 90,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "SC-001",
+      "description": "L'ECG a 12 derivazioni deve essere eseguito e interpretato prima della decisione formale sulla strategia di riperfusione.",
+      "predecessor_event": "Esecuzione e interpretazione ECG a 12 derivazioni",
+      "successor_event": "Decisione sulla strategia di riperfusione d'emergenza",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "La decisione sulla strategia di riperfusione è stata documentata senza evidenza di un ECG a 12 derivazioni interpretato precedentemente."
+    },
+    {
+      "constraint_id": "SC-002",
+      "description": "Il primo contatto medico deve precedere la valutazione per la strategia di riperfusione.",
+      "predecessor_event": "Primo contatto medico (FMC)",
+      "successor_event": "Valutazione per strategia di riperfusione",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "La valutazione per la strategia di riperfusione risulta temporalmente antecedente al primo contatto medico registrato."
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-001",
+      "name": "Sintomatologia di presentazione",
+      "description": "Descrizione della sintomatologia riferita dal paziente al momento del primo contatto, in particolare dolore toracico acuto o equivalente anginoso.",
+      "source_location": "ehr_structured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare nel campo motivo di accesso, triage narrative, valutazione clinica iniziale."
+    },
+    {
+      "data_element_id": "DE-002",
+      "name": "Equivalente anginoso",
+      "description": "Presenza di sintomi atipici compatibili con ischemia miocardica (dispnea, sudorazione, nausea, sincope) in assenza di dolore toracico tipico.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "inferential",
+      "query_hint": "Estrarre da note cliniche di triage e valutazione medica iniziale."
+    },
+    {
+      "data_element_id": "DE-003",
+      "name": "Referto ECG a 12 derivazioni",
+      "description": "Risultato dell'ECG a 12 derivazioni con indicazione della presenza o assenza di sopraslivellamento del tratto ST e localizzazione delle derivazioni coinvolte.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "Codifica locale referto ECG / ICD-10 I21.x",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare il campo referto ECG nel sistema di refertazione cardiologica o nel verbale di Pronto Soccorso."
+    },
+    {
+      "data_element_id": "DE-004",
+      "name": "Blocco di branca sinistra di nuova insorgenza",
+      "description": "Presenza di blocco di branca sinistra (BBS) di nuova insorgenza all'ECG, compatibile con STEMI.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": "ICD-10 I44.7",
+      "required_for_evaluation": false,
+      "extraction_method": "hybrid",
+      "query_hint": "Verificare nel referto ECG e confrontare con ECG precedenti se disponibili."
+    },
+    {
+      "data_element_id": "DE-005",
+      "name": "Età del paziente",
+      "description": "Età anagrafica del paziente in anni compiuti al momento dell'accesso.",
+      "source_location": "ehr_structured",
+      "data_type": "numeric",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Calcolare dalla data di nascita nel sistema anagrafico."
+    },
+    {
+      "data_element_id": "DE-006",
+      "name": "Direttive anticipate di trattamento (DAT)",
+      "description": "Presenza e contenuto delle direttive anticipate di trattamento registrate per il paziente.",
+      "source_location": "ehr_structured",
+      "data_type": "text",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare nel registro DAT nazionale o nella cartella clinica del paziente."
+    },
+    {
+      "data_element_id": "DE-007",
+      "name": "Diagnosi alternativa confermata",
+      "description": "Eventuale diagnosi alternativa allo STEMI confermata dal team clinico.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "ICD-10",
+      "required_for_evaluation": false,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare il campo diagnosi nel verbale di Pronto Soccorso o nella lettera di dimissione."
+    },
+    {
+      "data_element_id": "DE-008",
+      "name": "Timestamp del primo contatto medico (FMC)",
+      "description": "Data e ora esatte del primo contatto del paziente con un operatore sanitario in grado di eseguire e interpretare un ECG (medico o infermiere formato).",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare nel campo orario di triage, orario di arrivo ambulanza, o orario di primo contatto nel flusso STEMI."
+    },
+    {
+      "data_element_id": "DE-009",
+      "name": "Timestamp esecuzione ECG",
+      "description": "Data e ora di esecuzione dell'ECG a 12 derivazioni.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare nel sistema di refertazione ECG o nel verbale di Pronto Soccorso."
+    },
+    {
+      "data_element_id": "DE-010",
+      "name": "Decisione strategia di riperfusione",
+      "description": "Documentazione della strategia di riperfusione scelta (PCI primaria, fibrinolisi, strategia farmaco-invasiva, nessuna riperfusione con motivazione).",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "Codifica locale percorso STEMI",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Verificare nel modulo STEMI, nota clinica del medico d'emergenza, o scheda di attivazione emodinamica."
+    },
+    {
+      "data_element_id": "DE-011",
+      "name": "Timestamp decisione strategia di riperfusione",
+      "description": "Data e ora della documentazione della decisione sulla strategia di riperfusione.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare nel modulo STEMI o nella nota clinica relativa alla decisione di riperfusione."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "EC-001",
+      "description": "Presenza di un ECG a 12 derivazioni eseguito e interpretato entro 10 minuti dal primo contatto medico, con risultato documentato compatibile con sospetto STEMI.",
+      "evidence_type": "result",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 10 minuti dal primo contatto medico (FMC)",
+      "derived_from_data_elements": [
+        "DE-003",
+        "DE-008",
+        "DE-009"
+      ]
+    },
+    {
+      "evidence_id": "EC-002",
+      "description": "Documentazione della decisione sulla strategia di riperfusione d'emergenza immediatamente successiva alla conferma diagnostica di sospetto STEMI.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Immediatamente dopo la conferma diagnostica di STEMI",
+      "derived_from_data_elements": [
+        "DE-010",
+        "DE-011"
+      ]
+    },
+    {
+      "evidence_id": "EC-003",
+      "description": "Registrazione del timestamp del primo contatto medico (FMC) nel sistema informativo.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Al momento del primo contatto medico",
+      "derived_from_data_elements": [
+        "DE-008"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "ENC-001",
+      "description": "Assenza di documentazione di un ECG a 12 derivazioni eseguito entro 10 minuti dal primo contatto medico in un paziente con sospetto STEMI.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro 10 minuti dal FMC non risulta alcun ECG documentato",
+      "derived_from_data_elements": [
+        "DE-003",
+        "DE-008",
+        "DE-009"
+      ]
+    },
+    {
+      "evidence_id": "ENC-002",
+      "description": "Assenza di documentazione della decisione sulla strategia di riperfusione d'emergenza dopo la conferma diagnostica di sospetto STEMI.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Dopo la conferma diagnostica di STEMI, nessuna decisione di riperfusione documentata",
+      "derived_from_data_elements": [
+        "DE-010",
+        "DE-011"
+      ]
+    },
+    {
+      "evidence_id": "ENC-003",
+      "description": "Ritardo significativo tra il primo contatto medico e la decisione sulla strategia di riperfusione, senza giustificazione clinica documentata.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Intervallo FMC → decisione riperfusione superiore ai tempi raccomandati",
+      "derived_from_data_elements": [
+        "DE-008",
+        "DE-009",
+        "DE-011"
+      ]
+    },
+    {
+      "evidence_id": "ENC-004",
+      "description": "Mancata registrazione del timestamp del primo contatto medico (FMC), che impedisce la verifica dei tempi del percorso STEMI.",
+      "evidence_type": "documentation_gap",
+      "minimum_occurrences": 1,
+      "time_reference": null,
+      "derived_from_data_elements": [
+        "DE-008"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Per ogni paziente con sospetto STEMI (dolore toracico acuto o equivalente anginoso + sopraslivellamento ST o BBS di nuova insorgenza all'ECG), verificare che: (1) sia stato eseguito un ECG a 12 derivazioni entro 10 minuti dal primo contatto medico; (2) sia stata documentata immediatamente la decisione sulla strategia di riperfusione d'emergenza; (3) il timestamp del FMC sia stato registrato. Se tutti e tre i criteri sono soddisfatti, la regola è conforme. Se manca la decisione sulla strategia di riperfusione o l'ECG non è stato eseguito/interpretato, la regola è non conforme. Se il paziente rientra in un'eccezione documentata, si classifica come deviazione giustificata.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF (sospetto_STEMI == true) THEN { IF (ECG_eseguito_entro_10min == true AND decisione_riperfusione_documentata == true AND FMC_timestamp_registrato == true) THEN outcome = 'compliant'; ELSE IF (eccezione_documentata == true AND giustificazione_presente == true) THEN outcome = 'justified_deviation'; ELSE IF (dati_mancanti_critici == true) THEN outcome = 'not_evaluable'; ELSE outcome = 'non_compliant'; } ELSE outcome = 'not_applicable';",
+    "missing_data_policy": "not_evaluable",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "human_review",
+    "notes": "In caso di discordanza tra il timestamp FMC registrato nel sistema 118 e quello registrato nel sistema di Pronto Soccorso, utilizzare il timestamp più precoce. La valutazione retrospettiva può richiedere revisione manuale delle note cliniche per i casi in cui la documentazione strutturata è incompleta."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "Note cliniche di triage",
+      "Verbale di Pronto Soccorso",
+      "Scheda intervento 118",
+      "Referto ECG",
+      "Scheda di attivazione emodinamica",
+      "Note del cardiologo di guardia"
+    ],
+    "human_review_required": true,
+    "minimum_confidence": 0.85,
+    "notes": "La valutazione deterministica è possibile per i casi con documentazione strutturata completa (timestamp, referto ECG codificato, decisione di riperfusione nel modulo STEMI). L'inferenza è necessaria quando la decisione di riperfusione è documentata solo in testo libero o quando i timestamp non sono registrati in campi strutturati."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable",
+    "probable_non_compliance"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "critical",
+    "process_risk_severity": "critical",
+    "likelihood_if_violated": "likely",
+    "detectability": "moderate",
+    "priority_score": 9.5,
+    "rationale": "La mancata valutazione immediata per la strategia di riperfusione in un paziente con STEMI comporta un prolungamento del tempo di ischemia miocardica, con aumento diretto della mortalità, dell'estensione dell'infarto e del rischio di complicanze gravi (scompenso cardiaco, shock cardiogeno, aritmie fatali). La rilevanza critica è confermata da tutte le linee guida internazionali."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Timestamp del primo contatto medico (FMC)",
+      "Timestamp di esecuzione dell'ECG a 12 derivazioni",
+      "Referto ECG con interpretazione",
+      "Strategia di riperfusione scelta",
+      "Timestamp della decisione sulla strategia di riperfusione",
+      "Identificativo del medico responsabile della decisione"
+    ],
+    "acceptable_evidence_sources": [
+      "Cartella clinica elettronica di Pronto Soccorso",
+      "Sistema di refertazione ECG",
+      "Scheda intervento 118",
+      "Modulo percorso STEMI",
+      "Scheda di attivazione laboratorio di emodinamica",
+      "Registro regionale STEMI"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Campo motivazione nel modulo STEMI",
+      "Nota clinica nel verbale di Pronto Soccorso",
+      "Campo note della scheda di attivazione emodinamica"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "WS-STEMI-001",
+    "WS-STEMI-002",
+    "WS-STEMI-003"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "Il testo sorgente utilizza il termine 'emergency reperfusion strategy' che è stato normalizzato in italiano come 'strategia di riperfusione d'emergenza'. Il verbo 'si raccomanda' è stato interpretato come forza deontica 'recommended' (Classe I ESC). L'avverbio 'immediatamente' è stato interpretato come vincolo temporale che richiede azione senza ritardo evitabile dopo il riconoscimento del sospetto STEMI. La valutazione include sia la componente diagnostica (ECG) sia la componente decisionale (scelta della strategia di riperfusione).",
+    "extraction_confidence": 0.92,
+    "ambiguity_flags": [
+      "Il termine 'immediatamente' non specifica un tempo massimo numerico esatto per la decisione sulla strategia; è stato operazionalizzato tramite i vincoli temporali ESC esistenti (ECG entro 10 min, PCI entro 120 min).",
+      "Il termine 'sospetto STEMI' non definisce criteri diagnostici precisi nel testo sorgente; sono stati adottati i criteri ECG standard delle linee guida ESC."
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Team Clinical Pathway STEMI",
+    "rule_owner": "Direttore Dipartimento Emergenza e Accettazione",
+    "effective_from": null,
+    "effective_to": null,
+    "review_cycle": "Ogni 12 mesi o in occasione di aggiornamento delle linee guida ESC/ANMCO",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

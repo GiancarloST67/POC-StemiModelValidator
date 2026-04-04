@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-003-20260318-RSSMRA58L12H501X",
+  "check_timestamp": "2025-01-24T12:00:00Z",
+  "rule_id": "STEMI-DO-003",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "compliant",
+  "confidence": 0.95,
+  "rationale": "Il primo contatto medico (FMC) è documentato alle ore 07:44 del 18/03/2026 (verbale intervento 118, record #2). L'ECG pre-ospedaliero a 12 derivazioni è stato registrato alle ore 07:48 (record #1), ovvero 4 minuti dopo il FMC, ben entro il limite target di 10 minuti. L'ECG è stato eseguito a 12 derivazioni come richiesto dalla regola ed è stato interpretato dalla Dr.ssa Elisa Gori (Medico 118) con referto narrativo completo che descrive ritmo, alterazioni del tratto ST in sede inferiore (DIII, aVF) e sottoslivellamento speculare in V1-V3, con valutazione diagnostica documentata (quadro suggestivo per SCA infero-posteriore in fase iniziale, non dirimente per STEMI conclamato). Tutti e tre i criteri di conformità sono soddisfatti: (1) ECG a 12 derivazioni registrato, (2) interpretazione con referto documentato, (3) intervallo FMC-ECG di 4 minuti < 10 minuti. Confidence non pienamente unitaria poiché il timestamp esatto dell'interpretazione è inferito come coincidente con la registrazione (07:48), dato che il referto è contestuale all'acquisizione nel medesimo record clinico."
+}

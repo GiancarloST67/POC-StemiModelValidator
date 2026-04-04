@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-005-RSSMRA58L12H501X-20260318",
+  "check_timestamp": "2025-07-18T22:00:00Z",
+  "rule_id": "STEMI-DO-005",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "not_applicable",
+  "confidence": 0.97,
+  "rationale": "La regola STEMI-DO-005 si applica esclusivamente a pazienti con STEMI inferiore (sopraslivellamento ST ≥ 1 mm in almeno due derivazioni tra II, III, aVF) oppure con sospetta occlusione coronarica totale e derivazioni ECG standard non conclusive. Nel caso in esame, l'ECG pre-ospedaliero (record id 1, ore 07:44) documenta chiaramente uno STEMI antero-laterale con sopraslivellamento ST in V2-V4 (3 mm), V5-V6 (2 mm), I e aVL (2 mm), e sottoslivellamento reciproco in II, III e aVF. Non è presente sopraslivellamento ST nelle derivazioni inferiori; le alterazioni in sede inferiore sono di tipo reciproco (depressione ST). Inoltre, l'ECG standard a 12 derivazioni è stato giudicato pienamente diagnostico per STEMI antero-laterale, con attivazione immediata della rete IMA senza alcun dubbio interpretativo. Non sussiste pertanto alcun criterio di inclusione (INCL-005-01 né INCL-005-02) per l'applicabilità della regola. L'esecuzione di derivazioni aggiuntive destre e posteriori non era clinicamente indicata in questo contesto."
+}

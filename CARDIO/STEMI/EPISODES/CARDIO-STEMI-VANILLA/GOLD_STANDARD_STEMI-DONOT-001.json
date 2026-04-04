@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DONOT-001-RSSMRA58L12H501X-20260318",
+  "check_timestamp": "2026-03-22T12:00:00+01:00",
+  "rule_id": "STEMI-DONOT-001",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "compliant",
+  "confidence": 0.97,
+  "rationale": "Il paziente si è presentato con STEMI antero-laterale confermato (diagnosi sospetta SCA soddisfatta, criteri di inclusione INC-001 e INC-002 presenti). Dall'analisi completa dell'episodio clinico — comprensivo di verbale 118, triage PS, valutazione medica PS, referto di emodinamica, diari clinici UTIC e degenza, referti di laboratorio, ecocardiogramma e lettera di dimissione — non vi è alcuna evidenza di richiesta né di esecuzione di angio-TC coronarica (CCTA) in nessuna fase del ricovero. Il percorso diagnostico-terapeutico ha seguito correttamente l'iter standard: ECG pre-ospedaliero diagnostico → attivazione rete IMA → pretrattamento farmacologico → coronarografia invasiva urgente con PCI primaria su IVA prossimale (door-to-balloon 53 minuti). L'azione proibita dalla regola (richiesta/esecuzione routinaria e precoce di CCTA) non è stata effettuata. Il caso è pertanto conforme alla regola DO_NOT. La confidence è molto alta (0.97) in quanto i dati strutturati e narrativi dell'episodio sono completi e dettagliati, e l'assenza dell'esame è coerente con l'intero percorso clinico documentato."
+}

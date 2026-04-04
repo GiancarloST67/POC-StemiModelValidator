@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DONOT-001-RSSMRA58L12H501X-20260318",
+  "check_timestamp": "2026-03-23T12:00:00+01:00",
+  "rule_id": "STEMI-DONOT-001",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "compliant",
+  "confidence": 0.95,
+  "rationale": "Il paziente si è presentato con sospetta sindrome coronarica acuta (dolore toracico tipico, alterazioni ECG inferiori, hs-cTnI elevata) e rientra pienamente nei criteri di applicabilità della regola. Analizzando l'intero episodio clinico, il percorso diagnostico è stato condotto secondo lo standard raccomandato: ECG seriati (pre-ospedaliero, in PS e successivi), dosaggi seriati di hs-cTnI, consulenza cardiologica e infine coronarografia invasiva con PCI primaria. Non vi è alcuna evidenza, né nei referti strutturati né nelle narrative cliniche, di richiesta o esecuzione di angio-TC coronarica (CCTA) in nessuna fase dell'episodio acuto. L'azione proibita dalla regola (esecuzione routinaria e precoce di CCTA in paziente con sospetta SCA) non è stata effettuata. La regola risulta pertanto rispettata."
+}

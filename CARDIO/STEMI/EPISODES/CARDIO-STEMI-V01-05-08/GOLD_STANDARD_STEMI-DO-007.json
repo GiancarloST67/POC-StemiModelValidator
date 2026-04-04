@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-007-RSSMRA58L12H501X-20260318",
+  "check_timestamp": "2026-03-18T08:58:00+01:00",
+  "rule_id": "STEMI-DO-007",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "compliant",
+  "confidence": 0.73,
+  "rationale": "Il paziente si presenta al PS alle 08:02 con dolore toracico sospetto per SCA e ECG pre-ospedaliero con alterazioni inferiori non dirimenti per STEMI (criterio di inclusione INC-01 soddisfatto). Viene eseguito prelievo per hs-cTnI basale alle 08:18 (record #7: 'Prelievo hs-cTnI basale 08:18'), cioè 16 minuti dopo la presentazione: questo supera di 1 minuto la soglia operativa di 15 minuti, ma tale soglia è un'operazionalizzazione del termine 'immediatamente' riconosciuta come necessitante validazione locale, e il ritardo è clinicamente trascurabile, anche considerando che all'ingresso il quadro ECG non era francamente diagnostico per STEMI (diagnosi posta solo alle 11:02). Il metodo analitico è ad alta sensibilità (hs-cTnI), come richiesto. Il referto di laboratorio è datato alle 08:58, con un intervallo prelievo-refertazione di 40 minuti, ampiamente entro il limite dei 60 minuti previsti dalla regola. Il valore di hs-cTnI basale (38 ng/L) è documentato. In sintesi: metodo hs conforme, tempo di refertazione conforme, prelievo eseguito con ritardo marginale di 1 minuto rispetto alla soglia operativa di 15 minuti. La confidence è moderata-alta (0.73) per l'assenza di timestamp strutturati dedicati (il timestamp del prelievo è estratto inferenzialmente dalla nota di laboratorio) e per il superamento marginale della soglia temporale di prelievo."
+}

@@ -1,0 +1,535 @@
+{
+  "schema_version": "1.0.0",
+  "rule_id": "STEMI-DO-004",
+  "rule_type": "do",
+  "title": "Monitoraggio ECG continuo e disponibilità di defibrillatore nei pazienti con sospetto STEMI o SCA",
+  "short_label": "ECG continuo + defibrillatore",
+  "clinical_pathway_id": "PDTA-STEMI-001",
+  "clinical_pathway_name": "Percorso Diagnostico Terapeutico Assistenziale per STEMI",
+  "clinical_phase": "monitoraggio precoce",
+  "care_settings": [
+    "pronto soccorso",
+    "ambulanza 118",
+    "unità di terapia intensiva cardiologica",
+    "laboratorio di emodinamica",
+    "reparto di cardiologia"
+  ],
+  "responsible_actors": [
+    {
+      "role_name": "Medico d'emergenza",
+      "responsibility_type": "primary",
+      "organization_unit": "Pronto Soccorso / DEA",
+      "notes": "Responsabile dell'attivazione tempestiva del monitoraggio ECG continuo e della verifica della disponibilità del defibrillatore al primo contatto con il paziente."
+    },
+    {
+      "role_name": "Infermiere di triage",
+      "responsibility_type": "supporting",
+      "organization_unit": "Pronto Soccorso / DEA",
+      "notes": "Supporto nell'applicazione immediata del monitoraggio ECG e nella verifica della funzionalità del defibrillatore."
+    },
+    {
+      "role_name": "Personale del 118",
+      "responsibility_type": "primary",
+      "organization_unit": "Servizio di Emergenza Territoriale 118",
+      "notes": "Responsabile dell'avvio del monitoraggio ECG continuo e della disponibilità del defibrillatore in fase pre-ospedaliera."
+    },
+    {
+      "role_name": "Cardiologo di guardia",
+      "responsibility_type": "consulted",
+      "organization_unit": "Unità di Terapia Intensiva Cardiologica (UTIC)",
+      "notes": "Consultato per la gestione avanzata del monitoraggio e per eventuali aritmie rilevate."
+    },
+    {
+      "role_name": "Infermiere UTIC",
+      "responsibility_type": "supporting",
+      "organization_unit": "Unità di Terapia Intensiva Cardiologica (UTIC)",
+      "notes": "Responsabile della continuità del monitoraggio ECG durante il ricovero in UTIC."
+    }
+  ],
+  "deontic_strength": "mandatory",
+  "recommendation_strength": "Classe I",
+  "evidence_level": "Livello di evidenza B",
+  "original_statement": "Continuous ECG monitoring and the availability of defibrillator capacity is recommended as soon as possible in all patients with suspected STEMI, in suspected ACS with other ECG changes or ongoing chest pain, and once the diagnosis of MI is made.",
+  "normalized_statement": "Il monitoraggio ECG continuo e la disponibilità di un defibrillatore devono essere garantiti il prima possibile in tutti i pazienti con sospetto STEMI, con sospetta SCA con alterazioni ECG o dolore toracico in corso, e una volta che la diagnosi di infarto miocardico sia stata posta.",
+  "intent": "Garantire la sorveglianza elettrocardiografica continua e la capacità di defibrillazione immediata per la rilevazione e il trattamento tempestivo di aritmie potenzialmente fatali nei pazienti con sindrome coronarica acuta sospetta o confermata.",
+  "rationale": "I pazienti con STEMI o SCA sono a elevato rischio di aritmie ventricolari maligne, inclusa la fibrillazione ventricolare, specialmente nelle prime ore dall'esordio dei sintomi. Il monitoraggio ECG continuo consente la rilevazione precoce di aritmie, mentre la disponibilità immediata di un defibrillatore permette la defibrillazione tempestiva, riducendo significativamente la mortalità per arresto cardiaco.",
+  "source_references": [
+    {
+      "source_id": "ESC-STEMI-2023",
+      "source_level": "international",
+      "issuer": "European Society of Cardiology (ESC)",
+      "document_title": "2023 ESC Guidelines for the management of acute coronary syndromes",
+      "document_version": "2023",
+      "publication_date": "2023-08-25",
+      "section_reference": "Sezione Monitoraggio e gestione delle aritmie nella fase acuta",
+      "page_reference": null,
+      "statement_quote": "Continuous ECG monitoring and the availability of defibrillator capacity is recommended as soon as possible in all patients with suspected STEMI, in suspected ACS with other ECG changes or ongoing chest pain, and once the diagnosis of MI is made.",
+      "citation_uri": "https://doi.org/10.1093/eurheartj/ehad191",
+      "license_note": "Contenuto derivato dalle linee guida ESC; utilizzato a scopo clinico-assistenziale e di ricerca sotto fair use accademico."
+    }
+  ],
+  "applicability": {
+    "population_description": "Tutti i pazienti adulti con sospetto STEMI, sospetta sindrome coronarica acuta (SCA) con alterazioni ECG o dolore toracico in corso, oppure con diagnosi confermata di infarto miocardico.",
+    "clinical_context": "Sindrome coronarica acuta sospetta o confermata, inclusi STEMI, NSTEMI e angina instabile con alterazioni elettrocardiografiche o sintomatologia toracica persistente.",
+    "care_context": "Fase pre-ospedaliera (118/ambulanza), pronto soccorso, triage, laboratorio di emodinamica, UTIC e qualsiasi setting in cui il paziente sia in fase acuta.",
+    "inclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-004-INC-01",
+        "label": "Sospetto STEMI",
+        "description": "Paziente con presentazione clinica e/o elettrocardiografica compatibile con sospetto infarto miocardico con sopraslivellamento del tratto ST.",
+        "logic_expression": "ECG.ST_elevation = true OR clinical_suspicion.STEMI = true",
+        "data_elements": [
+          "DE-ECG-001",
+          "DE-CLINICAL-SUSPICION-001"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-004-INC-02",
+        "label": "Sospetta SCA con alterazioni ECG",
+        "description": "Paziente con sospetta sindrome coronarica acuta che presenta alterazioni elettrocardiografiche diverse dal sopraslivellamento ST (es. sottoslivellamento ST, inversione onda T, blocco di branca di nuova insorgenza).",
+        "logic_expression": "clinical_suspicion.ACS = true AND ECG.abnormal_changes = true",
+        "data_elements": [
+          "DE-ECG-001",
+          "DE-CLINICAL-SUSPICION-002"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-004-INC-03",
+        "label": "Sospetta SCA con dolore toracico in corso",
+        "description": "Paziente con sospetta sindrome coronarica acuta e dolore toracico persistente al momento della valutazione.",
+        "logic_expression": "clinical_suspicion.ACS = true AND chest_pain.ongoing = true",
+        "data_elements": [
+          "DE-CHEST-PAIN-001",
+          "DE-CLINICAL-SUSPICION-002"
+        ],
+        "inference_allowed": true
+      },
+      {
+        "criterion_id": "STEMI-DO-004-INC-04",
+        "label": "Diagnosi confermata di infarto miocardico",
+        "description": "Paziente con diagnosi confermata di infarto miocardico acuto (STEMI o NSTEMI) sulla base di criteri clinici, elettrocardiografici e bioumorali.",
+        "logic_expression": "diagnosis.MI_confirmed = true",
+        "data_elements": [
+          "DE-DIAGNOSIS-MI-001"
+        ],
+        "inference_allowed": true
+      }
+    ],
+    "exclusion_criteria": [
+      {
+        "criterion_id": "STEMI-DO-004-EXC-01",
+        "label": "Paziente deceduto prima dell'applicazione",
+        "description": "La regola non si applica se il paziente è deceduto prima del primo contatto medico o se si è deciso di non procedere a rianimazione.",
+        "logic_expression": "patient.status = 'deceased' OR DNR_order = true",
+        "data_elements": [
+          "DE-PATIENT-STATUS-001",
+          "DE-DNR-001"
+        ],
+        "inference_allowed": false
+      },
+      {
+        "criterion_id": "STEMI-DO-004-EXC-02",
+        "label": "Diagnosi alternativa definitivamente confermata",
+        "description": "La regola non si applica se una diagnosi alternativa non cardiaca è stata definitivamente confermata e la SCA è stata esclusa con certezza.",
+        "logic_expression": "ACS_excluded = true AND alternative_diagnosis_confirmed = true",
+        "data_elements": [
+          "DE-ACS-EXCLUSION-001"
+        ],
+        "inference_allowed": false
+      }
+    ]
+  },
+  "trigger": {
+    "trigger_type": "documented_symptom",
+    "trigger_description": "Il trigger si attiva al momento del primo sospetto clinico di STEMI o SCA (basato su sintomi, ECG o anamnesi), oppure al momento della conferma diagnostica di infarto miocardico acuto.",
+    "anchor_event": "primo_contatto_medico_con_sospetto_SCA",
+    "start_of_applicability": "Dal momento del primo sospetto clinico di STEMI, SCA con alterazioni ECG, SCA con dolore toracico persistente, o dalla diagnosi confermata di infarto miocardico.",
+    "end_of_applicability": "Fino alla stabilizzazione clinica del paziente e alla dimissione dalla fase di monitoraggio intensivo, o fino al trasferimento in reparto senza indicazione a monitoraggio continuo.",
+    "trigger_data_elements": [
+      "DE-ECG-001",
+      "DE-CHEST-PAIN-001",
+      "DE-CLINICAL-SUSPICION-001",
+      "DE-CLINICAL-SUSPICION-002",
+      "DE-DIAGNOSIS-MI-001"
+    ],
+    "inference_allowed": true
+  },
+  "exceptions": [
+    {
+      "exception_id": "STEMI-DO-004-EXP-01",
+      "label": "Indisponibilità tecnica temporanea del monitor ECG",
+      "description": "In caso di indisponibilità tecnica temporanea del dispositivo di monitoraggio ECG (es. guasto, mancanza di apparecchiatura), è necessario documentare il motivo e attivare immediatamente procedure alternative di sorveglianza clinica ravvicinata.",
+      "condition_logic": "ECG_monitor.available = false AND equipment_failure.documented = true",
+      "required_justification": true,
+      "required_evidence": [
+        "Documentazione del guasto o indisponibilità dell'apparecchio",
+        "Registrazione della sorveglianza clinica alternativa adottata",
+        "Orario di ripristino del monitoraggio ECG"
+      ]
+    },
+    {
+      "exception_id": "STEMI-DO-004-EXP-02",
+      "label": "Rifiuto del paziente",
+      "description": "Il paziente, adeguatamente informato, rifiuta esplicitamente il monitoraggio ECG continuo. Il rifiuto deve essere documentato formalmente.",
+      "condition_logic": "patient.informed_refusal.ECG_monitoring = true",
+      "required_justification": true,
+      "required_evidence": [
+        "Consenso informato con documentazione del rifiuto",
+        "Nota medica attestante l'informazione fornita sui rischi"
+      ]
+    }
+  ],
+  "expected_action": {
+    "action_verb": "attivare",
+    "action_description": "Attivare il monitoraggio ECG continuo e garantire la disponibilità immediata di un defibrillatore funzionante il prima possibile in tutti i pazienti con sospetto STEMI, sospetta SCA con alterazioni ECG o dolore toracico in corso, e in tutti i pazienti con diagnosi confermata di infarto miocardico.",
+    "action_target": "monitoraggio ECG continuo e defibrillatore",
+    "action_parameters": [
+      {
+        "parameter_name": "modalità_monitoraggio_ECG",
+        "parameter_description": "Il monitoraggio ECG deve essere continuo (non intermittente) per consentire la rilevazione in tempo reale di aritmie.",
+        "expected_value": "continuo",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "disponibilità_defibrillatore",
+        "parameter_description": "Un defibrillatore funzionante deve essere immediatamente disponibile nella stessa area in cui si trova il paziente.",
+        "expected_value": "immediatamente disponibile",
+        "comparison_operator": "equals",
+        "unit": null,
+        "mandatory": true
+      },
+      {
+        "parameter_name": "tempistica_attivazione",
+        "parameter_description": "L'attivazione del monitoraggio e la verifica della disponibilità del defibrillatore devono avvenire il prima possibile dal sospetto clinico.",
+        "expected_value": "il prima possibile",
+        "comparison_operator": null,
+        "unit": null,
+        "mandatory": true
+      }
+    ],
+    "alternative_compliant_actions": [
+      "Utilizzo di telemetria portatile con allarmi aritmici in caso di indisponibilità di monitor ECG fisso",
+      "Utilizzo di defibrillatore automatico esterno (DAE) in sostituzione del defibrillatore manuale se quest'ultimo non è disponibile"
+    ]
+  },
+  "completion_criteria": {
+    "description": "La regola è considerata soddisfatta quando il monitoraggio ECG continuo è stato attivato e un defibrillatore funzionante è stato reso disponibile nella prossimità del paziente, con documentazione dell'ora di attivazione.",
+    "minimum_occurrences": 1,
+    "required_event_types": [
+      "attivazione_monitoraggio_ECG_continuo",
+      "verifica_disponibilità_defibrillatore"
+    ],
+    "required_documentation_elements": [
+      "Orario di inizio del monitoraggio ECG continuo",
+      "Conferma della disponibilità del defibrillatore",
+      "Identificativo del dispositivo di monitoraggio utilizzato"
+    ],
+    "success_condition": "ECG_monitoring.continuous = true AND defibrillator.available = true AND documentation.timestamp IS NOT NULL"
+  },
+  "time_constraints": [
+    {
+      "constraint_id": "STEMI-DO-004-TC-01",
+      "description": "Il monitoraggio ECG continuo e la disponibilità del defibrillatore devono essere garantiti il prima possibile dal momento del sospetto clinico di STEMI/SCA o dalla conferma diagnostica di infarto miocardico.",
+      "relation_to_anchor": "immediate",
+      "anchor_event": "primo_contatto_medico_con_sospetto_SCA",
+      "duration_value": null,
+      "duration_unit": null,
+      "hard_deadline": true,
+      "alert_threshold_value": 5,
+      "alert_threshold_unit": "minuti"
+    }
+  ],
+  "sequence_constraints": [
+    {
+      "constraint_id": "STEMI-DO-004-SC-01",
+      "description": "Il monitoraggio ECG continuo e la disponibilità del defibrillatore devono essere attivati prima di qualsiasi procedura interventistica o trasferimento intra-ospedaliero.",
+      "predecessor_event": "attivazione_monitoraggio_ECG_e_defibrillatore",
+      "successor_event": "trasferimento_laboratorio_emodinamica",
+      "allowed_order": "predecessor_first",
+      "violation_condition": "Il paziente viene trasferito al laboratorio di emodinamica o sottoposto a intervento senza monitoraggio ECG continuo attivo e senza defibrillatore disponibile."
+    },
+    {
+      "constraint_id": "STEMI-DO-004-SC-02",
+      "description": "Il monitoraggio ECG continuo deve essere attivato contestualmente o immediatamente dopo il primo ECG diagnostico.",
+      "predecessor_event": "esecuzione_ECG_diagnostico",
+      "successor_event": "attivazione_monitoraggio_ECG_continuo",
+      "allowed_order": "same_encounter",
+      "violation_condition": "Il monitoraggio ECG continuo non viene attivato durante lo stesso contatto clinico in cui viene eseguito l'ECG diagnostico."
+    }
+  ],
+  "required_data_elements": [
+    {
+      "data_element_id": "DE-ECG-001",
+      "name": "Risultato ECG a 12 derivazioni",
+      "description": "Tracciato e referto dell'elettrocardiogramma a 12 derivazioni eseguito al primo contatto, inclusa la presenza di sopraslivellamento ST o altre alterazioni.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "LOINC",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare risultati ECG con codici LOINC pertinenti (es. 11524-6) e referto interpretativo."
+    },
+    {
+      "data_element_id": "DE-CHEST-PAIN-001",
+      "name": "Dolore toracico in corso",
+      "description": "Presenza di dolore toracico persistente al momento della valutazione clinica.",
+      "source_location": "ehr_unstructured",
+      "data_type": "boolean",
+      "coding_system": "ICD-10 R07.9",
+      "required_for_evaluation": true,
+      "extraction_method": "inferential",
+      "query_hint": "Cercare menzione di dolore toracico in corso, persistente o acuto nelle note di triage o di pronto soccorso."
+    },
+    {
+      "data_element_id": "DE-CLINICAL-SUSPICION-001",
+      "name": "Sospetto clinico di STEMI",
+      "description": "Documentazione del sospetto clinico di STEMI basato su presentazione clinica e/o ECG.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": "ICD-10 I21",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare codice di attivazione percorso STEMI, diagnosi provvisoria I21.x o nota clinica con sospetto STEMI."
+    },
+    {
+      "data_element_id": "DE-CLINICAL-SUSPICION-002",
+      "name": "Sospetto clinico di SCA",
+      "description": "Documentazione del sospetto clinico di sindrome coronarica acuta (SCA) non-STEMI.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": "ICD-10 I20-I21",
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare diagnosi provvisoria di SCA, NSTEMI o angina instabile nelle note cliniche o nel sistema di triage."
+    },
+    {
+      "data_element_id": "DE-DIAGNOSIS-MI-001",
+      "name": "Diagnosi confermata di infarto miocardico",
+      "description": "Diagnosi confermata di infarto miocardico acuto (STEMI o NSTEMI) basata su criteri clinici, ECG e biomarcatori.",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": "ICD-10 I21",
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare diagnosi definitiva codificata I21.x nel sistema di cartella clinica."
+    },
+    {
+      "data_element_id": "DE-ECG-MONITOR-001",
+      "name": "Stato monitoraggio ECG continuo",
+      "description": "Registrazione dell'attivazione del monitoraggio ECG continuo, incluso orario di inizio e identificativo del dispositivo.",
+      "source_location": "ehr_structured",
+      "data_type": "datetime",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare registrazioni di inizio monitoraggio ECG continuo nel sistema di monitoraggio o nella cartella infermieristica."
+    },
+    {
+      "data_element_id": "DE-DEFIB-001",
+      "name": "Disponibilità defibrillatore",
+      "description": "Conferma della disponibilità e funzionalità di un defibrillatore nell'area del paziente.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": true,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare checklist di verifica apparecchiature, log del defibrillatore o note infermieristiche che confermino la disponibilità."
+    },
+    {
+      "data_element_id": "DE-PATIENT-STATUS-001",
+      "name": "Stato vitale del paziente",
+      "description": "Stato vitale corrente del paziente (vivo, deceduto).",
+      "source_location": "ehr_structured",
+      "data_type": "coded concept",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "deterministic",
+      "query_hint": "Verificare lo stato del paziente nel sistema ADT."
+    },
+    {
+      "data_element_id": "DE-DNR-001",
+      "name": "Ordine di non rianimazione (DNR)",
+      "description": "Presenza di un ordine documentato di non rianimazione cardio-polmonare.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "deterministic",
+      "query_hint": "Cercare ordini DNR o disposizioni anticipate di trattamento nel fascicolo del paziente."
+    },
+    {
+      "data_element_id": "DE-ACS-EXCLUSION-001",
+      "name": "Esclusione di SCA",
+      "description": "Documentazione dell'esclusione definitiva di sindrome coronarica acuta con diagnosi alternativa confermata.",
+      "source_location": "ehr_structured",
+      "data_type": "boolean",
+      "coding_system": null,
+      "required_for_evaluation": false,
+      "extraction_method": "hybrid",
+      "query_hint": "Cercare nota clinica di esclusione di SCA con diagnosi alternativa confermata."
+    }
+  ],
+  "evidence_of_compliance": [
+    {
+      "evidence_id": "STEMI-DO-004-EOC-01",
+      "description": "Registrazione documentata dell'attivazione del monitoraggio ECG continuo con orario di inizio.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Entro i primi minuti dal sospetto clinico di STEMI/SCA o dalla diagnosi di infarto miocardico.",
+      "derived_from_data_elements": [
+        "DE-ECG-MONITOR-001"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-004-EOC-02",
+      "description": "Documentazione della disponibilità e funzionalità del defibrillatore nell'area del paziente.",
+      "evidence_type": "documentation",
+      "minimum_occurrences": 1,
+      "time_reference": "Contestualmente all'attivazione del monitoraggio ECG continuo.",
+      "derived_from_data_elements": [
+        "DE-DEFIB-001"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-004-EOC-03",
+      "description": "Presenza di tracciati ECG continui nel sistema di monitoraggio a partire dalla fase acuta.",
+      "evidence_type": "execution",
+      "minimum_occurrences": 1,
+      "time_reference": "Dalla fase acuta del sospetto/diagnosi fino alla stabilizzazione clinica.",
+      "derived_from_data_elements": [
+        "DE-ECG-MONITOR-001"
+      ]
+    }
+  ],
+  "evidence_of_non_compliance": [
+    {
+      "evidence_id": "STEMI-DO-004-EONC-01",
+      "description": "Assenza di documentazione di attivazione del monitoraggio ECG continuo durante la fase acuta del sospetto o della diagnosi di STEMI/SCA/IM.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Dall'esordio del sospetto clinico fino al ricovero in UTIC o al trasferimento in emodinamica.",
+      "derived_from_data_elements": [
+        "DE-ECG-MONITOR-001"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-004-EONC-02",
+      "description": "Assenza di documentazione della disponibilità del defibrillatore nell'area del paziente.",
+      "evidence_type": "absence_of_event",
+      "minimum_occurrences": 1,
+      "time_reference": "Dall'esordio del sospetto clinico fino al ricovero in UTIC.",
+      "derived_from_data_elements": [
+        "DE-DEFIB-001"
+      ]
+    },
+    {
+      "evidence_id": "STEMI-DO-004-EONC-03",
+      "description": "Ritardo significativo nell'attivazione del monitoraggio ECG continuo rispetto al primo contatto medico con sospetto clinico.",
+      "evidence_type": "timestamp",
+      "minimum_occurrences": 1,
+      "time_reference": "Più di 10 minuti dal primo contatto medico con sospetto di SCA/STEMI.",
+      "derived_from_data_elements": [
+        "DE-ECG-MONITOR-001",
+        "DE-CLINICAL-SUSPICION-001",
+        "DE-CLINICAL-SUSPICION-002"
+      ]
+    }
+  ],
+  "evaluation_logic": {
+    "natural_language_test": "Verificare che per ogni paziente con sospetto STEMI, sospetta SCA con alterazioni ECG o dolore toracico in corso, o con diagnosi confermata di infarto miocardico, esista documentazione dell'attivazione del monitoraggio ECG continuo E della disponibilità di un defibrillatore funzionante, il prima possibile dal momento del sospetto o della conferma diagnostica.",
+    "formal_expression_language": "pseudocode",
+    "formal_expression": "IF (clinical_suspicion.STEMI = true OR (clinical_suspicion.ACS = true AND (ECG.abnormal_changes = true OR chest_pain.ongoing = true)) OR diagnosis.MI_confirmed = true) THEN REQUIRE (ECG_monitoring.continuous.start_timestamp IS NOT NULL AND defibrillator.available = true AND ECG_monitoring.continuous.start_timestamp <= first_medical_contact_timestamp + INTERVAL_ASAP)",
+    "missing_data_policy": "review_required",
+    "ambiguity_policy": "review_required",
+    "conflict_resolution_policy": "highest_risk_interpretation",
+    "notes": "La definizione di 'il prima possibile' (as soon as possible) è soggetta a interpretazione operativa. Si raccomanda che venga considerata una tempistica entro pochi minuti dal primo contatto medico. In caso di dati mancanti sulla tempistica esatta, è richiesta revisione manuale."
+  },
+  "evaluation_method": {
+    "primary_method": "hybrid",
+    "allowed_inference_sources": [
+      "note cliniche di pronto soccorso",
+      "schede infermieristiche",
+      "log dei dispositivi di monitoraggio",
+      "verbale del 118",
+      "cartella clinica elettronica",
+      "checklist apparecchiature di reparto"
+    ],
+    "human_review_required": true,
+    "minimum_confidence": 0.8,
+    "notes": "La verifica della disponibilità del defibrillatore potrebbe richiedere inferenza da documentazione non strutturata. Il monitoraggio ECG continuo può essere verificato tramite log dei dispositivi o registrazioni infermieristiche. Si consiglia revisione umana per confermare la tempistica di attivazione."
+  },
+  "possible_outcomes": [
+    "compliant",
+    "non_compliant",
+    "justified_deviation",
+    "not_applicable",
+    "not_evaluable",
+    "probable_non_compliance"
+  ],
+  "risk_classification": {
+    "clinical_risk_severity": "critical",
+    "process_risk_severity": "high",
+    "likelihood_if_violated": "likely",
+    "detectability": "moderate",
+    "priority_score": 95,
+    "rationale": "L'assenza di monitoraggio ECG continuo e/o di defibrillatore disponibile in pazienti con STEMI/SCA espone il paziente a rischio di morte improvvisa per fibrillazione ventricolare non rilevata o non trattata tempestivamente. La mortalità per aritmie ventricolari maligne non trattate è estremamente elevata. La rilevabilità della violazione è moderata perché la documentazione del monitoraggio potrebbe non essere sempre completa."
+  },
+  "documentation_requirements": {
+    "mandatory_fields": [
+      "Orario di attivazione del monitoraggio ECG continuo",
+      "Conferma della disponibilità del defibrillatore",
+      "Identificativo del dispositivo di monitoraggio ECG",
+      "Nome dell'operatore che ha attivato il monitoraggio",
+      "Setting in cui è stato attivato il monitoraggio (ambulanza, PS, UTIC)"
+    ],
+    "acceptable_evidence_sources": [
+      "Cartella clinica elettronica",
+      "Scheda infermieristica",
+      "Log dei dispositivi di monitoraggio",
+      "Verbale del 118",
+      "Checklist apparecchiature",
+      "Report sistema di telemetria"
+    ],
+    "justification_required_when_deviating": true,
+    "justification_fields": [
+      "Motivo della deviazione dalla regola",
+      "Misure alternative adottate",
+      "Orario previsto di ripristino del monitoraggio",
+      "Firma del medico responsabile"
+    ],
+    "free_text_allowed": true
+  },
+  "associated_weak_signal_ids": [
+    "STEMI-WS-004-01",
+    "STEMI-WS-004-02",
+    "STEMI-WS-004-03"
+  ],
+  "extraction_metadata": {
+    "generation_mode": "llm_inference",
+    "source_interpretation_notes": "Il testo sorgente utilizza il termine 'recommended' che, nel contesto delle linee guida ESC con classe di raccomandazione I, è stato interpretato come 'mandatory' (obbligatorio). L'espressione 'as soon as possible' è stata tradotta come 'il prima possibile' e interpretata operativamente come tempistica immediata dall'insorgenza del sospetto clinico. La regola copre tre popolazioni distinte (sospetto STEMI, sospetta SCA con alterazioni ECG o dolore toracico persistente, diagnosi confermata di IM) che sono state tutte incluse come criteri di inclusione separati.",
+    "extraction_confidence": 0.92,
+    "ambiguity_flags": [
+      "La definizione esatta di 'as soon as possible' non è quantificata in minuti nel testo sorgente",
+      "Non è specificato il tipo di defibrillatore richiesto (manuale vs automatico)",
+      "Non è esplicitata la durata minima del monitoraggio ECG continuo"
+    ],
+    "human_validation_status": "not_reviewed",
+    "validated_by": null,
+    "validated_at": null
+  },
+  "governance_metadata": {
+    "lifecycle_status": "draft",
+    "version": "1.0.0",
+    "authoring_body": "Gruppo di Lavoro PDTA STEMI",
+    "rule_owner": "Direttore UOC Cardiologia / Responsabile Rete STEMI",
+    "effective_from": "2024-01-01",
+    "effective_to": null,
+    "review_cycle": "ogni 12 mesi",
+    "last_reviewed_at": null,
+    "approved_by": null
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-007-20260318-001",
+  "check_timestamp": "2026-03-22T12:00:00+01:00",
+  "rule_id": "STEMI-DO-007",
+  "patient_id_hash": "RSSMRA58L12H501X-hash",
+  "outcome": "compliant",
+  "confidence": 0.8,
+  "rationale": "Il paziente si presenta al PS alle 08:02 con diagnosi STEMI pre-ospedaliera confermata da ECG (sopraslivellamento ST V2-V6, I, aVL). La regola è applicabile (criteri di inclusione soddisfatti). Il medico di PS (record #4, ore 08:07) documenta 'eseguiti prelievi urgenti', indicando un prelievo ematico entro circa 5 minuti dalla presentazione (ben entro il limite di 15 minuti). Il referto di laboratorio (record #7, ore 08:15) riporta hs-cTnI 68 ng/L, confermando l'utilizzo del metodo ad alta sensibilità. Il tempo stimato tra prelievo (~08:07) e refertazione (08:15) è di circa 8 minuti, ampiamente entro il vincolo di 60 minuti. I tre criteri della regola risultano soddisfatti: (1) prelievo immediato entro 15 minuti dalla presentazione, (2) metodo ad alta sensibilità (hs-cTnI), (3) risultato disponibile entro 60 minuti dal prelievo. Limite della valutazione: il timestamp esatto del prelievo ematico non è documentato in modo strutturato ma viene inferito dalla nota clinica del medico di PS alle 08:07; ciò riduce lievemente la confidenza pur mantenendo un quadro coerente di conformità. Si segnala inoltre che l'eccezione STEMI-DO-007-EXC-COND-01 (trasferimento immediato in emodinamica con risultato non disponibile prima della procedura) non necessita di essere invocata, poiché il risultato della troponina (08:15) era già disponibile prima del trasferimento in sala (08:20)."
+}

@@ -1,0 +1,9 @@
+{
+  "check_id": "CHK-STEMI-DO-010-20260322-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-22T12:00:00+01:00",
+  "rule_id": "STEMI-DO-010",
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "not_applicable",
+  "confidence": 0.95,
+  "rationale": "La regola STEMI-DO-010 richiede l'esecuzione di TTE d'emergenza nei pazienti con sospetta SCA che presentano shock cardiogeno O sospette complicanze meccaniche. Il paziente presenta STEMI anteriore confermato (criterio INC-01 soddisfatto), tuttavia i criteri di inclusione INC-02 (shock cardiogeno) e INC-03 (complicanze meccaniche sospette) non risultano soddisfatti. In dettaglio: (1) PAS costantemente > 130 mmHg durante tutto l'episodio, mai < 90 mmHg; (2) nessun utilizzo di vasopressori o inotropi documentato; (3) nessun segno di ipoperfusione periferica: paziente vigile, orientato, GCS 15, estremità calde, polsi periferici validi, diuresi conservata; (4) classificazione Killip I stabile dall'ingresso alla dimissione; (5) esame obiettivo esplicita assenza di soffi di nuova insorgenza ('non soffi di nuova insorgenza apprezzabili'); (6) nessun deterioramento emodinamico improvviso documentato; (7) nessun sospetto clinico di tamponamento cardiaco, rottura del setto o della parete libera. L'ecocardiogramma transtoracico eseguito il 19/03/2026 (record #21) è stato effettuato come valutazione programmata post-PCI della funzione ventricolare e delle complicanze meccaniche, non come TTE d'emergenza su trigger di shock/complicanze. In assenza dei trigger clinici previsti dalla regola, essa risulta non applicabile a questo episodio."
+}
