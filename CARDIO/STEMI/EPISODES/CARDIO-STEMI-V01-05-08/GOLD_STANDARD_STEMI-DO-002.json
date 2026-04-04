@@ -1,9 +1,56 @@
 {
-  "check_id": "CHK-STEMI-DO-002-RSSMRA58L12H501X-20260318",
-  "check_timestamp": "2025-06-25T12:00:00Z",
+  "check_id": "CHK-STEMI-DO-002-20260318-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-23T12:00:00+01:00",
   "rule_id": "STEMI-DO-002",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
-  "confidence": 0.9,
-  "rationale": "Tutte e sei le componenti della valutazione diagnostica integrata per SCA sono state eseguite e documentate: (1) Anamnesi clinica completa (record #5, ore 08:14) con fattori di rischio CV (diabete tipo 2, ipertensione, dislipidemia, familiarità, ex fumatore), comorbidità e terapie in corso. (2) Valutazione dei sintomi (record #2, ore 07:50): dolore toracico/epigastrico oppressivo insorto alle 06:55 a riposo, irradiato posteriormente, con sudorazione e nausea, NRS 8/10. (3) Segni vitali completi rilevati sia in fase pre-ospedaliera (record #2: PA 164/94, FC 90, SpO2 97%, FR 20, T 36.1°C) sia al triage (record #3, ore 08:02). (4) Esame obiettivo cardiovascolare e sistemico documentato (record #6, ore 08:16) con valutazione di classe Killip (I), auscultazione cardiopolmonare, polsi periferici, segni di scompenso assenti. (5) ECG a 12 derivazioni eseguito pre-ospedaliero (record #1, ore 07:48) a 4 minuti dal FMC (07:44), entro il vincolo di 10 minuti, con interpretazione clinica documentata (alterazioni inferiori suggestive per SCA). ECG seriati in PS (record #8, #9) con successiva evoluzione in STEMI. (6) hs-cTnI dosata: prelievo basale alle 08:18, risultato 38 ng/L disponibile nel referto delle 08:58; secondo dosaggio seriato con valore 214 ng/L confermante necrosi miocardica. Il prelievo ematico è avvenuto 34 minuti dopo il FMC, ma il FMC era pre-ospedaliero e la regola prevede come azione alternativa conforme il prelievo al più presto all'arrivo in PS (prelievo a 16 min dall'ingresso in PS). Diagnosi di lavoro formulata (record #4, ore 08:11): SCA ad alto rischio senza ST diagnostico, con piano di monitoraggio e rivalutazione seriata. La diagnosi è stata poi aggiornata a STEMI inferiore (record #9-#11) dopo evoluzione ECG. La valutazione diagnostica integrata completa (incluso risultato hs-cTn) è stata ottenuta in circa 74 minuti dal FMC, leggermente oltre il soft-deadline di 60 minuti (non vincolante), ma clinicamente giustificata dal contesto pre-ospedaliero e dai tempi fisiologici di refertazione laboratoristica. Nessuna eccezione applicabile (paziente emodinamicamente stabile, non in arresto). Tutte le componenti richieste risultano documentate e integrate nella stratificazione diagnostica."
+  "confidence": 0.88,
+  "rationale": "Tutte e sei le componenti della valutazione diagnostica integrata multiparametrica per SCA sono state eseguite e documentate durante la fase diagnostica iniziale: (1) Anamnesi clinica completa con fattori di rischio cardiovascolare, comorbidità e terapie (documento 5, ore 08:14); (2) Valutazione dei sintomi con caratterizzazione del dolore toracico/epigastrico, irradiazione, sintomi associati e scala NRS (documenti 2 e 3); (3) Segni vitali completi inclusi PA, FC, SpO2, FR e temperatura rilevati in fase pre-ospedaliera e ripetuti all'ingresso in PS (documenti 2, 3 e 6); (4) Esame obiettivo cardiovascolare e sistemico documentato includendo classe Killip, auscultazione cardiopolmonare, valutazione periferica (documento 6, ore 08:16); (5) ECG a 12 derivazioni eseguito in fase pre-ospedaliera alle 07:48 con interpretazione (4 minuti dal FMC alle 07:44, conforme al vincolo TC-001 di 10 minuti), con successivi ECG seriati per monitoraggio evolutivo; (6) Dosaggio hs-cTnI basale eseguito (prelievo ore 08:18) con risultato disponibile alle 08:58 (hs-cTnI 38 ng/L, lievemente superiore al 99° percentile). La diagnosi di lavoro iniziale di SCA ad alto rischio è stata formulata alle 08:11 (documento 4) basandosi sull'integrazione di anamnesi, sintomi, segni vitali, esame obiettivo ed ECG, con piano diagnostico strutturato includente ECG seriati e dosaggio troponina. Il risultato della hs-cTn, disponibile a 74 minuti dal FMC, supera lievemente il target soft di 60 minuti (TC-003, hard_deadline: false), ma il prelievo è stato effettuato entro 34 minuti dal FMC (coerente con l'azione alternativa conforme per fase pre-ospedaliera senza disponibilità di troponina). La stratificazione diagnostica è stata successivamente aggiornata con evoluzione verso STEMI inferiore conclamato (documento 9, ore 11:02) e confermata dalla consulenza cardiologica (documento 11, ore 11:39). L'approccio diagnostico integrato è stato completo e clinicamente appropriato. Lieve riduzione della confidence per il minimo superamento del termine temporale soft sulla disponibilità del risultato della troponina.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "ECG a 12 derivazioni pre-ospedaliero eseguito alle 07:48, 4 minuti dopo il FMC (07:44), conforme al vincolo di 10 minuti. Interpretazione documentata con descrizione delle alterazioni ST inferiori e speculari, quadro iniziale suggestivo per SCA infero-posteriore.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 che documenta FMC alle 07:44, valutazione dei sintomi (dolore toracico/epigastrico oppressivo, NRS 8/10, irradiazione, nausea, sudorazione), segni vitali completi (PA 164/94, FC 90, SpO2 97%, FR 20, T 36.1°C) e terapia iniziale somministrata. Costituisce evidenza della valutazione sintomatologica e dei parametri vitali in fase pre-ospedaliera.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "3",
+      "rationale": "Scheda di triage che conferma la rilevazione dei segni vitali all'arrivo in PS (08:02), il motivo di accesso per dolore toracico con anamnesi di diabete e ipertensione, e l'assegnazione di codice arancione coerente con sospetto SCA ad alto rischio.",
+      "confidence": 0.85
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica in PS (08:11) che documenta la formulazione della diagnosi di lavoro iniziale (SCA senza ST) e la stratificazione del rischio, basata sull'integrazione di anamnesi, sintomi, segni vitali, esame obiettivo ed ECG pre-ospedaliero, con piano strutturato per ECG seriati, dosaggio hs-cTn e consulenza cardiologica condizionata.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "5",
+      "rationale": "Anamnesi clinica completa documentata alle 08:14, includente fattori di rischio cardiovascolare (diabete tipo 2, ipertensione, dislipidemia, ex fumo, familiarità), comorbidità, terapie farmacologiche in corso e anamnesi prossima dettagliata. Soddisfa il requisito di anamnesi clinica strutturata.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "6",
+      "rationale": "Esame obiettivo cardiovascolare e sistemico documentato alle 08:16, con valutazione di cute, torace, cuore, addome, polsi periferici, classe Killip I. Include la ricerca attiva di segni di scompenso, soffi e ipoperfusione come richiesto dalla regola.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "7",
+      "rationale": "Referto laboratorio con risultato basale hs-cTnI 38 ng/L (prelievo 08:18, risultato disponibile 08:58). Documenta il dosaggio della troponina ad alta sensibilità con valore lievemente superiore al 99° percentile, componente essenziale della valutazione multiparametrica. Il risultato è disponibile a 74 minuti dal FMC, lievemente oltre il target soft di 60 minuti ma entro margini clinicamente accettabili.",
+      "confidence": 0.82
+    },
+    {
+      "document_id": "9",
+      "rationale": "ECG seriato alle 11:02 che documenta l'evoluzione verso STEMI inferiore franco con netto sopraslivellamento ST in DII, DIII, aVF. Conferma l'appropriatezza della strategia di monitoraggio ECG seriato e l'aggiornamento della diagnosi di lavoro basata sull'integrazione multiparametrica.",
+      "confidence": 0.8
+    },
+    {
+      "document_id": "11",
+      "rationale": "Valutazione cardiologica urgente (11:39) che integra tutti i dati clinici, elettrocardiografici (incluse derivazioni aggiuntive) e laboratoristici per formulare la diagnosi definitiva di STEMI infero-posteriore e la decisione di strategia riperfusiva. Documenta la stratificazione del rischio finalizzata e l'integrazione diagnostica completa.",
+      "confidence": 0.85
+    }
+  ]
 }

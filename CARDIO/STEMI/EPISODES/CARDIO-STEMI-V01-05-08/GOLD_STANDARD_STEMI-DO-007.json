@@ -1,9 +1,36 @@
 {
-  "check_id": "CHK-STEMI-DO-007-RSSMRA58L12H501X-20260318",
-  "check_timestamp": "2026-03-18T08:58:00+01:00",
+  "check_id": "CHK-STEMI-DO-007-20260318-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-23T12:00:00+01:00",
   "rule_id": "STEMI-DO-007",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
   "confidence": 0.73,
-  "rationale": "Il paziente si presenta al PS alle 08:02 con dolore toracico sospetto per SCA e ECG pre-ospedaliero con alterazioni inferiori non dirimenti per STEMI (criterio di inclusione INC-01 soddisfatto). Viene eseguito prelievo per hs-cTnI basale alle 08:18 (record #7: 'Prelievo hs-cTnI basale 08:18'), cioè 16 minuti dopo la presentazione: questo supera di 1 minuto la soglia operativa di 15 minuti, ma tale soglia è un'operazionalizzazione del termine 'immediatamente' riconosciuta come necessitante validazione locale, e il ritardo è clinicamente trascurabile, anche considerando che all'ingresso il quadro ECG non era francamente diagnostico per STEMI (diagnosi posta solo alle 11:02). Il metodo analitico è ad alta sensibilità (hs-cTnI), come richiesto. Il referto di laboratorio è datato alle 08:58, con un intervallo prelievo-refertazione di 40 minuti, ampiamente entro il limite dei 60 minuti previsti dalla regola. Il valore di hs-cTnI basale (38 ng/L) è documentato. In sintesi: metodo hs conforme, tempo di refertazione conforme, prelievo eseguito con ritardo marginale di 1 minuto rispetto alla soglia operativa di 15 minuti. La confidence è moderata-alta (0.73) per l'assenza di timestamp strutturati dedicati (il timestamp del prelievo è estratto inferenzialmente dalla nota di laboratorio) e per il superamento marginale della soglia temporale di prelievo."
+  "rationale": "Il paziente si è presentato in Pronto Soccorso alle 08:02 (scheda triage, doc 3) con sospetto clinico di sindrome coronarica acuta e alterazioni ECG inferiori (doc 1). Il prelievo basale di hs-cTnI è stato eseguito alle 08:18 (doc 7), ovvero 16 minuti dopo la presentazione, con uno scostamento marginale di 1 minuto rispetto alla soglia operazionalizzata di 15 minuti per il concetto di 'immediatamente'. Tale soglia è riconosciuta dalla stessa regola come un'approssimazione del termine originale ('immediately') soggetta a validazione locale, e lo scostamento di 1 minuto è clinicamente trascurabile, considerando anche che la valutazione medica è iniziata alle 08:11 (doc 4) e il prelievo è avvenuto solo 7 minuti dopo. Il metodo utilizzato è hs-cTnI (alta sensibilità), conforme al requisito del metodo analitico. Il referto di laboratorio è stato emesso alle 08:58 (doc 7), ovvero 40 minuti dopo il prelievo, ampiamente entro il vincolo di 60 minuti. Il valore della troponina basale (hs-cTnI 38 ng/L) è stato registrato e interpretato nel contesto clinico. Pertanto, la regola è sostanzialmente rispettata in tutti i suoi componenti essenziali, con un solo scostamento marginale (1 minuto) sulla tempistica del prelievo rispetto alla soglia operazionalizzata.",
+  "supporting_documents": [
+    {
+      "document_id": "3",
+      "rationale": "Documenta il timestamp di presentazione del paziente in PS (08:02), parametro essenziale per calcolare l'intervallo fino al prelievo ematico. Conferma il sospetto clinico di ischemia e il codice arancione con prelievi urgenti richiesti.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "7",
+      "rationale": "Referto di laboratorio con evidenza del prelievo basale di hs-cTnI alle 08:18 e refertazione alle 08:58, permettendo di verificare sia l'intervallo presentazione-prelievo (16 min) sia l'intervallo prelievo-refertazione (40 min, entro i 60 min richiesti). Conferma il metodo ad alta sensibilità (hs-cTnI) e il valore numerico del risultato (38 ng/L).",
+      "confidence": 0.88
+    },
+    {
+      "document_id": "4",
+      "rationale": "La valutazione medica iniziale alle 08:11 documenta il sospetto clinico di SCA con impostazione dell'iter diagnostico comprensivo di dosaggio troponina e consulenza cardiologica, confermando l'applicabilità della regola e il contesto temporale in cui il prelievo è stato richiesto.",
+      "confidence": 0.8
+    },
+    {
+      "document_id": "1",
+      "rationale": "ECG pre-ospedaliero delle 07:48 con alterazioni ST inferiori suggestive per SCA, che ha motivato il trasporto in codice tempo-dipendente e l'iter diagnostico al PS, confermando l'inclusione del paziente nella popolazione target della regola.",
+      "confidence": 0.75
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 che documenta il primo contatto medico (FMC 07:44), l'esordio dei sintomi (06:55), la somministrazione di terapia iniziale e il sospetto di SCA ad alto rischio, supportando l'applicabilità della regola dalla presentazione ospedaliera.",
+      "confidence": 0.7
+    }
+  ]
 }

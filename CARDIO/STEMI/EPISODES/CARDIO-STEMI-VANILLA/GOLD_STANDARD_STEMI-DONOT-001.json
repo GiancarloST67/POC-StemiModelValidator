@@ -1,9 +1,36 @@
 {
-  "check_id": "CHK-STEMI-DONOT-001-RSSMRA58L12H501X-20260318",
+  "check_id": "CHK-STEMI-DONOT-001-RSSMRA58L12H501X-20260322",
   "check_timestamp": "2026-03-22T12:00:00+01:00",
   "rule_id": "STEMI-DONOT-001",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
-  "confidence": 0.97,
-  "rationale": "Il paziente si è presentato con STEMI antero-laterale confermato (diagnosi sospetta SCA soddisfatta, criteri di inclusione INC-001 e INC-002 presenti). Dall'analisi completa dell'episodio clinico — comprensivo di verbale 118, triage PS, valutazione medica PS, referto di emodinamica, diari clinici UTIC e degenza, referti di laboratorio, ecocardiogramma e lettera di dimissione — non vi è alcuna evidenza di richiesta né di esecuzione di angio-TC coronarica (CCTA) in nessuna fase del ricovero. Il percorso diagnostico-terapeutico ha seguito correttamente l'iter standard: ECG pre-ospedaliero diagnostico → attivazione rete IMA → pretrattamento farmacologico → coronarografia invasiva urgente con PCI primaria su IVA prossimale (door-to-balloon 53 minuti). L'azione proibita dalla regola (richiesta/esecuzione routinaria e precoce di CCTA) non è stata effettuata. Il caso è pertanto conforme alla regola DO_NOT. La confidence è molto alta (0.97) in quanto i dati strutturati e narrativi dell'episodio sono completi e dettagliati, e l'assenza dell'esame è coerente con l'intero percorso clinico documentato."
+  "confidence": 0.95,
+  "rationale": "Il paziente si è presentato con STEMI antero-laterale confermato da ECG pre-ospedaliero (documento 1) ed è stato gestito secondo il percorso standard della rete IMA: ECG diagnostico sul territorio, attivazione della rete STEMI, trasferimento diretto al centro HUB, coronarografia invasiva urgente con PCI primaria su IVA prossimale (documento 9). Non vi è alcuna evidenza nell'intero episodio clinico (36 documenti esaminati) di richiesta, prescrizione o esecuzione di angio-TC coronarica (CCTA) in nessuna fase del ricovero. La strategia diagnostica si è basata esclusivamente su ECG a 12 derivazioni, biomarcatori cardiaci seriati e coronarografia invasiva, coerentemente con la raccomandazione ESC di Classe III che sconsiglia l'uso routinario della CCTA precoce nella sospetta SCA. La regola è pertanto pienamente rispettata.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "ECG pre-ospedaliero diagnostico per STEMI antero-laterale: ha avviato il percorso diagnostico standard (ECG + rete IMA) senza necessità di angio-TC coronarica.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 che documenta l'attivazione immediata della rete IMA e il trasferimento diretto al centro HUB per coronarografia urgente, confermando l'assenza di richiesta di CCTA nella fase pre-ospedaliera.",
+      "confidence": 0.93
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica in PS che conferma l'indicazione diretta a coronarografia invasiva urgente con PCI primaria, senza alcuna menzione di angio-TC coronarica e con esplicita esclusione della fibrinolisi per disponibilità di emodinamica.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "9",
+      "rationale": "Referto di emodinamica che documenta l'esecuzione della coronarografia invasiva urgente con PCI primaria: la strategia diagnostico-interventistica standard è stata seguita correttamente, rendendo non necessaria e non richiesta alcuna CCTA.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "36",
+      "rationale": "Lettera di dimissione che riepiloga l'intero percorso diagnostico-terapeutico senza alcun riferimento a richiesta o esecuzione di angio-TC coronarica, confermando la compliance alla regola lungo tutto l'episodio.",
+      "confidence": 0.94
+    }
+  ]
 }

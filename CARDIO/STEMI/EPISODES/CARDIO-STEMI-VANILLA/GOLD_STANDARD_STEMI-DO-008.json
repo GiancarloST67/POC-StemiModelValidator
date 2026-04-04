@@ -1,9 +1,36 @@
 {
-  "check_id": "CHK-STEMI-DO-008-RSSMRA58L12H501X-20260318",
+  "check_id": "CHK-STEMI-DO-008-RSSMRA58L12H501X-20260322",
   "check_timestamp": "2026-03-22T12:00:00+01:00",
   "rule_id": "STEMI-DO-008",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "not_applicable",
   "confidence": 0.97,
-  "rationale": "La regola STEMI-DO-008 riguarda l'utilizzo dell'algoritmo ESC con dosaggi seriati di hs-cTn per confermare o escludere NSTEMI in pazienti con sospetta SCA senza sopraslivellamento persistente del tratto ST. Il paziente in esame presenta un quadro ECG pre-ospedaliero diagnostico per STEMI antero-laterale conclamato (sopraslivellamento ST 3 mm in V2-V4, 2 mm in V5-V6, I e aVL), confermato dal medico 118 e dal medico di Pronto Soccorso, con immediata attivazione della rete IMA e invio diretto a PCI primaria. Si applica pertanto il criterio di esclusione EC-008-01 ('STEMI conclamato all'ECG: paziente con sopraslivellamento persistente del tratto ST diagnostico di STEMI che richiede riperfusione immediata'). L'algoritmo ESC 0h/1h o 0h/2h per rule-in/rule-out di NSTEMI non è indicato né applicabile in questo contesto clinico. I dosaggi di hs-cTnI eseguiti durante il ricovero (68 ng/L all'ingresso, 5460 ng/L a 6 ore, 18940 ng/L a 22 ore, 12360 ng/L a 46 ore) sono stati effettuati per il monitoraggio dell'evoluzione dell'infarto post-riperfusione e non nell'ambito di un algoritmo diagnostico differenziale NSTEMI. Regola non applicabile al caso."
+  "rationale": "La regola STEMI-DO-008 riguarda l'utilizzo dell'algoritmo ESC con dosaggi seriati di hs-cTn per confermare o escludere NSTEMI in pazienti con sospetta sindrome coronarica acuta SENZA sopraslivellamento persistente del tratto ST. Nel caso in esame il paziente ha presentato un quadro elettrocardiografico inequivocabilmente diagnostico per STEMI antero-laterale (sopraslivellamento ST 3 mm in V2-V4 e 2 mm in V5-V6, I, aVL) già all'ECG pre-ospedaliero (documento 1), confermato alla valutazione in Pronto Soccorso (documento 4). È stato pertanto correttamente instradato nel percorso STEMI con attivazione della rete IMA e PCI primaria urgente. Il criterio di esclusione EC-008-01 della regola ('STEMI conclamato all'ECG – paziente con sopraslivellamento persistente del tratto ST diagnostico di STEMI che richiede riperfusione immediata') è pienamente soddisfatto. Non era quindi indicato né appropriato applicare l'algoritmo ESC 0h/1h o 0h/2h per rule-in/rule-out di NSTEMI. I dosaggi di hs-cTnI presenti nell'episodio (68 ng/L all'ingresso, 5460 ng/L a 6 ore, 18940 ng/L a 22 ore) sono stati eseguiti a fini di monitoraggio dell'evoluzione dell'infarto e non nell'ambito di un protocollo diagnostico differenziale NSTEMI. La regola è pertanto non applicabile a questo episodio clinico.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "L'ECG pre-ospedaliero documenta sopraslivellamento persistente del tratto ST in V2-V4, V5-V6, I e aVL, configurando un quadro di STEMI conclamato che soddisfa il criterio di esclusione EC-008-01 della regola, rendendo non applicabile l'algoritmo ESC per NSTEMI.",
+      "confidence": 0.98
+    },
+    {
+      "document_id": "4",
+      "rationale": "La valutazione medica in Pronto Soccorso conferma la diagnosi di STEMI antero-laterale e l'indicazione diretta a coronarografia urgente con PCI primaria, confermando l'instradamento nel percorso STEMI e l'esclusione dal protocollo diagnostico NSTEMI con hs-cTn seriata.",
+      "confidence": 0.97
+    },
+    {
+      "document_id": "3",
+      "rationale": "La scheda di triage documenta l'arrivo con preallerta rete STEMI, codice rosso e percorso diretto verso emodinamica, coerente con l'esclusione del paziente dal percorso diagnostico NSTEMI basato su algoritmo ESC hs-cTn.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "9",
+      "rationale": "Il referto di emodinamica conferma l'occlusione trombotica acuta dell'IVA prossimale (TIMI 0) trattata con PCI primaria, validando definitivamente la diagnosi di STEMI e la non applicabilità della regola relativa alla diagnosi differenziale NSTEMI.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "7",
+      "rationale": "Il referto laboratorio all'ingresso documenta hs-cTnI 68 ng/L come prelievo basale eseguito a fini di monitoraggio nell'ambito del percorso STEMI, non nell'ambito di un protocollo diagnostico ESC 0h/1h per NSTEMI.",
+      "confidence": 0.9
+    }
+  ]
 }

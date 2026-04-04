@@ -4,6 +4,33 @@
   "rule_id": "STEMI-DO-009",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "not_applicable",
-  "confidence": 0.98,
-  "rationale": "La regola STEMI-DO-009 si applica ai pazienti con sospetta SCA il cui algoritmo 0 h/1 h di hs-cTn ha dato esito inconcludente. Nel caso in esame il paziente presentava un chiaro STEMI antero-laterale diagnosticato all'ECG pre-ospedaliero (sopraslivellamento ST 3 mm in V2-V4, 2 mm in V5-V6, I e aVL), soddisfacendo pienamente il criterio di esclusione STEMI-DO-009-EXC-03 ('STEMI evidente all'ECG'). Il percorso clinico seguito è stato quello della riperfusione urgente tramite PCI primaria (door-to-balloon 53 min), senza necessità né indicazione di applicazione dell'algoritmo rapido 0 h/1 h di hs-cTn. Il dosaggio di hs-cTnI eseguito all'ingresso (68 ng/L) era già positivo in fase precoce, ma la diagnosi era stata stabilita elettrocardiograficamente e non richiedeva ulteriori dosaggi seriati a scopo diagnostico. L'algoritmo 0 h/1 h non è mai stato avviato né classificato come inconcludente, pertanto la condizione di applicabilità della regola (risultato inconcludente dell'algoritmo 0 h/1 h) non è soddisfatta. La regola risulta non applicabile al presente episodio clinico."
+  "confidence": 0.97,
+  "rationale": "La regola STEMI-DO-009 si applica a pazienti con sospetta SCA il cui algoritmo 0 h/1 h di hs-cTn risulta inconcludente. Nel caso in esame, il paziente presentava un quadro ECG pre-ospedaliero chiaramente diagnostico per STEMI antero-laterale (sopraslivellamento ST 3 mm in V2-V4, 2 mm in V5-V6, I-aVL con sottoslivellamento reciproco in derivazioni inferiori), che ha determinato l'attivazione immediata della rete IMA con percorso diretto verso emodinamica per PCI primaria. Si configura pertanto il criterio di esclusione STEMI-DO-009-EXC-03 (STEMI evidente all'ECG): la diagnosi era già chiara al primo ECG e non vi era alcuna necessità di applicare l'algoritmo 0 h/1 h di hs-cTn né il dosaggio aggiuntivo a 3 ore. La troponina all'ingresso (hs-cTnI 68 ng/L) è stata dosata come parte della routine laboratoristica di inquadramento e non nell'ambito di un algoritmo diagnostico di rule-in/rule-out. La regola non è applicabile a questo contesto clinico.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "Referto ECG pre-ospedaliero che documenta un quadro inequivocabilmente diagnostico per STEMI antero-laterale (ST elevato 3 mm V2-V4, 2 mm V5-V6, I-aVL), configurando il criterio di esclusione EXC-03 della regola.",
+      "confidence": 0.98
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 che conferma l'attivazione immediata della rete IMA con preallerta del centro HUB di emodinamica sulla base dell'ECG diagnostico per STEMI, dimostrando che il percorso clinico seguito era quello della riperfusione urgente e non quello dell'algoritmo diagnostico 0 h/1 h.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica di Pronto Soccorso che conferma la diagnosi di STEMI antero-laterale con indicazione a coronarografia urgente e PCI primaria, escludendo esplicitamente l'indicazione a fibrinolisi per disponibilità immediata di emodinamica. Non vi era alcun dubbio diagnostico che giustificasse l'applicazione dell'algoritmo 0 h/1 h.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "9",
+      "rationale": "Referto di emodinamica che documenta l'esecuzione della PCI primaria con door-to-balloon di 53 minuti, confermando il percorso di riperfusione urgente per STEMI conclamato, incompatibile con la necessità di un algoritmo diagnostico seriato della troponina.",
+      "confidence": 0.93
+    },
+    {
+      "document_id": "7",
+      "rationale": "Referto di laboratorio all'ingresso con hs-cTnI 68 ng/L, eseguito come routine laboratoristica urgente e non nell'ambito di un algoritmo 0 h/1 h strutturato. Non risulta alcun secondo dosaggio a 1 ora né classificazione dell'esito come inconcludente, a conferma della non applicabilità della regola.",
+      "confidence": 0.9
+    }
+  ]
 }

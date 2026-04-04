@@ -5,5 +5,37 @@
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
   "confidence": 0.95,
-  "rationale": "Il paziente si è presentato con sospetta sindrome coronarica acuta (dolore toracico tipico, alterazioni ECG inferiori, hs-cTnI elevata) e rientra pienamente nei criteri di applicabilità della regola. Analizzando l'intero episodio clinico, il percorso diagnostico è stato condotto secondo lo standard raccomandato: ECG seriati (pre-ospedaliero, in PS e successivi), dosaggi seriati di hs-cTnI, consulenza cardiologica e infine coronarografia invasiva con PCI primaria. Non vi è alcuna evidenza, né nei referti strutturati né nelle narrative cliniche, di richiesta o esecuzione di angio-TC coronarica (CCTA) in nessuna fase dell'episodio acuto. L'azione proibita dalla regola (esecuzione routinaria e precoce di CCTA in paziente con sospetta SCA) non è stata effettuata. La regola risulta pertanto rispettata."
+  "rationale": "Il paziente si è presentato con sospetta sindrome coronarica acuta (dolore toracico tipico, alterazioni ECG inferiori, troponina elevata) configurando un quadro di SCA a cui la regola è applicabile. Dall'analisi completa dei 36 documenti clinici dell'episodio non risulta alcuna richiesta né esecuzione di angio-TC coronarica (CCTA) in nessuna fase del ricovero. L'iter diagnostico ha seguito il percorso standard raccomandato: ECG seriati (pre-ospedaliero, in PS e successivi), dosaggio seriato di hs-cTnI, consulenza cardiologica e coronarografia invasiva con PCI primaria. L'unico esame di imaging cardiaco non invasivo eseguito è stato l'ecocardiogramma transtoracico post-procedurale (doc 24), che non rientra nella proibizione. La regola DO_NOT è pertanto pienamente rispettata: nessuna angio-TC coronarica è stata richiesta o eseguita di routine in fase precoce.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "ECG pre-ospedaliero che documenta l'avvio del percorso diagnostico standard per sospetta SCA (alterazioni ST inferiori) senza ricorso ad angio-TC coronarica.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica in PS che definisce l'iter diagnostico con ECG seriati, biomarcatori e consulenza cardiologica, senza richiesta di CCTA nonostante il quadro ECG inizialmente non dirimente.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "9",
+      "rationale": "ECG seriato delle 11:02 che documenta l'evoluzione in STEMI inferiore franco, confermando la strategia diagnostica basata su ECG seriati e troponina anziché su angio-TC coronarica.",
+      "confidence": 0.93
+    },
+    {
+      "document_id": "11",
+      "rationale": "Consulenza cardiologica urgente che pone indicazione a coronarografia invasiva con PCI primaria, senza alcuna menzione di angio-TC coronarica come indagine alternativa o complementare.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "14",
+      "rationale": "Referto di coronarografia invasiva urgente con PCI su coronaria destra, documentando che il percorso diagnostico-terapeutico ha seguito l'approccio invasivo standard senza uso di CCTA.",
+      "confidence": 0.97
+    },
+    {
+      "document_id": "36",
+      "rationale": "Lettera di dimissione che riassume l'intero percorso diagnostico-terapeutico senza alcun riferimento a richiesta o esecuzione di angio-TC coronarica durante l'episodio.",
+      "confidence": 0.94
+    }
+  ]
 }

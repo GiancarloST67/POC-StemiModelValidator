@@ -1,9 +1,26 @@
 {
-  "check_id": "CHK-STEMI-DO-003-20260318-RSSMRA58L12H501X",
-  "check_timestamp": "2025-01-24T12:00:00Z",
+  "check_id": "CHK-STEMI-DO-003-20260323-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-23T11:00:00+01:00",
   "rule_id": "STEMI-DO-003",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
-  "confidence": 0.95,
-  "rationale": "Il primo contatto medico (FMC) è documentato alle ore 07:44 del 18/03/2026 (verbale intervento 118, record #2). L'ECG pre-ospedaliero a 12 derivazioni è stato registrato alle ore 07:48 (record #1), ovvero 4 minuti dopo il FMC, ben entro il limite target di 10 minuti. L'ECG è stato eseguito a 12 derivazioni come richiesto dalla regola ed è stato interpretato dalla Dr.ssa Elisa Gori (Medico 118) con referto narrativo completo che descrive ritmo, alterazioni del tratto ST in sede inferiore (DIII, aVF) e sottoslivellamento speculare in V1-V3, con valutazione diagnostica documentata (quadro suggestivo per SCA infero-posteriore in fase iniziale, non dirimente per STEMI conclamato). Tutti e tre i criteri di conformità sono soddisfatti: (1) ECG a 12 derivazioni registrato, (2) interpretazione con referto documentato, (3) intervallo FMC-ECG di 4 minuti < 10 minuti. Confidence non pienamente unitaria poiché il timestamp esatto dell'interpretazione è inferito come coincidente con la registrazione (07:48), dato che il referto è contestuale all'acquisizione nel medesimo record clinico."
+  "confidence": 0.92,
+  "rationale": "Il primo contatto medico (FMC) è documentato alle ore 07:44 del 18/03/2026 (verbale 118, documento 2). L'ECG pre-ospedaliero a 12 derivazioni è stato registrato alle ore 07:48 (documento 1), quindi 4 minuti dopo il FMC, ben entro il target di <10 minuti previsto dalla regola. L'ECG è stato interpretato dalla Dr.ssa Elisa Gori (medico 118) con annotazione diagnostica completa che descrive il ritmo, le alterazioni del tratto ST in sede inferiore e il sottoslivellamento speculare, e con trasmissione del tracciato al centro HUB. Tutti e tre i criteri della regola risultano soddisfatti: (1) ECG a 12 derivazioni registrato, (2) interpretazione diagnostica documentata con valutazione del tratto ST, (3) intervallo FMC-ECG pari a 4 minuti (<10 minuti). Non sussistono condizioni di esclusione (paziente vigile, collaborante, non in arresto cardiaco).",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "Referto ECG pre-ospedaliero a 12 derivazioni eseguito alle 07:48, 4 minuti dopo il FMC. Contiene l'interpretazione diagnostica completa con descrizione delle alterazioni del tratto ST in sede inferiore e dei sottoslivellamenti speculari, confermando sia la registrazione sia l'interpretazione entro il target temporale.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale intervento 118 che documenta il FMC alle ore 07:44, l'esordio dei sintomi alle 06:55, e conferma l'esecuzione dell'ECG pre-ospedaliero con quadro non univoco per STEMI. Fornisce il timestamp di riferimento (FMC) essenziale per il calcolo dell'intervallo temporale.",
+      "confidence": 0.93
+    },
+    {
+      "document_id": "3",
+      "rationale": "Scheda triage PS che menziona l'ECG territoriale eseguito dal 118 con riscontro dubbio per ischemia infero-posteriore, confermando indirettamente che l'ECG a 12 derivazioni era stato registrato e interpretato in fase pre-ospedaliera prima dell'arrivo in PS.",
+      "confidence": 0.7
+    }
+  ]
 }

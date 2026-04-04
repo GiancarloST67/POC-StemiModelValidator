@@ -1,9 +1,41 @@
 {
-  "check_id": "CHK-STEMI-DO-010-RSSMRA58L12H501X-20260318",
-  "check_timestamp": "2025-01-24T12:00:00Z",
+  "check_id": "CHK-STEMI-DO-010-20260323-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-23T11:00:00+01:00",
   "rule_id": "STEMI-DO-010",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "not_applicable",
-  "confidence": 0.95,
-  "rationale": "La regola STEMI-DO-010 si applica esclusivamente a pazienti con sospetta SCA che presentino shock cardiogeno o sospette complicanze meccaniche. Nell'episodio in esame il paziente è stato costantemente emodinamicamente stabile durante tutto il ricovero: PAS sempre ≥ 114 mmHg (mai < 90 mmHg), classe Killip I dall'ingresso alla dimissione, SpO2 ≥ 97%, GCS 15, nessuna necessità di supporto con vasopressori o inotropi, nessun segno documentato di ipoperfusione periferica (diuresi conservata, stato di coscienza integro, assenza di estremità fredde o lattati elevati). Non sono documentati soffi cardiaci di nuova insorgenza (esame obiettivo: 'non soffi francamente patologici'), né deterioramento emodinamico improvviso, né sospetto di tamponamento cardiaco, rottura del setto interventricolare o della parete libera. L'ecocardiogramma transtoracico eseguito il 19/03/2026 (record #24) è stato un esame di routine post-STEMI per valutazione della funzione ventricolare e screening complicanze, non un TTE d'emergenza attivato da trigger di shock o complicanza meccanica. Pertanto, i criteri di inclusione della regola (INC-02 e INC-03) non sono soddisfatti e la regola risulta non applicabile al caso clinico in esame."
+  "confidence": 0.93,
+  "rationale": "La regola STEMI-DO-010 si applica a pazienti con sospetta SCA che presentano shock cardiogeno o sospette complicanze meccaniche. In questo episodio il paziente ha presentato STEMI infero-posteriore confermato, ma non ha mai sviluppato shock cardiogeno né sospette complicanze meccaniche. In tutte le rilevazioni documentate la pressione arteriosa sistolica è sempre rimasta ben al di sopra di 90 mmHg (range 114-164 mmHg); non sono stati mai somministrati vasopressori né inotropi; non sono stati descritti segni di ipoperfusione periferica (GCS sempre 15, SpO2 97-98%, diuresi conservata, assenza di estremità fredde o lattati elevati); la classe Killip è rimasta I per tutto il ricovero. All'esame obiettivo non è stato rilevato alcun soffio cardiaco di nuova insorgenza né deterioramento emodinamico improvviso; non vi è stato sospetto clinico di tamponamento cardiaco, rottura del setto interventricolare o rottura della parete libera. Il trigger della regola (riconoscimento di shock cardiogeno o complicanza meccanica sospetta) non si è mai verificato. L'ecocardiogramma transtoracico eseguito in data 19/03/2026 (documento 24) è stato un esame di controllo post-infartuale programmato e non una TTE d'emergenza in risposta a shock o complicanza meccanica. Pertanto la regola risulta non applicabile al contesto clinico di questo paziente.",
+  "supporting_documents": [
+    {
+      "document_id": "4",
+      "rationale": "La valutazione medica di Pronto Soccorso documenta Killip classe I, stabilità emodinamica, assenza di segni di basso flusso o congestione, confermando l'assenza di shock cardiogeno all'ingresso.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "6",
+      "rationale": "L'esame obiettivo documenta toni cardiaci validi e ritmici senza soffi francamente patologici, assenza di rantoli e buona perfusione periferica, escludendo sospetti di complicanze meccaniche e shock.",
+      "confidence": 0.93
+    },
+    {
+      "document_id": "11",
+      "rationale": "La valutazione cardiologica urgente che ha portato all'attivazione dell'emodinamica descrive il paziente come emodinamicamente stabile (PA 148/84, SpO2 97%) senza menzione di shock cardiogeno o complicanze meccaniche sospette.",
+      "confidence": 0.92
+    },
+    {
+      "document_id": "16",
+      "rationale": "Il diario clinico UTIC post-PCI conferma Killip I, stabilità emodinamica, assenza di segni di congestione o ipoperfusione, escludendo lo sviluppo di shock cardiogeno nella fase post-procedurale.",
+      "confidence": 0.92
+    },
+    {
+      "document_id": "24",
+      "rationale": "L'ecocardiogramma transtoracico del 19/03/2026 è stato eseguito come controllo programmato (non d'emergenza) e ha confermato l'assenza di complicanze meccaniche post-infartuali (no trombi, no versamento pericardico, no rotture), avvalorando che tali complicanze non erano sospettate clinicamente.",
+      "confidence": 0.94
+    },
+    {
+      "document_id": "14",
+      "rationale": "Il referto di emodinamica non riporta necessità di supporto con vasopressori/inotropi né instabilità emodinamica durante la procedura, confermando l'assenza di shock cardiogeno anche in fase periprocedurale.",
+      "confidence": 0.9
+    }
+  ]
 }

@@ -1,9 +1,36 @@
 {
-  "check_id": "CHK-STEMI-DO-009-20260318-RSSMRA58L12H501X",
-  "check_timestamp": "2025-07-17T14:30:00Z",
+  "check_id": "CHK-STEMI-DO-009-RSSMRA58L12H501X-20260318",
+  "check_timestamp": "2026-03-23T12:00:00+01:00",
   "rule_id": "STEMI-DO-009",
   "patient_id_hash": "RSSMRA58L12H501X",
-  "outcome": "not_applicable",
-  "confidence": 0.82,
-  "rationale": "La regola STEMI-DO-009 richiede un dosaggio aggiuntivo di hs-cTn a 3 ore dalla presentazione quando l'algoritmo rapido 0 h/1 h risulta inconcludente. Nel caso in esame, l'algoritmo 0 h/1 h non è mai stato formalmente completato: è stato eseguito un dosaggio basale di hs-cTnI alle 08:18 (38 ng/L, lievemente sopra il 99° percentile), ma non risulta alcun prelievo a 1 ora (~09:18) dalla presentazione (08:02). L'assenza del dosaggio a 1 ora impedisce la classificazione dell'esito dell'algoritmo come inconcludente (criterio di inclusione STEMI-DO-009-INC-01, per il quale l'inferenza non è consentita). Il trigger della regola (completamento dell'algoritmo 0 h/1 h con esito inconcludente) non si è pertanto mai attivato. Inoltre, il criterio di esclusione STEMI-DO-009-EXC-03 risulta soddisfatto: alle ore 11:02, circa 3 ore dopo la presentazione, il paziente ha sviluppato STEMI franco inferiore all'ECG (sopraslivellamento ≥2 mm in DIII e aVF), confermato dalle derivazioni aggiuntive alle 11:18, configurando un percorso di riperfusione urgente. Il secondo dosaggio di hs-cTnI (214 ng/L alle 11:58, ~3h40min dalla presentazione) è stato eseguito nel contesto dello STEMI già diagnosticato e non come parte dell'algoritmo diagnostico 0 h/1 h/3 h. In sintesi, la precondizione della regola non è soddisfatta (algoritmo 0 h/1 h mai completato) e il criterio di esclusione per STEMI evidente è attivo, rendendo la regola non applicabile a questo episodio."
+  "outcome": "not_evaluable",
+  "confidence": 0.75,
+  "rationale": "La regola STEMI-DO-009 si applica quando l'algoritmo 0 h/1 h di hs-cTn produce un esito inconcludente. Nel caso in esame, il paziente si è presentato in PS alle 08:02 con sospetta SCA (dolore toracico tipico, ECG pre-ospedaliero non diagnostico per STEMI, alterazioni inferiori non conclusive). Il primo dosaggio di hs-cTnI è stato eseguito alle 08:18 con valore di 38 ng/L (lievemente sopra il 99° percentile). Tuttavia, NON è documentato alcun secondo dosaggio di hs-cTnI a 1 ora (atteso intorno alle 09:02-09:18). Il successivo dosaggio di hs-cTnI risulta essere stato effettuato solo alle 11:58 (documento 13, valore 214 ng/L), circa 3 ore e 40 minuti dopo il primo prelievo. L'algoritmo rapido 0 h/1 h non è stato formalmente applicato (manca la misurazione a 1 ora), pertanto il suo esito non può essere classificato come 'inconcludente'. Il criterio di inclusione INC-01 richiede che entrambe le prime due misurazioni siano state eseguite e classificate come inconcludenti, e il campo inference_allowed per questo criterio è 'false', impedendo l'inferenza. Inoltre, alle 11:02 il quadro clinico ed elettrocardiografico è evoluto in STEMI inferiore franco (documento 9), configurando il criterio di esclusione EXC-03 a partire da quel momento. In sintesi: la precondizione per l'applicazione della regola (esito inconcludente dell'algoritmo 0 h/1 h) non è verificabile perché l'algoritmo non è stato completato con la misurazione a 1 ora. I dati sono insufficienti per determinare se la regola fosse applicabile e se sia stata rispettata.",
+  "supporting_documents": [
+    {
+      "document_id": "7",
+      "rationale": "Documenta il primo dosaggio di hs-cTnI basale (38 ng/L alle 08:18), unica misurazione del tempo 0 dell'algoritmo 0 h/1 h. Non vi è evidenza di un secondo dosaggio a 1 ora, impedendo il completamento dell'algoritmo e la classificazione del suo esito.",
+      "confidence": 0.85
+    },
+    {
+      "document_id": "4",
+      "rationale": "La valutazione medica di PS alle 08:11 descrive un iter per SCA senza ST con ECG seriati e dosaggio hs-cTn, ma non menziona esplicitamente l'applicazione dell'algoritmo rapido 0 h/1 h né la richiesta di un prelievo a 1 ora. Conferma l'approccio osservazionale adottato dal medico.",
+      "confidence": 0.8
+    },
+    {
+      "document_id": "8",
+      "rationale": "ECG seriato delle 09:36 (circa 1,5 h dalla presentazione) ancora non conclusivo per STEMI. In questo intervallo temporale sarebbe dovuto essere disponibile il dosaggio a 1 ora per completare l'algoritmo, ma non risulta effettuato.",
+      "confidence": 0.65
+    },
+    {
+      "document_id": "13",
+      "rationale": "Secondo dosaggio di hs-cTnI (214 ng/L) eseguito alle 11:58, circa 3 h e 40 min dopo il primo prelievo. Sebbene temporalmente prossimo a un ipotetico dosaggio a 3 h dalla presentazione, non si configura come terzo dosaggio dell'algoritmo 0 h/1 h/3 h poiché l'algoritmo 0 h/1 h non è stato completato. Inoltre il timestamp eccede la tolleranza di ±30 min dal target di 3 h dalla presentazione (11:02).",
+      "confidence": 0.7
+    },
+    {
+      "document_id": "9",
+      "rationale": "ECG delle 11:02 documenta la comparsa di STEMI inferiore franco con sopraslivellamento ST netto in DII, DIII e aVF, configurando il criterio di esclusione EXC-03 (STEMI evidente all'ECG). Da questo momento il percorso clinico si è orientato verso la riperfusione urgente, rendendo superfluo il proseguimento dell'algoritmo diagnostico di hs-cTn.",
+      "confidence": 0.85
+    }
+  ]
 }

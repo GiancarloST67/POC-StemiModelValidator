@@ -1,9 +1,46 @@
 {
-  "check_id": "CHK-STEMI-DO-004-20260318-RSSMRA58",
+  "check_id": "CHECK-STEMI-DO-004-20260318-RSSMRA58L12H501X",
   "check_timestamp": "2026-03-22T12:00:00+01:00",
   "rule_id": "STEMI-DO-004",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
   "confidence": 0.78,
-  "rationale": "Il paziente presenta diagnosi confermata di STEMI anteriore (I21.0) con ECG diagnostico pre-ospedaliero e dolore toracico in atto: la regola è pienamente applicabile. Non sussistono criteri di esclusione (paziente vivo, nessun DNR, diagnosi cardiaca confermata). MONITORAGGIO ECG CONTINUO: evidenze multiple documentano la sorveglianza elettrocardiografica continua lungo l'intero percorso acuto. (1) Fase pre-ospedaliera: il verbale 118 (id 2, ore 07:46) descrive ECG sul territorio e trasporto protetto in codice rosso, compatibile con monitoraggio attivo in ambulanza sebbene non sia esplicitato il termine 'monitoraggio continuo'. (2) Fase PS/triage: la scheda di triage (id 3, ore 08:02) riporta esplicitamente 'monitoraggio continuo all'arrivo'. (3) Fase UTIC: il diario infermieristico (id 12, ore 10:45) documenta 'collegato a monitor multiparametrico e telemetria continua'; successivi diari clinici e infermieristici (id 14, 15, 16, 17, 19, 25, 26, 28, 29) confermano telemetria continua attiva e assenza di aritmie significative fino al trasferimento in degenza ordinaria. (4) Fase emodinamica: la procedura in emergenza implica monitoraggio continuo standard durante la coronarografia e PCI. DISPONIBILITÀ DEFIBRILLATORE: non è presente documentazione esplicita (checklist, log dispositivo) della disponibilità di un defibrillatore. Tuttavia, tutti i setting attraversati dal paziente (ambulanza 118, PS/DEA, sala di emodinamica, UTIC) sono ambienti in cui la dotazione di defibrillatore è obbligatoria per normativa e standard di accreditamento, rendendo la disponibilità altamente inferibile. TEMPISTICA: il monitoraggio appare attivato sin dalla fase pre-ospedaliera (primo contatto medico ore 07:44) e confermato in continuità in PS e UTIC, coerente con il vincolo 'il prima possibile'. LIMITI: (a) manca un timestamp formale esatto di inizio monitoraggio continuo; (b) manca documentazione esplicita sulla disponibilità/funzionalità del defibrillatore; (c) manca l'identificativo del dispositivo di monitoraggio. Questi elementi riducono la confidence pur in un quadro complessivamente conforme sul piano clinico."
+  "rationale": "Il paziente presenta diagnosi confermata di STEMI anteriore ed è quindi pienamente eleggibile per la regola. L'episodio documenta evidenze chiare di monitoraggio ECG continuo in più fasi del percorso: (1) in fase pre-ospedaliera il team 118 ha eseguito ECG diagnostico e trasportato il paziente in codice rosso con monitoraggio (verbale 118, doc 2); (2) al triage in PS il paziente è stato sottoposto a monitoraggio continuo all'arrivo (doc 3); (3) all'ingresso in UTIC è esplicitamente documentato il collegamento a monitor multiparametrico e telemetria continua (doc 12), con conferma di telemetria continua in ritmo sinusale nei diari clinici e infermieristici successivi (doc 14, 15, 17, 19, 20, 26, 28). Il monitoraggio telemetrico prosegue per l'intero ricovero in UTIC e durante la degenza in cardiologia. Per quanto riguarda la disponibilità del defibrillatore, non è presente documentazione esplicita di verifica formale (checklist apparecchiature, log defibrillatore); tuttavia, tutti i setting assistenziali attraversati dal paziente (ambulanza 118, Pronto Soccorso, emodinamica, UTIC, cardiologia degenza) sono ambienti nei quali la dotazione di defibrillatore è standard e obbligatoria. La tempistica di attivazione del monitoraggio risulta coerente con il primo contatto medico (ECG pre-ospedaliero alle 07:44, primo diario infermieristico in UTIC con telemetria alle 10:30 post-PCI), senza gap documentati. La confidence è moderatamente alta (0.78) e non piena perché mancano: (a) il timestamp formale e isolato di attivazione del monitoraggio ECG continuo, (b) l'identificativo del dispositivo di monitoraggio, (c) la conferma documentale esplicita della disponibilità e funzionalità del defibrillatore. Tali carenze riguardano la completezza della documentazione piuttosto che l'effettiva esecuzione dell'azione clinica.",
+  "supporting_documents": [
+    {
+      "document_id": "2",
+      "rationale": "Il verbale 118 documenta il trasporto protetto in codice rosso con monitoraggio del paziente dopo ECG diagnostico pre-ospedaliero, indicando sorveglianza continua in fase pre-ospedaliera compatibile con monitoraggio ECG e disponibilità di defibrillatore a bordo dell'ambulanza medicalizzata.",
+      "confidence": 0.72
+    },
+    {
+      "document_id": "3",
+      "rationale": "La scheda di triage in PS conferma l'instradamento immediato in area emergenza con monitoraggio continuo all'arrivo, coerente con l'attivazione del monitoraggio ECG in ambiente ospedaliero sin dal primo accesso.",
+      "confidence": 0.7
+    },
+    {
+      "document_id": "12",
+      "rationale": "Il diario infermieristico UTIC documenta esplicitamente il collegamento del paziente a monitor multiparametrico e telemetria continua all'ingresso in UTIC post-PCI, costituendo l'evidenza più diretta del monitoraggio ECG continuo in fase acuta.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "14",
+      "rationale": "Il diario clinico UTIC del pomeriggio conferma la telemetria con ritmo sinusale stabile e l'assenza di aritmie significative, attestando la continuità del monitoraggio ECG nelle ore successive alla procedura.",
+      "confidence": 0.85
+    },
+    {
+      "document_id": "17",
+      "rationale": "Il diario infermieristico notturno riporta esplicitamente 'telemetria continua in ritmo sinusale', confermando la prosecuzione ininterrotta del monitoraggio ECG continuo anche nel turno notturno.",
+      "confidence": 0.88
+    },
+    {
+      "document_id": "19",
+      "rationale": "Il diario infermieristico della mattina successiva documenta il proseguimento del monitoraggio telemetrico continuo e la rilevazione dei parametri, confermando la copertura del monitoraggio ECG per l'intero ricovero in UTIC.",
+      "confidence": 0.85
+    },
+    {
+      "document_id": "9",
+      "rationale": "Il referto di emodinamica documenta la procedura invasiva in regime di emergenza con monitoraggio intra-procedurale (ACT, parametri vitali), compatibile con monitoraggio ECG continuo e disponibilità di defibrillatore nel laboratorio di emodinamica durante la PCI primaria.",
+      "confidence": 0.75
+    }
+  ]
 }

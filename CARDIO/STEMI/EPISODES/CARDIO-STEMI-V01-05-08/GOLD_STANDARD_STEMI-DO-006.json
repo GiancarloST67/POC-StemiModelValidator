@@ -1,9 +1,46 @@
 {
-  "check_id": "CHK-STEMI-DO-006-20260323-RSSMRA58L12H501X",
-  "check_timestamp": "2026-03-23T11:00:00+01:00",
+  "check_id": "CHK-STEMI-DO-006-20260318-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-23T12:00:00+01:00",
   "rule_id": "STEMI-DO-006",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
-  "confidence": 0.95,
-  "rationale": "Entrambi i trigger della regola sono chiaramente documentati: (1) Incertezza diagnostica: l'ECG pre-ospedaliero delle 07:48 è descritto come 'non dirimente per STEMI conclamato' (record #1), la valutazione medica di PS delle 08:11 conferma che il tracciato è 'non nettamente diagnostico' per STEMI impostando un iter per SCA senza ST con ECG seriati (record #4), e l'ECG delle 09:36 è ancora definito 'non francamente conclusivo per STEMI' (record #8). (2) Sintomi ricorrenti: documentata persistenza di sintomatologia costrittiva toracica (record #8, ore 09:36) e successiva recrudescenza del dolore toracico con nausea e sudorazione (record #9, ore 11:02). In risposta a tali trigger sono stati eseguiti almeno tre ECG a 12 derivazioni aggiuntivi: ECG seriato alle 09:36 (record #8), ECG alle 11:02 con riscontro di STEMI inferiore franco (record #9) e ECG con derivazioni aggiuntive V7-V9 e V3R-V4R alle 11:18 (record #10). Tutti i tracciati sono corredati di referto con interpretazione clinica documentata, indicazione clinica e timestamp. I criteri di esclusione non si applicano poiché, al momento dell'esecuzione degli ECG aggiuntivi, la diagnosi di STEMI non era ancora confermata e la strategia di riperfusione non era ancora attivata (attivazione emodinamica documentata solo alle 11:40, record #11). La regola è pienamente soddisfatta."
+  "confidence": 0.96,
+  "rationale": "La regola richiede l'esecuzione di ECG a 12 derivazioni aggiuntivi in presenza di sintomi ricorrenti o incertezza diagnostica. Nel caso in esame entrambi i trigger erano presenti e ben documentati: (1) Incertezza diagnostica: il primo ECG pre-ospedaliero (doc 1, ore 07:48) è descritto come 'non dirimente per STEMI conclamato'; il verbale 118 (doc 2) lo definisce 'non univoco per STEMI'; il medico di PS (doc 4, ore 08:11) conferma 'alterazioni ECG inferiori non nettamente diagnostiche' e imposta un piano con ECG seriati. (2) Sintomi ricorrenti: documentata persistenza di sintomatologia costrittiva toracica (doc 8, ore 09:36) e successiva recrudescenza del dolore toracico con nausea e sudorazione (doc 9, ore 11:02). In risposta a tali trigger sono stati eseguiti almeno tre ECG a 12 derivazioni aggiuntivi: il primo seriato alle 09:36 (doc 8), il secondo alle 11:02 (doc 9) che ha dimostrato STEMI inferiore franco, e un terzo con derivazioni aggiuntive V7-V9 e V3R-V4R alle 11:18 (doc 10). Tutti i tracciati sono stati interpretati da un medico e refertati con narrative cliniche e osservazioni strutturate nel fascicolo. La sequenza temporale è coerente: gli ECG aggiuntivi sono stati eseguiti dopo il riconoscimento dei trigger e prima della decisione definitiva sulla strategia di riperfusione (ore 11:39, doc 11). La regola è pienamente soddisfatta.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "ECG pre-ospedaliero iniziale descritto come 'non dirimente per STEMI conclamato', documenta l'incertezza diagnostica che costituisce il trigger per l'esecuzione di ECG aggiuntivi.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 che conferma il quadro ECG 'non univoco per STEMI', rafforzando la documentazione dell'incertezza diagnostica e la mancata attivazione diretta della sala di emodinamica.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica di PS che documenta esplicitamente l'incertezza diagnostica ('alterazioni ECG inferiori non nettamente diagnostiche') e pianifica ECG seriati, costituendo la base clinica per gli ECG aggiuntivi successivi.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "8",
+      "rationale": "Primo ECG aggiuntivo a 12 derivazioni eseguito alle 09:36 per persistenza di sintomatologia costrittiva toracica, con referto interpretativo completo documentato. Evidenza diretta di compliance alla regola.",
+      "confidence": 0.97
+    },
+    {
+      "document_id": "9",
+      "rationale": "Secondo ECG aggiuntivo a 12 derivazioni eseguito alle 11:02 per recrudescenza del dolore toracico con nausea e sudorazione (sintomi ricorrenti), che ha rivelato il STEMI inferiore franco. Referto completo con interpretazione clinica e osservazioni strutturate.",
+      "confidence": 0.98
+    },
+    {
+      "document_id": "10",
+      "rationale": "Terzo ECG aggiuntivo con derivazioni posteriori V7-V9 e destre V3R-V4R eseguito alle 11:18 su richiesta cardiologica, con interpretazione documentata. Conferma l'estensione posteriore dell'infarto e dimostra un approccio diagnostico approfondito coerente con la regola.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "11",
+      "rationale": "Valutazione cardiologica urgente alle 11:39 che documenta la sequenza temporale corretta: gli ECG aggiuntivi sono stati eseguiti prima della decisione sulla strategia di riperfusione, rispettando il vincolo di sequenza della regola.",
+      "confidence": 0.9
+    }
+  ]
 }

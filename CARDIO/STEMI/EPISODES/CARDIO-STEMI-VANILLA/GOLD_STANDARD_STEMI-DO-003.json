@@ -1,9 +1,31 @@
 {
-  "check_id": "CHK-STEMI-DO-003-20260318-RSSMRA58",
+  "check_id": "CHECK-STEMI-DO-003-20260318-RSSMRA58L12H501X",
   "check_timestamp": "2026-03-22T12:00:00+01:00",
   "rule_id": "STEMI-DO-003",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
   "confidence": 0.82,
-  "rationale": "ECG a 12 derivazioni pre-ospedaliero (record #1) eseguito e interpretato dalla Dr.ssa Gori (Medico 118) con timestamp 07:44. Il verbale 118 (record #2, timestamp 07:46) documenta che l'ECG era già stato acquisito e refertato al momento della compilazione, con descrizione dettagliata del sopraslivellamento ST in V2-V6, I e aVL e sottoslivellamento reciproco, diagnosi di STEMI antero-laterale e trasmissione del referto alla rete IMA e all'emodinamista reperibile. La rete IMA è stata attivata alle 07:47, coerente con il vincolo di sequenza (interpretazione ECG prima dell'attivazione emodinamica). Il numero di derivazioni è confermato come 12 ('ECG pre-ospedaliero a 12 derivazioni'). Il primo contatto medico (FMC) non è documentato con un timestamp esplicito separato dall'ECG, ma il timestamp dell'ECG (07:44) rappresenta il primo atto medico documentato e il verbale 118 (07:46) conferma che l'ECG è stato eseguito 'sul posto' immediatamente; pertanto si inferisce che l'intervallo FMC-ECG è stato di pochi minuti, ampiamente inferiore ai 10 minuti richiesti. Nessuna eccezione applicabile (paziente vigile, GCS 15, non in arresto cardiaco). La confidence non è massima (0.82) per l'assenza di un timestamp FMC strutturato e separato dal timestamp ECG, rendendo necessaria un'inferenza dal contesto narrativo."
+  "rationale": "L'ECG a 12 derivazioni pre-ospedaliero è stato registrato alle 07:44 (documento 1) dall'équipe 118, con interpretazione completa e dettagliata (sopraslivellamento ST in V2-V6, I, aVL; sottoslivellamento reciproco in derivazioni inferiori; conclusione diagnostica di STEMI antero-laterale). Il verbale 118 (documento 2, ore 07:46) conferma l'esecuzione dell'ECG sul posto e l'attivazione immediata della rete IMA con preallerta del centro HUB alle 07:47. L'interpretazione ECG è stata quindi completata prima dell'attivazione della rete di riperfusione, rispettando il vincolo di sequenza. Il timestamp esatto del primo contatto medico (FMC, arrivo dell'équipe 118 sul posto) non è documentato in modo esplicito come campo strutturato distinto; tuttavia, poiché l'ECG è stato registrato alle 07:44 e il verbale complessivo dell'intervento è alle 07:46, il FMC è ragionevolmente collocabile pochi minuti prima delle 07:44, rendendo l'intervallo FMC-ECG molto probabilmente inferiore a 10 minuti. L'ECG è a 12 derivazioni come richiesto, è stato interpretato con referto diagnostico completo e archiviato. Non sussistono eccezioni (paziente vigile, collaborante, non in arresto cardiaco). La confidence non è massima esclusivamente per l'assenza di un timestamp esplicito del FMC, che impedisce il calcolo deterministico dell'intervallo.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "Referto ECG pre-ospedaliero a 12 derivazioni registrato alle 07:44 con interpretazione diagnostica completa (sopraslivellamento ST, diagnosi di STEMI antero-laterale, trasmissione alla rete IMA). Costituisce l'evidenza primaria dell'esecuzione e dell'interpretazione dell'ECG richiesto dalla regola.",
+      "confidence": 0.92
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 (ore 07:46) che documenta l'intero intervento pre-ospedaliero: conferma l'esecuzione dell'ECG a 12 derivazioni sul posto, l'attivazione della rete IMA alle 07:47 e il quadro clinico del paziente (vigile, GCS 15, dolore toracico acuto). Fornisce il contesto temporale del FMC e la sequenza delle azioni, sebbene il timestamp esatto di arrivo sul posto non sia esplicitato come campo separato.",
+      "confidence": 0.8
+    },
+    {
+      "document_id": "3",
+      "rationale": "Scheda triage PS (ore 08:02) che conferma l'arrivo del paziente dal 118 con preallerta STEMI già attiva e ECG diagnostico già eseguito in fase pre-ospedaliera. Supporta indirettamente la conformità confermando che l'ECG era già stato registrato e interpretato prima dell'arrivo in ospedale.",
+      "confidence": 0.7
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica PS (ore 08:07) che documenta la presa visione dell'ECG pre-ospedaliero e la conferma della diagnosi di STEMI antero-laterale. Conferma che l'interpretazione ECG era completa e disponibile al momento dell'arrivo in PS, coerente con un'esecuzione tempestiva in fase pre-ospedaliera.",
+      "confidence": 0.65
+    }
+  ]
 }

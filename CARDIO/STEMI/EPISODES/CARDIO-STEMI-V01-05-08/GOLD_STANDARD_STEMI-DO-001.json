@@ -1,9 +1,46 @@
 {
-  "check_id": "CHK-STEMI-DO-001-20260318-RSSMRA58",
+  "check_id": "CHK-STEMI-DO-001-RSSMRA58L12H501X-20260318",
   "check_timestamp": "2026-03-23T12:00:00+01:00",
   "rule_id": "STEMI-DO-001",
-  "patient_id_hash": "RSSMRA58L12H501X-SHA256",
-  "outcome": "non_compliant",
-  "confidence": 0.8,
-  "rationale": "Il paziente soddisfaceva i criteri di inclusione della regola già al primo ECG pre-ospedaliero (ore 07:48, 4 minuti dal FMC alle 07:44): dolore toracico tipico oppressivo con sudorazione e nausea, associato a sopraslivellamento ST ≥1 mm in almeno 2 derivazioni contigue (DIII 1.0 mm, aVF 1.0 mm) con sottoslivellamento reciproco in V1-V3 e aVL. Nonostante ciò, il quadro è stato giudicato 'non dirimente per STEMI conclamato' e non è stata attivata la sala di emodinamica né richiesta una consulenza cardiologica urgente al momento del FMC; il paziente è stato instradato in un percorso di osservazione per SCA senza ST. La diagnosi franca di STEMI è stata posta solo alle 11:02 (circa 3 ore e 14 minuti dopo il FMC), quando un ECG seriato ha mostrato sopraslivellamento netto in DII, DIII, aVF. Anche dopo la conferma diagnostica alle 11:02, la decisione sulla strategia di riperfusione è stata formalizzata alle 11:39 (37 minuti dopo) con attivazione dell'emodinamica alle 11:40, non rispettando il vincolo di immediatezza (TC-002). Il tempo FMC-to-balloon risulta di 285 minuti, ampiamente superiore al limite di 120 minuti (TC-003). Il vincolo TC-001 (ECG entro 10 minuti dal FMC) è stato rispettato (ECG a 4 minuti). Il FMC è stato registrato. Non sono presenti eccezioni documentate (arresto cardiaco, rifiuto del paziente, patologie terminali). Pur riconoscendo che il quadro ECG iniziale era borderline e la decisione clinica di osservazione è comprensibile dal punto di vista del giudizio clinico individuale, la regola richiede che il sospetto STEMI — tecnicamente presente secondo i criteri ECG — conduca a valutazione immediata per la strategia di riperfusione, cosa che non è avvenuta."
+  "patient_id_hash": "RSSMRA58L12H501X",
+  "outcome": "probable_non_compliance",
+  "confidence": 0.72,
+  "rationale": "Il paziente presentava al FMC (07:44) un ECG pre-ospedaliero (07:48, 4 minuti dal FMC – conforme a TC-001) con sopraslivellamento ST ≥1 mm in DIII e aVF, tecnicamente soddisfacente i criteri di inclusione INC-002 per sospetto STEMI, sebbene clinicamente interpretato come non dirimente. Nonostante ciò, non è stata attivata una valutazione immediata per strategia di riperfusione d'emergenza: il medico 118 non ha attivato la sala di emodinamica e il medico di PS (08:11) ha optato per un percorso NSTE-ACS. La diagnosi definitiva di STEMI inferiore è stata posta solo alle 11:02 (oltre 3 ore dopo il FMC), con ECG chiaramente diagnostico. Da quel momento, la decisione sulla strategia di riperfusione (PCI primaria) è stata documentata alle 11:39 (37 minuti dopo la conferma diagnostica, con ECG aggiuntivo posteriore alle 11:18), e l'attivazione dell'emodinamica alle 11:40. Il tempo FMC-to-balloon è risultato 285 minuti e il door-to-balloon 267 minuti, ampiamente oltre il target di 120 minuti dal FMC. Sebbene il ritardo sia in parte attribuibile alla presentazione iniziale ambigua ed all'evoluzione progressiva dello STEMI, permangono criticità: (1) i criteri ECG borderline al FMC avrebbero dovuto indurre una valutazione più aggressiva e precoce della strategia riperfusiva; (2) anche dal momento della chiara diagnosi STEMI (11:02), la decisione non è stata propriamente 'immediata' come richiesto da TC-002. L'evidenza suggerisce non conformità, ma la genuina ambiguità del quadro iniziale introduce incertezza, impedendo di affermare una violazione netta.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "ECG pre-ospedaliero eseguito 4 minuti dopo il FMC (conforme a TC-001), che mostrava ST elevato 1.0 mm in DIII e aVF – tecnicamente compatibile con criteri di inclusione per sospetto STEMI, ma interpretato come non diagnostico. Questo è il documento cardine per valutare se il sospetto STEMI fosse già presente all'esordio.",
+      "confidence": 0.8
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 che documenta il FMC alle 07:44, la sintomatologia tipica e la decisione esplicita di NON attivare direttamente la sala di emodinamica, optando per trasporto al HUB senza attivazione del percorso STEMI. Questa scelta ha contribuito al ritardo nella valutazione della strategia riperfusiva.",
+      "confidence": 0.82
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica di PS (08:11) che documenta la decisione di impostare un iter per SCA senza ST, nonostante la presenza di alterazioni ECG inferiori borderline. Non è stata eseguita una valutazione formale per strategia di riperfusione d'emergenza in questa fase.",
+      "confidence": 0.75
+    },
+    {
+      "document_id": "9",
+      "rationale": "ECG delle 11:02 chiaramente diagnostico per STEMI inferiore (ST elevato 2.5 mm in DIII, 2.0 mm in aVF, 1.5 mm in DII con reciproci), che rappresenta il momento della diagnosi definitiva di STEMI, oltre 3 ore dopo il FMC. Da questo ECG decorre il vincolo di immediatezza per la decisione riperfusiva (TC-002).",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "11",
+      "rationale": "Valutazione cardiologica urgente che documenta la decisione per PCI primaria alle 11:39 e l'attivazione dell'emodinamica alle 11:40, cioè 37 minuti dopo la conferma diagnostica ECG di STEMI (11:02). Questo intervallo non soddisfa pienamente il requisito di immediatezza previsto dalla regola (TC-002), benché parzialmente giustificato dalla necessità di ECG con derivazioni aggiuntive (11:18).",
+      "confidence": 0.8
+    },
+    {
+      "document_id": "10",
+      "rationale": "ECG con derivazioni posteriori (11:18) che ha confermato l'estensione posteriore dell'infarto, eseguito tra la diagnosi STEMI (11:02) e la decisione riperfusiva (11:39), contribuendo al ritardo ma fornendo informazioni clinicamente rilevanti.",
+      "confidence": 0.65
+    },
+    {
+      "document_id": "14",
+      "rationale": "Referto di emodinamica che documenta FMC-to-balloon 285 minuti e door-to-balloon 267 minuti, ampiamente superiori al target di 120 minuti dal FMC (TC-003). Conferma il significativo ritardo complessivo nella riperfusione, pur con esito procedurale ottimale (TIMI 3).",
+      "confidence": 0.92
+    }
+  ]
 }

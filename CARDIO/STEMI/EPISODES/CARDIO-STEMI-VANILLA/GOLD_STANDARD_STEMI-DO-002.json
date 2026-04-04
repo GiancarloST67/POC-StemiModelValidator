@@ -1,9 +1,46 @@
 {
-  "check_id": "CHK-STEMI-DO-002-RSSMRA58L12H501X-20260318",
-  "check_timestamp": "2025-01-24T12:00:00Z",
+  "check_id": "CHK-STEMI-DO-002-20260318-RSSMRA58L12H501X",
+  "check_timestamp": "2026-03-22T12:00:00+01:00",
   "rule_id": "STEMI-DO-002",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
-  "confidence": 0.96,
-  "rationale": "Tutte e sei le componenti della valutazione diagnostica integrata per SCA sono state eseguite e documentate nei tempi previsti. (1) Anamnesi clinica: raccolta completa dal Dr. Bellini (record #5, ore 08:10) con fattori di rischio CV (diabete tipo 2, ipertensione, dislipidemia, ex-fumatore, familiarità per cardiopatia ischemica), comorbilità e terapie domiciliari. (2) Valutazione dei sintomi: documentata dal medico 118 (record #2, ore 07:46) con caratterizzazione completa del dolore toracico (oppressivo, irradiato a spalla e braccio sinistro, insorgenza a riposo ore 07:10, NRS 9/10) e sintomi associati (sudorazione fredda, nausea). (3) Segni vitali: rilevati in fase pre-ospedaliera (PA 158/92, FC 96, SpO2 96%, FR 22, T 36.2°C) e confermati al triage (record #3, ore 08:02) e alla valutazione medica PS (record #4, ore 08:07). Set completo di parametri. (4) Esame obiettivo: eseguito e documentato (record #6, ore 08:12) con valutazione cardiovascolare e sistemica, classificazione Killip I, assenza di soffi, rantoli, edemi e segni di ipoperfusione. (5) ECG a 12 derivazioni: eseguito pre-ospedaliero alle ore 07:44 (record #1) con interpretazione completa (sopraslivellamento ST V2-V6, I-aVL; sottoslivellamento reciproco II-III-aVF; diagnosi di STEMI antero-laterale). Primo contatto medico stimabile alle ore 07:44, pertanto ECG eseguito contestualmente al FMC, entro il vincolo di 10 minuti. (6) Troponina ad alta sensibilità: hs-cTnI 68 ng/L disponibile alle 08:15 (record #7), circa 31 minuti dal FMC, entro il vincolo di 60 minuti. Diagnosi di lavoro formulata esplicitamente dal Dr. Bellini (record #4, ore 08:07) come STEMI antero-laterale con stratificazione del rischio (Killip I, emodinamicamente stabile), con integrazione documentata di ECG pre-ospedaliero, terapia somministrata e valutazione clinica, indicazione a PCI primaria urgente. Vincoli di sequenza rispettati: ECG (07:44) precede diagnosi di lavoro (08:07); prelievo ematico contestuale all'accesso venoso pre-ospedaliero. Nessuna eccezione applicabile (paziente stabile, non in arresto, non in shock). Confidence non piena (0.96) per lieve incertezza sul timestamp esatto del prelievo ematico per troponina, non esplicitamente registrato ma inferibile come avvenuto all'arrivo in PS."
+  "confidence": 0.95,
+  "rationale": "Tutte e sei le componenti della valutazione diagnostica integrata multiparametrica per SCA sono state eseguite e documentate entro i vincoli temporali previsti. (1) Anamnesi clinica: documentata nel record ID 5 alle 08:10, comprensiva di fattori di rischio cardiovascolare (diabete tipo 2, ipertensione, dislipidemia, ex fumatore 20 pack-years, familiarità per cardiopatia ischemica), comorbidità, terapie domiciliari e anamnesi prossima con descrizione del dolore toracico. (2) Valutazione dei sintomi: documentata dal medico 118 nel record ID 2 alle 07:46 (dolore toracico oppressivo NRS 9/10 insorto alle 07:10, irradiato a spalla e braccio sinistro, con sudorazione fredda e nausea). (3) Segni vitali: rilevati in fase pre-ospedaliera (record ID 2: PA 158/92, FC 96, SpO2 96%, FR 22, T 36.2°C) e confermati al triage (record ID 3) e in PS (record ID 6). (4) Esame obiettivo: eseguito e documentato nel record ID 6 alle 08:12, con valutazione cardiovascolare e sistemica completa (torace, cuore, addome, estremità, perfusione, Killip I). (5) ECG a 12 derivazioni: eseguito e interpretato in fase pre-ospedaliera nel record ID 1 alle 07:44, con descrizione dettagliata del quadro STEMI antero-laterale (ST↑ 3 mm V2-V4, 2 mm V5-V6, I-aVL, sottoslivellamento reciproco). Il primo contatto medico è ragionevolmente collocabile intorno alle 07:44 o poco prima, rendendo l'ECG compatibile con il vincolo di 10 minuti. (6) Troponina ad alta sensibilità: hs-cTnI 68 ng/L documentata nel record ID 7 alle 08:15, circa 31 minuti dal primo contatto medico, ben entro il limite di 60 minuti per la valutazione completa. (7) Diagnosi di lavoro e stratificazione del rischio: formulate nel record ID 4 alle 08:07 dal medico di PS (STEMI antero-laterale, Killip I, indicazione a PCI primaria), integrando dati clinici, ECG e terapia pre-ospedaliera. Non si applicano eccezioni (nessun arresto cardiaco, nessuna instabilità emodinamica critica). L'intero percorso diagnostico integrato risulta completato entro circa 31 minuti dal primo contatto medico.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "ECG a 12 derivazioni pre-ospedaliero eseguito e interpretato alle 07:44, con riscontro di STEMI antero-laterale (ST↑ V2-V6, I, aVL). Soddisfa il requisito dell'ECG a 12 derivazioni interpretato e il vincolo temporale TC-001 (entro 10 minuti dal primo contatto medico).",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 alle 07:46 che documenta la valutazione completa dei sintomi (dolore toracico oppressivo NRS 9/10, irradiazione, sudorazione, nausea), i segni vitali completi (PA, FC, SpO2, FR, temperatura, glicemia) e il pretrattamento farmacologico. Copre le componenti 'valutazione dei sintomi' e 'segni vitali' della regola.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "3",
+      "rationale": "Scheda triage PS alle 08:02 con conferma del codice rosso per STEMI, registrazione dei parametri vitali e instradamento diretto verso emodinamica. Conferma la rilevazione dei segni vitali all'arrivo in PS e l'integrazione delle informazioni pre-ospedaliere.",
+      "confidence": 0.88
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica PS alle 08:07 che documenta la formulazione della diagnosi di lavoro (STEMI antero-laterale) e la stratificazione del rischio iniziale (Killip I, emodinamicamente stabile), con integrazione di ECG pre-ospedaliero, terapia somministrata e indicazione a PCI primaria. Soddisfa il requisito della diagnosi di lavoro integrata.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "5",
+      "rationale": "Anamnesi clinica completa documentata alle 08:10 con fattori di rischio cardiovascolare (diabete tipo 2, ipertensione, dislipidemia, ex fumatore, familiarità), comorbidità, terapia domiciliare e descrizione dell'evento acuto. Soddisfa il requisito dell'anamnesi clinica documentata.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "6",
+      "rationale": "Esame obiettivo cardiovascolare e sistemico completo documentato alle 08:12, inclusi torace, cuore, addome, estremità, valutazione della perfusione periferica e classificazione Killip I. Soddisfa il requisito dell'esame obiettivo documentato.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "7",
+      "rationale": "Referto laboratorio urgente alle 08:15 con risultato della troponina ad alta sensibilità (hs-cTnI 68 ng/L) già positiva in fase precoce, oltre a emocromo, coagulazione, funzione renale e glicemia. Soddisfa il requisito del dosaggio hs-cTn con risultato disponibile entro 60 minuti dal primo contatto medico.",
+      "confidence": 0.95
+    }
+  ]
 }

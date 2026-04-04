@@ -4,6 +4,33 @@
   "rule_id": "STEMI-DO-001",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
-  "confidence": 0.93,
-  "rationale": "Il paziente (67 anni, maschio) soddisfa tutti i criteri di inclusione: dolore toracico acuto oppressivo irradiato (INC-001), sopraslivellamento ST ≥ 2 mm in derivazioni contigue V2-V6, I-aVL (INC-002), età ≥ 18 anni (INC-003). Non sono presenti criteri di esclusione (nessuna DAT, nessuna diagnosi alternativa confermata). Valutazione dei criteri di conformità: (1) ECG a 12 derivazioni: eseguito pre-ospedaliero dal medico 118 alle 07:44, con referto documentato compatibile con STEMI antero-laterale. Il primo contatto medico (FMC) coincide ragionevolmente con l'arrivo dell'equipaggio 118 sul posto, stimabile a pochi minuti prima o in concomitanza con l'esecuzione dell'ECG (07:44). L'ECG risulta pertanto eseguito e interpretato entro 10 minuti dal FMC (TC-001 soddisfatto). (2) Decisione sulla strategia di riperfusione: rete IMA attivata immediatamente alle 07:47, soli 3 minuti dopo l'ECG diagnostico, con preallerta del centro HUB di emodinamica e decisione per PCI primaria documentata e confermata dal medico di PS alle 08:07 (TC-002 soddisfatto). (3) Timestamp FMC registrato: il timestamp dell'ECG pre-ospedaliero (07:44) e dell'attivazione rete (07:47) fungono da riferimento temporale del FMC (EC-003 soddisfatto). (4) Vincolo temporale PCI: sintomi insorti alle 07:10, FMC ~07:44 (entro 2 ore dai sintomi); door-to-balloon 53 minuti, corrispondente a un tempo FMC-to-balloon stimato di circa 71 minuti, ampiamente entro il limite di 90 minuti per pazienti precoci (TC-003 soddisfatto). (5) Vincoli di sequenza rispettati: ECG (07:44) → attivazione rete/decisione PCI (07:47) → conferma PS (08:07). Lieve riduzione di confidence per assenza di un timestamp esplicito e separato per l'arrivo dell'equipaggio 118 sul posto (FMC esatto), sebbene il contesto narrativo e la sequenza temporale siano coerenti e non lascino dubbi sulla tempestività della valutazione."
+  "confidence": 0.95,
+  "rationale": "Il paziente soddisfa tutti i criteri di applicabilità della regola: maschio, 67 anni, dolore toracico acuto oppressivo con sopraslivellamento ST in V2-V6, I e aVL all'ECG a 12 derivazioni, compatibile con STEMI antero-laterale. Non sono presenti criteri di esclusione (nessuna DAT, nessuna diagnosi alternativa). Analisi della conformità: (1) ECG a 12 derivazioni eseguito sul territorio alle 07:44, verosimilmente entro pochi minuti dal primo contatto medico (FMC) del team 118, con refertazione immediata compatibile con STEMI (doc 1); il vincolo TC-001 (ECG entro 10 min dal FMC) risulta rispettato. (2) La decisione sulla strategia di riperfusione è stata presa immediatamente: la rete IMA è stata attivata alle 07:47, appena 3 minuti dopo l'ECG diagnostico (doc 2), con preallerta del centro HUB di emodinamica e trasporto diretto; il medico di PS ha confermato l'indicazione a PCI primaria escludendo la fibrinolisi per disponibilità immediata di emodinamica (doc 4). (3) Il timestamp del FMC è ricostruibile dal referto ECG pre-ospedaliero (07:44) e dal verbale 118. (4) Il door-to-balloon è stato di 53 minuti (doc 9); il tempo stimato dal FMC (~07:44) al balloon (~08:55) è circa 71 minuti, ben entro i 120 minuti raccomandati e anche entro i 90 minuti (paziente presentatosi entro 2 ore dai sintomi in centro con PCI). (5) La sequenza ECG → decisione riperfusione → PCI primaria è rispettata. Tutti i criteri di compliance della regola risultano soddisfatti con evidenza documentale forte.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "Referto ECG pre-ospedaliero alle 07:44 che documenta sopraslivellamento ST in V2-V6, I e aVL, confermando la diagnosi di STEMI antero-laterale e attestando l'esecuzione e interpretazione dell'ECG entro pochi minuti dal primo contatto medico.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 che documenta il primo contatto medico (FMC), la sintomatologia del paziente, l'esecuzione dell'ECG con diagnosi di STEMI, l'attivazione immediata della rete IMA alle 07:47 (3 minuti dopo l'ECG), la somministrazione del pretrattamento farmacologico e il trasporto diretto al centro HUB. Costituisce l'evidenza principale della tempestività della valutazione e della decisione sulla strategia di riperfusione.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "3",
+      "rationale": "Scheda di triage PS che conferma l'arrivo con preallerta STEMI attiva, assegnazione codice rosso e instradamento immediato verso emodinamica, attestando la continuità del percorso STEMI dalla fase pre-ospedaliera a quella intra-ospedaliera.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica di PS alle 08:07 che documenta formalmente la decisione sulla strategia di riperfusione: indicazione a PCI primaria, con esclusione esplicita della fibrinolisi per disponibilità immediata di emodinamica. Soddisfa il criterio di documentazione della decisione di riperfusione.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "9",
+      "rationale": "Referto di emodinamica che documenta l'esecuzione della PCI primaria su IVA prossimale con door-to-balloon di 53 minuti, confermando il rispetto dei vincoli temporali raccomandati (TC-003) e il successo della strategia di riperfusione scelta (TIMI 3 finale).",
+      "confidence": 0.94
+    }
+  ]
 }

@@ -1,9 +1,31 @@
 {
   "check_id": "CHK-STEMI-DO-005-RSSMRA58L12H501X-20260318",
-  "check_timestamp": "2025-07-18T22:00:00Z",
+  "check_timestamp": "2026-03-22T12:00:00+01:00",
   "rule_id": "STEMI-DO-005",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "not_applicable",
-  "confidence": 0.97,
-  "rationale": "La regola STEMI-DO-005 si applica esclusivamente a pazienti con STEMI inferiore (sopraslivellamento ST ≥ 1 mm in almeno due derivazioni tra II, III, aVF) oppure con sospetta occlusione coronarica totale e derivazioni ECG standard non conclusive. Nel caso in esame, l'ECG pre-ospedaliero (record id 1, ore 07:44) documenta chiaramente uno STEMI antero-laterale con sopraslivellamento ST in V2-V4 (3 mm), V5-V6 (2 mm), I e aVL (2 mm), e sottoslivellamento reciproco in II, III e aVF. Non è presente sopraslivellamento ST nelle derivazioni inferiori; le alterazioni in sede inferiore sono di tipo reciproco (depressione ST). Inoltre, l'ECG standard a 12 derivazioni è stato giudicato pienamente diagnostico per STEMI antero-laterale, con attivazione immediata della rete IMA senza alcun dubbio interpretativo. Non sussiste pertanto alcun criterio di inclusione (INCL-005-01 né INCL-005-02) per l'applicabilità della regola. L'esecuzione di derivazioni aggiuntive destre e posteriori non era clinicamente indicata in questo contesto."
+  "confidence": 0.96,
+  "rationale": "La regola STEMI-DO-005 si applica in presenza di STEMI inferiore (sopraslivellamento ST ≥ 1 mm in almeno due derivazioni tra II, III e aVF) oppure di sospetta occlusione coronarica totale con ECG standard non conclusivo. Nel caso in esame l'ECG pre-ospedaliero (documento 1) documenta chiaramente uno STEMI antero-laterale con sopraslivellamento ST in V2-V6, I e aVL e sottoslivellamento reciproco in II, III e aVF (1.5 mm di depressione, non elevazione). Le derivazioni inferiori non presentano sopraslivellamento ST, pertanto il criterio di inclusione INCL-005-01 non è soddisfatto. Inoltre l'ECG standard a 12 derivazioni è risultato conclusivo e diagnostico per STEMI anteriore, come confermato sia dal referto ECG sia dalla valutazione clinica in PS (documenti 2, 3, 4), escludendo anche il criterio INCL-005-02 (sospetta occlusione con ECG non conclusivo). La coronarografia (documento 9) ha confermato l'occlusione trombotica dell'IVA prossimale, coerente con la localizzazione anteriore. Poiché nessuno dei criteri di inclusione della regola è soddisfatto, la regola non è applicabile a questo episodio clinico.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "ECG pre-ospedaliero a 12 derivazioni che documenta STEMI antero-laterale con sopraslivellamento ST in V2-V6, I e aVL e sottoslivellamento reciproco (depressione ST 1.5 mm) in II, III e aVF. L'assenza di sopraslivellamento ST nelle derivazioni inferiori esclude il criterio di inclusione per STEMI inferiore.",
+      "confidence": 0.97
+    },
+    {
+      "document_id": "2",
+      "rationale": "Verbale 118 che conferma la diagnosi di STEMI antero-laterale sul territorio e l'attivazione della rete IMA sulla base dell'ECG standard conclusivo, escludendo la condizione di ECG non conclusivo prevista dalla regola.",
+      "confidence": 0.92
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica in PS che conferma la diagnosi di STEMI antero-laterale dall'ECG pre-ospedaliero e l'indicazione diretta a PCI primaria senza necessità di ulteriori derivazioni diagnostiche, coerente con la non applicabilità della regola.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "9",
+      "rationale": "Referto di emodinamica che documenta occlusione trombotica dell'IVA prossimale (TIMI 0), confermando la localizzazione anteriore dell'infarto e l'assenza di coinvolgimento del territorio inferiore/posteriore come lesione culprit.",
+      "confidence": 0.93
+    }
+  ]
 }

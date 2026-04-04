@@ -1,9 +1,36 @@
 {
-  "check_id": "CHK-STEMI-DO-007-20260318-001",
+  "check_id": "CHK-STEMI-DO-007-20260318-RSSMRA58L12H501X",
   "check_timestamp": "2026-03-22T12:00:00+01:00",
   "rule_id": "STEMI-DO-007",
-  "patient_id_hash": "RSSMRA58L12H501X-hash",
+  "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "compliant",
-  "confidence": 0.8,
-  "rationale": "Il paziente si presenta al PS alle 08:02 con diagnosi STEMI pre-ospedaliera confermata da ECG (sopraslivellamento ST V2-V6, I, aVL). La regola è applicabile (criteri di inclusione soddisfatti). Il medico di PS (record #4, ore 08:07) documenta 'eseguiti prelievi urgenti', indicando un prelievo ematico entro circa 5 minuti dalla presentazione (ben entro il limite di 15 minuti). Il referto di laboratorio (record #7, ore 08:15) riporta hs-cTnI 68 ng/L, confermando l'utilizzo del metodo ad alta sensibilità. Il tempo stimato tra prelievo (~08:07) e refertazione (08:15) è di circa 8 minuti, ampiamente entro il vincolo di 60 minuti. I tre criteri della regola risultano soddisfatti: (1) prelievo immediato entro 15 minuti dalla presentazione, (2) metodo ad alta sensibilità (hs-cTnI), (3) risultato disponibile entro 60 minuti dal prelievo. Limite della valutazione: il timestamp esatto del prelievo ematico non è documentato in modo strutturato ma viene inferito dalla nota clinica del medico di PS alle 08:07; ciò riduce lievemente la confidenza pur mantenendo un quadro coerente di conformità. Si segnala inoltre che l'eccezione STEMI-DO-007-EXC-COND-01 (trasferimento immediato in emodinamica con risultato non disponibile prima della procedura) non necessita di essere invocata, poiché il risultato della troponina (08:15) era già disponibile prima del trasferimento in sala (08:20)."
+  "confidence": 0.75,
+  "rationale": "Il paziente si è presentato in Pronto Soccorso alle 08:02 (documento 3, Triage) con diagnosi pre-ospedaliera di STEMI antero-laterale confermata da ECG a 12 derivazioni (documento 1). Alla valutazione medica del PS alle 08:07 (documento 4) vengono documentati 'prelievi urgenti eseguiti', collocando il prelievo ematico a circa 5 minuti dalla presentazione, entro il vincolo di 15 minuti. Il referto di laboratorio (documento 7) è datato alle 08:15 e riporta un valore di hs-cTnI pari a 68 ng/L, confermando l'utilizzo di metodo ad alta sensibilità (hs-cTnI). Il tempo stimato dal prelievo (~08:07) alla refertazione (08:15) è di circa 8 minuti, ampiamente entro il vincolo di 60 minuti. Tutti e tre i criteri di conformità risultano soddisfatti: (1) prelievo immediato dopo la presentazione, (2) metodo ad alta sensibilità, (3) risultato disponibile entro 60 minuti dal prelievo. La confidence non è massima (0.75) perché i timestamp esatti del prelievo ematico e della refertazione sono inferiti dai documenti clinici e non registrati come dati strutturati separati; inoltre, il turnaround di ~8 minuti risulta molto rapido e non verificabile in assenza di timestamp LIS espliciti.",
+  "supporting_documents": [
+    {
+      "document_id": "3",
+      "rationale": "Documenta il timestamp di presentazione del paziente in Pronto Soccorso (08:02), che rappresenta l'evento àncora per la valutazione del vincolo temporale del prelievo della troponina. Conferma il codice rosso e il percorso STEMI attivato.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "4",
+      "rationale": "La valutazione medica del PS alle 08:07 documenta l'esecuzione dei prelievi urgenti, consentendo di stimare il timestamp del prelievo ematico per la troponina a circa 5 minuti dalla presentazione, entro il vincolo di 15 minuti.",
+      "confidence": 0.72
+    },
+    {
+      "document_id": "7",
+      "rationale": "Il referto di laboratorio alle 08:15 riporta il valore di hs-cTnI 68 ng/L, confermando sia l'utilizzo del metodo ad alta sensibilità sia la disponibilità del risultato entro 60 minuti dal prelievo. Tuttavia il timestamp del documento potrebbe non coincidere esattamente con il momento di refertazione nel LIS.",
+      "confidence": 0.7
+    },
+    {
+      "document_id": "1",
+      "rationale": "L'ECG pre-ospedaliero documenta il sopraslivellamento ST compatibile con STEMI, confermando l'applicabilità della regola (criterio di inclusione: alterazioni ECG compatibili con STEMI) e il sospetto clinico che giustifica il dosaggio urgente della troponina.",
+      "confidence": 0.88
+    },
+    {
+      "document_id": "2",
+      "rationale": "Il verbale 118 conferma il sospetto clinico di STEMI e l'attivazione della rete IMA, supportando l'applicabilità della regola al caso e il contesto di urgenza in cui è stato eseguito il prelievo per troponina.",
+      "confidence": 0.85
+    }
+  ]
 }

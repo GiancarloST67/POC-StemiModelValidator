@@ -1,9 +1,41 @@
 {
-  "check_id": "CHK-STEMI-DO-005-20260318-RSSMRA58",
+  "check_id": "CHK-STEMI-DO-005-20260318-001",
   "check_timestamp": "2026-03-23T12:00:00+01:00",
   "rule_id": "STEMI-DO-005",
-  "patient_id_hash": "RSSMRA58L12H501X-SHA256",
-  "outcome": "non_compliant",
-  "confidence": 0.78,
-  "rationale": "La regola richiede l'esecuzione di ECG con derivazioni aggiuntive V3R, V4R, V7–V9 entro 10 minuti dall'ECG standard che evidenzia STEMI inferiore o sospetta occlusione coronarica con derivazioni standard non conclusive. Nell'episodio, il primo ECG (07:48) mostrava già sopraslivellamento ST ≥1 mm in DIII e aVF (soddisfacendo tecnicamente il criterio INCL-005-01) ed era descritto come 'non dirimente per STEMI conclamato' (soddisfacendo INCL-005-02 per ECG non conclusivo con sospetto clinico di SCA infero-posteriore). Il secondo ECG seriato (09:36) confermava il quadro non conclusivo. Nonostante ciò, le derivazioni aggiuntive sono state eseguite solo alle 11:18 (record #10), dopo comparsa di STEMI franco alle 11:02 (record #9). Anche considerando come trigger più favorevole l'ECG diagnostico delle 11:02, il ritardo è di 16 minuti, superiore alla soglia raccomandata di 10 minuti (soft deadline). Rispetto al primo ECG sospetto (07:48), il ritardo è di oltre 3 ore. Aspetti positivi: l'ECG aggiuntivo è stato effettivamente eseguito con derivazioni complete (V3R, V4R, V7, V8, V9), è stato interpretato dal cardiologo (Dr.ssa Neri) con documentazione di ST elevation posteriore e assenza di coinvolgimento ventricolare destro significativo, ed è stato completato prima dell'attivazione dell'emodinamica (11:40), rispettando il vincolo di sequenza SC-005-02. Tuttavia, non è documentata alcuna giustificazione per il ritardo nell'esecuzione delle derivazioni aggiuntive rispetto ai primi ECG sospetti. La confidence non è massima (0.78) poiché il vincolo temporale di 10 minuti è una soft deadline derivata per analogia clinica e non esplicitata nella raccomandazione ESC originale, e l'azione è stata comunque completata prima della decisione terapeutica definitiva."
+  "patient_id_hash": "RSSMRA58L12H501X-HASH",
+  "outcome": "compliant",
+  "confidence": 0.75,
+  "rationale": "La regola richiede l'esecuzione di un ECG con derivazioni aggiuntive (V3R, V4R, V7–V9) in caso di STEMI inferiore o sospetta occlusione coronarica totale con ECG standard non conclusivo. L'episodio documenta chiaramente l'esecuzione di tale ECG (documento 10, ore 11:18) con registrazione di derivazioni posteriori V7, V8, V9 e derivazioni destre V3R-V4R, completo di referto interpretativo (ST elevato fino a 1.0-1.5 mm in V7-V9, V4R senza ST significativo), prima dell'attivazione del laboratorio di emodinamica (ore 11:40, documento 11). Tutte le derivazioni obbligatorie sono state incluse e interpretate. Il vincolo di sequenza (ECG aggiuntivo prima dell'attivazione emodinamica) è rispettato. Tuttavia, si segnalano criticità temporali: (1) già l'ECG pre-ospedaliero delle 07:48 (documento 1) mostrava ST elevato 1.0 mm in DIII e 1.0 mm in aVF con quadro descritto come suggestivo ma non dirimente, configurando uno scenario di SCA ad alto rischio con ECG non conclusivo che avrebbe potuto giustificare l'esecuzione precoce delle derivazioni aggiuntive; (2) rispetto all'ECG diagnostico per STEMI inferiore franco delle 11:02 (documento 9), le derivazioni aggiuntive sono state eseguite a 16 minuti di distanza, superando il soft deadline di 10 minuti raccomandato dalla regola. La confidence è moderata-buona (0.75) in quanto l'azione principale è stata completata con tutte le derivazioni richieste e correttamente interpretata, ma il ritardo temporale significativo rispetto ai possibili trigger precoci riduce il livello di piena conformità.",
+  "supporting_documents": [
+    {
+      "document_id": "10",
+      "rationale": "Documento cardine: referto ECG con derivazioni aggiuntive V7, V8, V9 e V3R-V4R eseguito alle 11:18 con interpretazione medica completa. Conferma l'esecuzione dell'azione richiesta dalla regola con tutte le derivazioni obbligatorie e riscontro di ST elevato nelle derivazioni posteriori (estensione posteriore) e assenza di coinvolgimento significativo del ventricolo destro.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "9",
+      "rationale": "ECG diagnostico per STEMI inferiore franco (ST elevato 1.5 mm DII, 2.5 mm DIII, 2.0 mm aVF) registrato alle 11:02, rappresenta il trigger principale per l'esecuzione delle derivazioni aggiuntive. Documenta il soddisfacimento del criterio di inclusione INCL-005-01.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "1",
+      "rationale": "ECG pre-ospedaliero delle 07:48 con ST elevato 1.0 mm in DIII e 1.0 mm in aVF, descritto come non dirimente per STEMI conclamato. Questo tracciato poteva configurare un trigger precoce per derivazioni aggiuntive (criterio INCL-005-02: sospetta occlusione con ECG non conclusivo), evidenziando il ritardo nell'esecuzione.",
+      "confidence": 0.8
+    },
+    {
+      "document_id": "8",
+      "rationale": "ECG seriato delle 09:36 con persistenza di alterazioni ST inferiori e quadro descritto come ancora non conclusivo per STEMI. Conferma la prolungata fase di incertezza diagnostica durante la quale le derivazioni aggiuntive non sono state eseguite.",
+      "confidence": 0.7
+    },
+    {
+      "document_id": "11",
+      "rationale": "Valutazione cardiologica urgente delle 11:39 che documenta l'attivazione dell'emodinamica alle 11:40, dopo l'esecuzione delle derivazioni aggiuntive (11:18). Conferma il rispetto del vincolo di sequenza SC-005-02 (ECG aggiuntivo prima dell'attivazione cath lab).",
+      "confidence": 0.85
+    },
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica PS delle 08:11 che classifica il quadro come SCA senza STEMI in assenza di sopraslivellamento chiaramente diagnostico, impostando un percorso di osservazione. Documenta la decisione clinica di non eseguire immediatamente derivazioni aggiuntive nonostante il sospetto iniziale.",
+      "confidence": 0.65
+    }
+  ]
 }

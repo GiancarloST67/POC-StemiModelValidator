@@ -1,9 +1,41 @@
 {
-  "check_id": "CHK-STEMI-DO-010-20260322-RSSMRA58L12H501X",
+  "check_id": "CHK-STEMI-DO-010-RSSMRA58L12H501X-20260318",
   "check_timestamp": "2026-03-22T12:00:00+01:00",
   "rule_id": "STEMI-DO-010",
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "not_applicable",
   "confidence": 0.95,
-  "rationale": "La regola STEMI-DO-010 richiede l'esecuzione di TTE d'emergenza nei pazienti con sospetta SCA che presentano shock cardiogeno O sospette complicanze meccaniche. Il paziente presenta STEMI anteriore confermato (criterio INC-01 soddisfatto), tuttavia i criteri di inclusione INC-02 (shock cardiogeno) e INC-03 (complicanze meccaniche sospette) non risultano soddisfatti. In dettaglio: (1) PAS costantemente > 130 mmHg durante tutto l'episodio, mai < 90 mmHg; (2) nessun utilizzo di vasopressori o inotropi documentato; (3) nessun segno di ipoperfusione periferica: paziente vigile, orientato, GCS 15, estremità calde, polsi periferici validi, diuresi conservata; (4) classificazione Killip I stabile dall'ingresso alla dimissione; (5) esame obiettivo esplicita assenza di soffi di nuova insorgenza ('non soffi di nuova insorgenza apprezzabili'); (6) nessun deterioramento emodinamico improvviso documentato; (7) nessun sospetto clinico di tamponamento cardiaco, rottura del setto o della parete libera. L'ecocardiogramma transtoracico eseguito il 19/03/2026 (record #21) è stato effettuato come valutazione programmata post-PCI della funzione ventricolare e delle complicanze meccaniche, non come TTE d'emergenza su trigger di shock/complicanze. In assenza dei trigger clinici previsti dalla regola, essa risulta non applicabile a questo episodio."
+  "rationale": "La regola STEMI-DO-010 richiede l'esecuzione di una TTE d'emergenza nei pazienti con sospetta SCA che presentano shock cardiogeno o sospette complicanze meccaniche. Il paziente presenta STEMI anteriore confermato, tuttavia durante l'intero episodio non ha mai soddisfatto i criteri di inclusione specifici della regola: (1) Shock cardiogeno assente – la pressione arteriosa sistolica è sempre stata ampiamente superiore a 90 mmHg (range 118-158 mmHg), non è stato mai utilizzato supporto con vasopressori/inotropi, il paziente è rimasto vigile, orientato, con estremità calde, polsi periferici validi, diuresi conservata, classe Killip I per tutta la degenza; (2) Complicanze meccaniche sospette assenti – l'esame obiettivo in PS (doc 6) esclude esplicitamente soffi di nuova insorgenza, non si è verificato alcun deterioramento emodinamico improvviso, non vi è stato sospetto clinico di tamponamento cardiaco, rottura del setto interventricolare o della parete libera. Il TTE eseguito il 19/03/2026 (doc 21) è stato un ecocardiogramma di routine post-PCI per valutazione della funzione ventricolare e non una TTE d'emergenza per shock o complicanza meccanica. Pertanto il trigger della regola non è stato attivato e la regola risulta non applicabile a questo episodio.",
+  "supporting_documents": [
+    {
+      "document_id": "4",
+      "rationale": "La valutazione medica in PS documenta esplicitamente classe Killip I, stabilità emodinamica, assenza di segni di scompenso acuto e shock, confermando l'assenza del trigger 'shock cardiogeno'.",
+      "confidence": 0.96
+    },
+    {
+      "document_id": "6",
+      "rationale": "L'esame obiettivo riporta esplicitamente 'non soffi di nuova insorgenza apprezzabili', estremità calde, polsi periferici validi e simmetrici, toni cardiaci ritmici con pause libere, escludendo segni clinici di complicanze meccaniche e di ipoperfusione periferica.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "2",
+      "rationale": "Il verbale 118 documenta parametri vitali stabili (PA 158/92, SpO2 96%, GCS 15) e assenza di cute marezzata, contribuendo ad escludere lo shock cardiogeno già in fase pre-ospedaliera.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "3",
+      "rationale": "La scheda di triage conferma stabilità emodinamica all'arrivo in PS (PA 150/88, FC 92, SpO2 97%), senza elementi suggestivi di shock o complicanze meccaniche.",
+      "confidence": 0.88
+    },
+    {
+      "document_id": "21",
+      "rationale": "Il TTE eseguito il 19/03/2026 è un ecocardiogramma transtoracico di routine post-PCI (non d'emergenza), che documenta FEVS 40%, assenza di trombi, assenza di versamento pericardico e assenza di complicanze meccaniche, confermando retrospettivamente che non vi erano complicanze meccaniche durante il ricovero.",
+      "confidence": 0.85
+    },
+    {
+      "document_id": "11",
+      "rationale": "Il diario UTIC post-PCI documenta paziente emodinamicamente stabile, Killip I, asintomatico, senza segni di shock o deterioramento emodinamico, confermando la non applicabilità del trigger anche nella fase post-procedurale.",
+      "confidence": 0.88
+    }
+  ]
 }

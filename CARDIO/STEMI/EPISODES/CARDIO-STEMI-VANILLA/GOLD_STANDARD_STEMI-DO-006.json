@@ -5,5 +5,42 @@
   "patient_id_hash": "RSSMRA58L12H501X",
   "outcome": "not_applicable",
   "confidence": 0.93,
-  "rationale": "La regola STEMI-DO-006 richiede l'esecuzione di un ECG a 12 derivazioni aggiuntivo in caso di sintomi ricorrenti o incertezza diagnostica. Nell'episodio in esame: (1) il primo ECG pre-ospedaliero (ore 07:44) era chiaramente diagnostico per STEMI antero-laterale (ST elevato 3 mm in V2-V4, 2 mm in V5-V6 con sottoslivellamento reciproco), senza alcuna incertezza diagnostica documentata; (2) la rete IMA è stata attivata immediatamente alle 07:47 e la strategia di riperfusione con PCI primaria è stata confermata e completata con successo (door-to-balloon 53 minuti); (3) non risultano documentati episodi di sintomi ischemici ricorrenti dopo l'ECG iniziale – il dolore toracico era in corso fin dall'esordio e si è progressivamente ridotto (NRS 9→6→0) fino alla completa risoluzione dopo PCI; (4) nessun clinico ha documentato incertezza diagnostica in nessuna fase del percorso. Pertanto, nessun criterio di inclusione (sintomi ricorrenti o incertezza diagnostica) risulta soddisfatto e il criterio di esclusione (STEMI confermato con riperfusione attivata) è pienamente soddisfatto. L'ECG post-PCI (ore 10:15, record #10) è stato eseguito per valutazione della riperfusione e non in risposta a trigger della regola. Secondo la logica valutativa formale della regola, l'esito è 'not_applicable'. La documentazione è completa e dettagliata, conferendo elevata confidenza alla valutazione."
+  "rationale": "La regola STEMI-DO-006 prevede l'esecuzione di un ECG a 12 derivazioni aggiuntivo in presenza di sintomi ricorrenti o incertezza diagnostica. In questo episodio: (1) il primo ECG pre-ospedaliero (doc 1, ore 07:44) ha mostrato un quadro chiaramente diagnostico per STEMI antero-laterale (sopraslivellamento ST 3 mm V2-V4, 2 mm V5-V6, sottoslivellamento reciproco in II-III-aVF), senza alcuna incertezza diagnostica documentata; (2) la rete IMA è stata attivata immediatamente (ore 07:47) e la strategia di riperfusione con PCI primaria è stata prontamente avviata; (3) non si documentano sintomi ischemici ricorrenti in nessuna fase del ricovero: il dolore toracico era continuo e in riduzione progressiva (NRS 9/10 pre-ospedaliero, NRS 6/10 al triage, NRS 0/10 dopo PCI) e non vi è mai stata recidiva anginosa durante la degenza in UTIC e in reparto ordinario. Poiché nessuna delle due condizioni trigger della regola (sintomi ricorrenti o incertezza diagnostica) si è verificata, e poiché la diagnosi di STEMI è stata confermata fin dal primo ECG con immediata attivazione della riperfusione (criterio di esclusione STEMI-DO-006-EXC-01 soddisfatto), la regola risulta non applicabile a questo episodio clinico.",
+  "supporting_documents": [
+    {
+      "document_id": "1",
+      "rationale": "Il referto ECG pre-ospedaliero documenta un quadro chiaramente diagnostico per STEMI antero-laterale con sopraslivellamento del tratto ST in V2-V6, I e aVL e sottoslivellamento reciproco, escludendo qualsiasi incertezza diagnostica dopo il primo ECG a 12 derivazioni.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "2",
+      "rationale": "Il verbale 118 conferma il dolore toracico continuo (non ricorrente) dall'esordio, la diagnosi pre-ospedaliera di STEMI e l'attivazione immediata della rete IMA alle 07:47 con preallerta del centro HUB, soddisfacendo così il criterio di esclusione (STEMI confermato e riperfusione attivata).",
+      "confidence": 0.93
+    },
+    {
+      "document_id": "4",
+      "rationale": "La valutazione medica in PS conferma la diagnosi di STEMI senza incertezza, ribadisce l'indicazione a PCI primaria e documenta l'assenza di motivi per dubitare della diagnosi, supportando la non applicabilità della regola.",
+      "confidence": 0.92
+    },
+    {
+      "document_id": "9",
+      "rationale": "Il referto di emodinamica documenta l'esecuzione della PCI primaria con riperfusione efficace (TIMI 3), confermando che la strategia di riperfusione è stata completata, rendendo non applicabile il trigger della regola nella fase diagnostica.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "10",
+      "rationale": "L'ECG post-PCI documenta una riduzione del sopraslivellamento ST > 50% e assenza di aritmie, confermando riperfusione efficace. Non vi è menzione di sintomi ricorrenti o incertezza diagnostica che abbiano motivato l'esecuzione di questo tracciato.",
+      "confidence": 0.88
+    },
+    {
+      "document_id": "11",
+      "rationale": "Il diario clinico UTIC post-PCI riporta paziente asintomatico per dolore toracico (NRS 0/10), emodinamicamente stabile, senza alcuna recidiva ischemica che avrebbe potuto attivare il trigger della regola in esame.",
+      "confidence": 0.88
+    },
+    {
+      "document_id": "36",
+      "rationale": "La lettera di dimissione sintetizza l'intero decorso confermando l'assenza di recidive ischemiche e di complicanze aritmiche durante il ricovero, consolidando la valutazione di non applicabilità della regola per assenza di trigger.",
+      "confidence": 0.87
+    }
+  ]
 }

@@ -19,7 +19,7 @@ import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from time import perf_counter
+from time import perf_counter, sleep
 from urllib import error, request
 
 ROOT = Path(__file__).resolve().parent
@@ -50,6 +50,18 @@ COMPARISON_MODELS = {
     "13": "google/gemma-4-26b-a4b-it",
     "14": "google/gemma-4-31b-it",
     "15": "openai/gpt-5.4-pro",
+    "16": "z-ai/glm-5-turbo",
+    "17": "meta-llama/llama-3.3-70b-instruct",
+    "18": "mistralai/mistral-small-3.2-24b-instruct",
+    "19": "qwen/qwen3.5-flash-02-23",
+    "20": "qwen/qwen3.5-9b",
+    "21": "qwen/qwen3.5-27b",
+    "22": "qwen/qwen3.6-plus:free",
+    "23": "openai/gpt-oss-safeguard-20b:nitro",
+    "24": "meta-llama/llama-3.1-8b-instruct:nitro",
+    "25": "z-ai/glm-4.7",
+    "26": "qwen/qwen3-235b-a22b-2507",
+    "27": "moonshotai/kimi-k2.5",
 }
 
 REASONING_EFFORTS = {
@@ -58,11 +70,42 @@ REASONING_EFFORTS = {
     "3": "high",
 }
 
+
+def _env_int(name: str, default: int, *, minimum: int = 0) -> int:
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return value if value >= minimum else default
+
+
+def _env_float(name: str, default: float, *, minimum: float = 0.0) -> float:
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        return default
+    return value if value >= minimum else default
+
+
+OPENROUTER_MAX_RETRIES = _env_int("OPENROUTER_MAX_RETRIES", 3, minimum=0)
+OPENROUTER_RETRY_BASE_DELAY_SEC = _env_float("OPENROUTER_RETRY_BASE_DELAY_SEC", 1.5, minimum=0.1)
+OPENROUTER_RETRY_MAX_DELAY_SEC = _env_float("OPENROUTER_RETRY_MAX_DELAY_SEC", 20.0, minimum=0.1)
+
 RUNAWAY_TOKEN_LIMITS_BY_MODEL: dict[str, int | None] = {
     model_name: None for model_name in COMPARISON_MODELS.values()
 }
+# Modello 1 (qwen/qwen3.5-35b-a3b): cap esplicito richiesto.
+RUNAWAY_TOKEN_LIMITS_BY_MODEL["qwen/qwen3.5-35b-a3b"] = 10000
 # Modello 3 (google/gemini-3.1-flash-lite-preview): cap esplicito richiesto.
 RUNAWAY_TOKEN_LIMITS_BY_MODEL["google/gemini-3.1-flash-lite-preview"] = 10000
+# Modello 26 (qwen/qwen3-235b-a22b-2507): cap esplicito richiesto.
+RUNAWAY_TOKEN_LIMITS_BY_MODEL["qwen/qwen3-235b-a22b-2507"] = 10000
 _RUNAWAY_TOKEN_LIMITS_BY_MODEL_NORM = {
     model_name.lower(): limit for model_name, limit in RUNAWAY_TOKEN_LIMITS_BY_MODEL.items()
 }
@@ -78,6 +121,17 @@ OUTCOME_ALIGNMENT_TRUTH_MATRIX: dict[tuple[str, str], float] = {
     ("not_evaluable", "not_applicable"): 0.60,
 }
 
+_RETRYABLE_OPENROUTER_STATUS_CODES = {408, 409, 425, 429, 500, 502, 503, 504}
+_RETRYABLE_OPENROUTER_TEXT_MARKERS = (
+    "temporarily rate-limited",
+    "rate-limited",
+    "rate limit",
+    "too many requests",
+    "please retry",
+    "try again",
+    "overloaded",
+)
+
 
 def _provider_for_model(model: str) -> dict | None:
     m = (model or "").strip().lower()
@@ -87,8 +141,6 @@ def _provider_for_model(model: str) -> dict | None:
         return {"order": ["novita/bf16"], "allow_fallbacks": False}
     if m.startswith("google/gemini"):
         return {"order": ["google-vertex"], "allow_fallbacks": False}
-    if m.startswith("qwen/"):
-        return {"order": ["parasail/fp8"], "allow_fallbacks": False}
     return None
 
 
@@ -170,34 +222,151 @@ def _sanitize_json_schema_for_openrouter(schema: object) -> object:
     return schema
 
 
-def _post_openrouter_with_meta(api_key: str, payload: dict) -> tuple[str, str | None]:
-    data = json.dumps(payload).encode("utf-8")
-    req = request.Request(
-        OPENROUTER_URL,
-        data=data,
-        method="POST",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://local.stemi-rule-checker",
-            "X-Title": "STEMI Rule Checker",
-        },
-    )
+def _to_float(value: object) -> float | None:
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        txt = value.strip()
+        if not txt:
+            return None
+        try:
+            return float(txt)
+        except ValueError:
+            return None
+    return None
+
+
+def _extract_inference_cost_usd(body: dict, header_cost_usd: float | None) -> float | None:
+    usage_raw = body.get("usage")
+    usage: dict[str, object] = usage_raw if isinstance(usage_raw, dict) else {}
+
+    direct_candidates = [
+        body.get("cost"),
+        body.get("total_cost"),
+        body.get("cost_usd"),
+        body.get("total_cost_usd"),
+        usage.get("cost"),
+        usage.get("total_cost"),
+        usage.get("cost_usd"),
+        usage.get("total_cost_usd"),
+        usage.get("usd"),
+        usage.get("usd_cost"),
+        usage.get("estimated_cost"),
+    ]
+    for candidate in direct_candidates:
+        val = _to_float(candidate)
+        if val is not None:
+            return val
+
+    input_cost = _to_float(usage.get("input_cost"))
+    output_cost = _to_float(usage.get("output_cost"))
+    if input_cost is not None or output_cost is not None:
+        return (input_cost or 0.0) + (output_cost or 0.0)
+
+    return header_cost_usd
+
+
+def _is_retryable_openrouter_http_error(*, status_code: int, details: str) -> bool:
+    if status_code in _RETRYABLE_OPENROUTER_STATUS_CODES:
+        return True
+
+    details_norm = (details or "").strip().lower()
+    return any(marker in details_norm for marker in _RETRYABLE_OPENROUTER_TEXT_MARKERS)
+
+
+def _retry_after_seconds_from_headers(headers: object) -> float | None:
+    if headers is None:
+        return None
+
+    getter = getattr(headers, "get", None)
+    if not callable(getter):
+        return None
+
+    raw_retry_after = getter("Retry-After")
+    if raw_retry_after is None:
+        return None
+
+    txt = str(raw_retry_after).strip()
+    if not txt:
+        return None
 
     try:
-        with request.urlopen(req, timeout=240) as resp:
-            raw = resp.read().decode("utf-8")
-    except error.HTTPError as e:
-        details = e.read().decode("utf-8", errors="replace")
-        raise RuleCheckError(f"OpenRouter HTTP {e.code}: {details}") from e
-    except Exception as e:
-        raise RuleCheckError(f"Errore chiamata OpenRouter: {e}") from e
+        seconds = float(txt)
+    except ValueError:
+        return None
+
+    return seconds if seconds >= 0 else None
+
+
+def _retry_delay_seconds(*, retry_index: int, retry_after_seconds: float | None) -> float:
+    if retry_after_seconds is not None:
+        return min(max(0.1, retry_after_seconds), OPENROUTER_RETRY_MAX_DELAY_SEC)
+
+    delay = OPENROUTER_RETRY_BASE_DELAY_SEC * (2**retry_index)
+    return min(max(0.1, delay), OPENROUTER_RETRY_MAX_DELAY_SEC)
+
+
+def _post_openrouter_with_meta(api_key: str, payload: dict) -> tuple[str, str | None, float | None]:
+    data = json.dumps(payload).encode("utf-8")
+    model_name = str(payload.get("model", "")).strip() or "<unknown-model>"
+    retry_count = 0
+
+    while True:
+        req = request.Request(
+            OPENROUTER_URL,
+            data=data,
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://local.stemi-rule-checker",
+                "X-Title": "STEMI Rule Checker",
+            },
+        )
+
+        try:
+            with request.urlopen(req, timeout=240) as resp:
+                header_cost_usd = _to_float(resp.headers.get("x-openrouter-cost"))
+                raw = resp.read().decode("utf-8")
+            break
+        except error.HTTPError as e:
+            details = e.read().decode("utf-8", errors="replace")
+            if (
+                _is_retryable_openrouter_http_error(status_code=e.code, details=details)
+                and retry_count < OPENROUTER_MAX_RETRIES
+            ):
+                wait_seconds = _retry_delay_seconds(
+                    retry_index=retry_count,
+                    retry_after_seconds=_retry_after_seconds_from_headers(getattr(e, "headers", None)),
+                )
+                retry_count += 1
+                print(
+                    f"[WARN] OpenRouter HTTP {e.code} su {model_name}: retry {retry_count}/{OPENROUTER_MAX_RETRIES} "
+                    f"tra {wait_seconds:.1f}s."
+                )
+                sleep(wait_seconds)
+                continue
+            raise RuleCheckError(f"OpenRouter HTTP {e.code}: {details}") from e
+        except (error.URLError, TimeoutError) as e:
+            if retry_count < OPENROUTER_MAX_RETRIES:
+                wait_seconds = _retry_delay_seconds(retry_index=retry_count, retry_after_seconds=None)
+                retry_count += 1
+                print(
+                    f"[WARN] Errore rete OpenRouter su {model_name}: retry {retry_count}/{OPENROUTER_MAX_RETRIES} "
+                    f"tra {wait_seconds:.1f}s."
+                )
+                sleep(wait_seconds)
+                continue
+            raise RuleCheckError(f"Errore chiamata OpenRouter: {e}") from e
+        except Exception as e:
+            raise RuleCheckError(f"Errore chiamata OpenRouter: {e}") from e
 
     try:
         body = json.loads(raw)
         choice0 = body["choices"][0]
         content = choice0["message"]["content"]
         finish_reason = choice0.get("finish_reason")
+        cost_usd = _extract_inference_cost_usd(body, header_cost_usd)
     except Exception as e:
         raise RuleCheckError(f"Risposta OpenRouter non valida: {raw}") from e
 
@@ -207,11 +376,11 @@ def _post_openrouter_with_meta(api_key: str, payload: dict) -> tuple[str, str | 
     if not isinstance(content, str) or not content.strip():
         raise RuleCheckError("La risposta del modello non contiene JSON testuale.")
 
-    return content, finish_reason
+    return content, finish_reason, cost_usd
 
 
 def _post_openrouter(api_key: str, payload: dict) -> str:
-    content, _ = _post_openrouter_with_meta(api_key=api_key, payload=payload)
+    content, _, _ = _post_openrouter_with_meta(api_key=api_key, payload=payload)
     return content
 
 
@@ -249,7 +418,7 @@ def _discover_episodes(episodes_dir: Path) -> list[EpisodeSelection]:
 def _choose_episode(episodes_dir: Path) -> EpisodeSelection:
     options = _discover_episodes(episodes_dir)
     if not options:
-        raise RuleCheckError(f"Nessun episodio selezionabile trovato in: {episodes_dir}")
+        raise RuleCheckError(f"Nessun episodio selezionabile trovato in: {episodes_dir.name}")
 
     print("\nEpisodi disponibili:")
     for i, opt in enumerate(options, start=1):
@@ -304,7 +473,9 @@ def _build_prompt(base_prompt: str, episode: dict, rule: dict) -> str:
     )
 
 
-def _call_openrouter_check(*, api_key: str, model: str, prompt_text: str, check_schema: dict, reasoning_effort: str) -> dict:
+def _call_openrouter_check(
+    *, api_key: str, model: str, prompt_text: str, check_schema: dict, reasoning_effort: str
+) -> tuple[dict, float | None]:
     system_prompt = (
         "Sei un valutatore clinico STEMI. "
         "Ricevi episodio + regola e devi produrre esclusivamente un JSON conforme "
@@ -315,7 +486,12 @@ def _call_openrouter_check(*, api_key: str, model: str, prompt_text: str, check_
     provider_cfg = _provider_for_model(model)
     runaway_limit = _runaway_token_limit_for_model(model)
 
-    def _invoke_once(user_prompt_text: str, *, effort: str, temperature: float) -> tuple[str, str | None]:
+    def _invoke_once(
+        user_prompt_text: str,
+        *,
+        effort: str,
+        temperature: float,
+    ) -> tuple[str, str | None, float | None]:
         payload = {
             "model": model,
             "reasoning": {"effort": effort},
@@ -369,7 +545,20 @@ def _call_openrouter_check(*, api_key: str, model: str, prompt_text: str, check_
                 fallback_payload["max_tokens"] = runaway_limit
             return _post_openrouter_with_meta(api_key=api_key, payload=fallback_payload)
 
-    content, finish_reason = _invoke_once(prompt_text, effort=reasoning_effort, temperature=0.1)
+    call_count = 0
+    all_costs_known = True
+    total_cost_usd = 0.0
+
+    def _register_cost(cost_usd: float | None) -> None:
+        nonlocal call_count, all_costs_known, total_cost_usd
+        call_count += 1
+        if cost_usd is None:
+            all_costs_known = False
+            return
+        total_cost_usd += max(0.0, float(cost_usd))
+
+    content, finish_reason, call_cost_usd = _invoke_once(prompt_text, effort=reasoning_effort, temperature=0.1)
+    _register_cost(call_cost_usd)
 
     if runaway_limit is not None and _is_runaway_cap_hit(finish_reason):
         retry_prompt_text = (
@@ -379,7 +568,8 @@ def _call_openrouter_check(*, api_key: str, model: str, prompt_text: str, check_
             "- Evita ripetizioni e dettagli non necessari.\n"
             "- Restituisci direttamente il JSON finale.\n"
         )
-        content, finish_reason = _invoke_once(retry_prompt_text, effort="low", temperature=0.0)
+        content, finish_reason, call_cost_usd = _invoke_once(retry_prompt_text, effort="low", temperature=0.0)
+        _register_cost(call_cost_usd)
 
         if _is_runaway_cap_hit(finish_reason):
             raise RuleCheckError(
@@ -388,7 +578,8 @@ def _call_openrouter_check(*, api_key: str, model: str, prompt_text: str, check_
 
     cleaned = _strip_markdown_fences(content)
     try:
-        return json.loads(cleaned)
+        check_cost_usd = total_cost_usd if (call_count > 0 and all_costs_known) else None
+        return json.loads(cleaned), check_cost_usd
     except json.JSONDecodeError as e:
         raise RuleCheckError(f"JSON modello non parsabile: {e}. Estratto: {cleaned[:700]}") from e
 
@@ -405,6 +596,25 @@ def _rationale_alignment_score_jaccard_0_10(candidate: dict, gold: dict) -> int:
     inter = cand_tokens & gold_tokens
     jaccard = (len(inter) / len(union)) if union else 0.0
     return _clip_0_10(10.0 * jaccard)
+
+
+def _supporting_documents_for_alignment(report: dict) -> list[dict]:
+    docs = report.get("supporting_documents") if isinstance(report, dict) else None
+    if not isinstance(docs, list):
+        return []
+
+    prepared: list[dict] = []
+    for item in docs:
+        if not isinstance(item, dict):
+            continue
+        prepared.append(
+            {
+                "document_id": item.get("document_id"),
+                "rationale": item.get("rationale"),
+                "confidence": item.get("confidence"),
+            }
+        )
+    return prepared
 
 
 def _call_openrouter_rationale_alignment(
@@ -434,11 +644,30 @@ def _call_openrouter_rationale_alignment(
     system_prompt = (judge_prompt_text or "").strip()
     if not system_prompt:
         raise RuleCheckError("Prompt giudice rationale vuoto.")
+
+    compare_payload = {
+        "candidate": {
+            "outcome": candidate.get("outcome"),
+            "confidence": candidate.get("confidence"),
+            "rationale": candidate.get("rationale"),
+            "supporting_documents": _supporting_documents_for_alignment(candidate),
+        },
+        "gold": {
+            "outcome": gold.get("outcome"),
+            "confidence": gold.get("confidence"),
+            "rationale": gold.get("rationale"),
+            "supporting_documents": _supporting_documents_for_alignment(gold),
+        },
+    }
+
     user_prompt = (
-        "Assegna un punteggio alignment_score_0_10 intero da 0 a 10 al rationale candidate "
-        "rispetto al rationale gold.\n\n"
+        "Assegna un punteggio alignment_score_0_10 intero da 0 a 10 al report candidate rispetto al report gold.\n"
+        "Valuta congiuntamente:\n"
+        "- allineamento del rationale generale;\n"
+        "- allineamento dei supporting_documents (document_id, rationale per documento, confidence per documento);\n"
+        "- coerenza tra rationale generale e razionali per-documento all'interno dello stesso report.\n\n"
         "Input confronto:\n"
-        f"{json.dumps({'candidate': {'outcome': candidate.get('outcome'), 'confidence': candidate.get('confidence'), 'rationale': candidate.get('rationale')}, 'gold': {'outcome': gold.get('outcome'), 'confidence': gold.get('confidence'), 'rationale': gold.get('rationale')}}, ensure_ascii=False)}"
+        f"{json.dumps(compare_payload, ensure_ascii=False)}"
     )
 
     schema_for_provider = _sanitize_json_schema_for_openrouter(schema)
@@ -558,6 +787,35 @@ def _clip_0_10(value: float) -> int:
     return int(v)
 
 
+def _format_conformity_score_colored(score_0_10: int) -> str:
+    score = _clip_0_10(score_0_10)
+    plain = f"{score}/10"
+
+    # Allow users to disable terminal colors when needed.
+    if os.getenv("NO_COLOR"):
+        return plain
+
+    if score <= 3:
+        color = "\x1b[31m"  # red
+    elif score <= 5:
+        color = "\x1b[38;5;208m"  # orange
+    elif score <= 7:
+        color = "\x1b[33m"  # yellow
+    else:
+        color = "\x1b[32m"  # green
+
+    reset = "\x1b[0m"
+    return f"{color}{plain}{reset}"
+
+
+def _format_inference_cost_usd(cost_usd: float | None) -> str:
+    if not isinstance(cost_usd, (int, float)):
+        return "N/D"
+    if cost_usd < 0:
+        return "N/D"
+    return f"${float(cost_usd):.6f}"
+
+
 def _outcome_alignment_score_0_10(candidate: dict, gold: dict) -> int:
     cand_outcome = _normalize_text(candidate.get("outcome"))
     gold_outcome = _normalize_text(gold.get("outcome"))
@@ -614,20 +872,20 @@ def main() -> int:
         return 1
 
     if not CHECK_SCHEMA_PATH.exists():
-        print(f"Errore: schema check non trovato: {CHECK_SCHEMA_PATH}")
+        print(f"Errore: schema check non trovato: {CHECK_SCHEMA_PATH.name}")
         return 1
 
     if not BASE_PROMPT_PATH.exists():
-        print(f"Errore: prompt base non trovato: {BASE_PROMPT_PATH}")
+        print(f"Errore: prompt base non trovato: {BASE_PROMPT_PATH.name}")
         return 1
 
     if not mode_gold and not RATIONALE_ALIGNMENT_PROMPT_PATH.exists():
-        print(f"Errore: prompt giudice rationale non trovato: {RATIONALE_ALIGNMENT_PROMPT_PATH}")
+        print(f"Errore: prompt giudice rationale non trovato: {RATIONALE_ALIGNMENT_PROMPT_PATH.name}")
         return 1
 
     rule_files = _load_rule_files(RULES_DIR)
     if not rule_files:
-        print(f"Errore: nessuna regola trovata in {RULES_DIR}")
+        print(f"Errore: nessuna regola trovata in {RULES_DIR.name}")
         return 1
 
     try:
@@ -660,15 +918,22 @@ def main() -> int:
         "yes",
     }
 
-    print(f"\nEpisodio selezionato: {episode_selection.episode_input_path}")
-    print(f"Cartella output:      {episode_selection.output_dir}")
+    print(f"\nEpisodio selezionato: {episode_selection.episode_input_path.name}")
+    print(f"Cartella output:      {episode_selection.output_dir.name}")
     print(f"Numero regole:        {len(rule_files)}")
     print(f"Modalità:             {'GOLD' if mode_gold else 'COMPARAZIONE'}")
     print(f"Modello:              {model}")
+    provider_cfg = _provider_for_model(model)
+    provider_display = "NULL" if provider_cfg is None else json.dumps(provider_cfg, ensure_ascii=False)
+    print(f"Provider:             {provider_display}")
     print(f"Runaway token cap:    {_runaway_token_limit_for_model(model)}")
+    print(
+        f"Retry OpenRouter:     {OPENROUTER_MAX_RETRIES} "
+        f"(base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)"
+    )
     if not mode_gold:
         print(f"Giudice rationale:    {rationale_alignment_model}")
-        print(f"Prompt giudice:       {RATIONALE_ALIGNMENT_PROMPT_PATH}")
+        print(f"Prompt giudice:       {RATIONALE_ALIGNMENT_PROMPT_PATH.name}")
     print(f"Reasoning effort:     {reasoning_effort}")
     print("Inizio elaborazione...\n")
 
@@ -678,6 +943,7 @@ def main() -> int:
     for rule_path in rule_files:
         rule_name = rule_path.stem
         check_elapsed_sec: float | None = None
+        check_cost_usd: float | None = None
 
         if mode_gold:
             out_path = episode_selection.output_dir / f"GOLD_STANDARD_{rule_name}.json"
@@ -686,7 +952,7 @@ def main() -> int:
             out_path = episode_selection.output_dir / f"CHECK_{model_safe}_{rule_name}.json"
 
         if out_path.exists() and not overwrite:
-            print(f"[SKIP] {rule_name} -> {out_path} (esistente)")
+            print(f"[SKIP] {rule_name} -> {out_path.name} (esistente)")
             continue
 
         try:
@@ -695,7 +961,7 @@ def main() -> int:
 
             check_started = perf_counter()
             try:
-                result_json = _call_openrouter_check(
+                result_json, check_cost_usd = _call_openrouter_check(
                     api_key=api_key,
                     model=model,
                     prompt_text=prompt_text,
@@ -719,13 +985,17 @@ def main() -> int:
             _write_json(out_path, result_json)
 
             if mode_gold:
-                print(f"[OK ] {rule_name} -> {out_path} | tempo check modello: {check_elapsed_sec:.2f}s")
+                print(
+                    f"[OK ] {rule_name} -> {out_path.name} | tempo check modello: {check_elapsed_sec:.2f}s "
+                    f"| costo inferenza modello: {_format_inference_cost_usd(check_cost_usd)}"
+                )
             else:
                 gold_path = episode_selection.output_dir / f"GOLD_STANDARD_{rule_name}.json"
                 if not gold_path.exists():
                     print(
-                        f"[OK ] {rule_name} -> {out_path} | conformità vs GOLD: N/D (gold mancante) "
-                        f"| tempo check modello: {check_elapsed_sec:.2f}s"
+                        f"[OK ] {rule_name} -> {out_path.name} | conformità vs GOLD: N/D (gold mancante) "
+                        f"| tempo check modello: {check_elapsed_sec:.2f}s "
+                        f"| costo inferenza modello: {_format_inference_cost_usd(check_cost_usd)}"
                     )
                 else:
                     gold_json = _read_json(gold_path)
@@ -751,27 +1021,35 @@ def main() -> int:
                         inferential_alignment_0_10=inferential_alignment,
                         outcome_alignment_0_10=outcome_alignment,
                     )
+                    conformity_colored = _format_conformity_score_colored(conformity)
                     print(
-                        f"[OK ] {rule_name} -> {out_path} | conformità vs GOLD: {conformity}/10 "
+                        f"[OK ] {rule_name} -> {out_path.name} | conformità vs GOLD: {conformity_colored} "
                         f"| giudice rationale: {inferential_alignment}/10 ({rationale_mode}) "
                         f"| allineamento outcome: {outcome_alignment}/10 (pesi 60/40) "
-                        f"| tempo check modello: {check_elapsed_sec:.2f}s"
+                        f"| tempo check modello: {check_elapsed_sec:.2f}s "
+                        f"| costo inferenza modello: {_format_inference_cost_usd(check_cost_usd)}"
                     )
 
             ok_count += 1
 
         except Exception as e:
             if check_elapsed_sec is None:
-                print(f"[KO ] {rule_name} -> errore: {e}")
+                print(
+                    f"[KO ] {rule_name} -> errore: {e} "
+                    f"| costo inferenza modello: {_format_inference_cost_usd(check_cost_usd)}"
+                )
             else:
-                print(f"[KO ] {rule_name} -> errore: {e} | tempo check modello: {check_elapsed_sec:.2f}s")
+                print(
+                    f"[KO ] {rule_name} -> errore: {e} | tempo check modello: {check_elapsed_sec:.2f}s "
+                    f"| costo inferenza modello: {_format_inference_cost_usd(check_cost_usd)}"
+                )
             ko_count += 1
 
     print("\n=== Riepilogo ===")
     print(f"OK: {ok_count}")
     print(f"KO: {ko_count}")
-    print(f"Output directory: {episode_selection.output_dir}")
-    print(f"Template prompt riferimento: {REFERENCE_PROMPT_TEMPLATE_PATH}")
+    print(f"Output directory: {episode_selection.output_dir.name}")
+    print(f"Template prompt riferimento: {REFERENCE_PROMPT_TEMPLATE_PATH.name}")
     return 0 if ko_count == 0 else 2
 
 

@@ -1,9 +1,41 @@
 {
-  "check_id": "CHK-STEMI-DO-008-20260318-RSSMRA58L12H501X",
-  "check_timestamp": "2025-07-14T20:30:00Z",
+  "check_id": "CHK-STEMI-DO-008-20260323-RSSMRA58",
+  "check_timestamp": "2026-03-23T12:00:00+01:00",
   "rule_id": "STEMI-DO-008",
-  "patient_id_hash": "RSSMRA58L12H501X",
+  "patient_id_hash": "RSSMRA58L12H501X_hash",
   "outcome": "non_compliant",
   "confidence": 0.85,
-  "rationale": "Il paziente si è presentato in PS alle 08:02 con sospetta SCA e quadro ECG iniziale NON diagnostico per STEMI (sopraslivellamento <1.5 mm in DIII-aVF, giudicato 'non dirimente'). La regola era pertanto applicabile dalla presentazione fino alla riclassificazione come STEMI (11:02). Durante questa finestra diagnostica di circa 3 ore, l'algoritmo ESC con dosaggi seriati di hs-cTn a 0h/1h o 0h/2h non è stato rispettato. Il prelievo basale di hs-cTnI è stato eseguito alle 08:18 (valore 38 ng/L, lievemente sopra il 99° percentile). Tuttavia, il secondo prelievo è stato effettuato solo alle 11:58 (hs-cTnI 214 ng/L), con un intervallo di circa 220 minuti dal basale, ben al di fuori dei tempi protocollari previsti sia per lo schema 0h/1h (50-70 min) sia per lo schema 0h/2h (110-130 min). Non vi è evidenza di un prelievo intermedio a 1h (~09:18-09:28) né a 2h (~10:18-10:28). Inoltre, non è documentata alcuna interpretazione formale dell'algoritmo ESC (rule-in/rule-out/observe) con calcolo del delta assoluto di hs-cTn. Il medico di PS ha impostato un iter per 'SCA senza ST' con ECG seriati e dosaggio di hs-cTn, ma senza aderire alla tempistica algoritmata ESC. La diagnosi di STEMI è emersa solo alle 11:02 con la recrudescenza del dolore e la comparsa di sopraslivellamento netto, oltre 3 ore dopo l'ingresso. Non sono documentate eccezioni o giustificazioni per la deviazione dal protocollo seriato. Nessun criterio di esclusione era soddisfatto nella finestra di applicabilità (paziente emodinamicamente stabile, Killip I, ECG iniziale non diagnostico per STEMI, hs-cTn disponibile, presentazione non tardiva)."
+  "rationale": "Il paziente si è presentato in PS con dolore toracico sospetto per SCA e un ECG iniziale non diagnostico per STEMI conclamato (doc 1: sopraslivellamento inferiore <1.5 mm, giudicato non dirimente). Il medico di PS ha correttamente inquadrato il caso come SCA senza ST persistente e ha impostato un iter con dosaggio di hs-cTn e ECG seriati (doc 4). Il primo prelievo di hs-cTnI è stato eseguito alle 08:18 con risultato di 38 ng/L (doc 7). Tuttavia, il secondo prelievo seriato di hs-cTnI è stato eseguito solo alle 11:58 (doc 13), con un intervallo dal basale di 220 minuti (3 ore e 40 minuti). Questo intervallo è nettamente al di fuori sia del protocollo ESC 0h/1h (tolleranza 50-70 minuti) sia del protocollo 0h/2h (tolleranza 110-130 minuti). Non è documentata alcuna interpretazione algoritmata ESC (rule-in/rule-out/observe) né il calcolo del delta assoluto di hs-cTn. Il secondo dosaggio è stato ottenuto solo dopo che il quadro clinico era già evoluto in STEMI franco (ECG diagnostico alle 11:02, doc 9), rendendo di fatto inefficace la funzione diagnostica dell'algoritmo hs-cTn per NSTEMI. Nessuna delle eccezioni previste dalla regola (presentazione tardiva >72h, insufficienza renale terminale, indisponibilità del test hs-cTn) è applicabile al caso. Il mancato rispetto della tempistica ESC ha contribuito a un ritardo nella stratificazione diagnostica biochimica durante la finestra critica di osservazione in PS (08:18-11:02).",
+  "supporting_documents": [
+    {
+      "document_id": "4",
+      "rationale": "Valutazione medica di PS che documenta l'inquadramento iniziale come SCA senza ST persistente con piano di dosaggi seriati di hs-cTn: conferma l'applicabilità della regola e l'intenzione di utilizzare l'algoritmo, ma senza specificare il protocollo ESC 0h/1h o 0h/2h.",
+      "confidence": 0.9
+    },
+    {
+      "document_id": "7",
+      "rationale": "Referto di laboratorio che documenta il primo prelievo di hs-cTnI alle 08:18 con valore basale di 38 ng/L (lievemente sopra il 99° percentile). Indica il tempo 0 dell'algoritmo e la richiesta di controllo seriato, ma non il protocollo temporale previsto.",
+      "confidence": 0.92
+    },
+    {
+      "document_id": "8",
+      "rationale": "ECG seriato delle 09:36 che mostra persistenza di alterazioni inferiori non francamente conclusive per STEMI. A questo punto (1h18min dal basale hs-cTn) il secondo dosaggio avrebbe già dovuto essere stato eseguito nel protocollo 0h/1h, ma non risulta effettuato.",
+      "confidence": 0.8
+    },
+    {
+      "document_id": "9",
+      "rationale": "ECG delle 11:02 che documenta l'evoluzione in STEMI inferiore franco. A questo punto erano trascorsi 164 minuti dal primo prelievo senza che fosse stato eseguito il dosaggio seriato, dimostrando il mancato rispetto dell'algoritmo ESC durante la finestra di applicabilità.",
+      "confidence": 0.88
+    },
+    {
+      "document_id": "13",
+      "rationale": "Referto di laboratorio che documenta il secondo prelievo di hs-cTnI alle 11:58 (hs-cTnI 214 ng/L) con intervallo esplicito di 220 minuti dal basale, nettamente non conforme ai protocolli ESC 0h/1h o 0h/2h. Inoltre il prelievo è stato eseguito dopo la diagnosi di STEMI, annullando la finalità diagnostica differenziale dell'algoritmo.",
+      "confidence": 0.95
+    },
+    {
+      "document_id": "1",
+      "rationale": "ECG pre-ospedaliero che documenta alterazioni ECG non dirimenti per STEMI, confermando che all'ingresso in PS il paziente rientrava nei criteri di inclusione della regola (sospetta SCA senza sopraslivellamento persistente diagnostico).",
+      "confidence": 0.88
+    }
+  ]
 }
