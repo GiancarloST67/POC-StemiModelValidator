@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict EWLoJgZLLmpE9c9p8kMhOw05hsp5b8H2BxamWc402mcS4LY0TA8OuLBsvXb1rw0
+\restrict cckOwYUDLYd5GtsrFB3MObpHS4jPCTh6Fqbp4dheStfLlDFLhaWb2TN3JGlvGKK
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -100,6 +100,7 @@ CREATE TABLE riskm_manager_model_evaluation.compliance_instance (
     computing_time_ms integer,
     cost_in_dollar numeric(12,6),
     run_date timestamp with time zone DEFAULT now() NOT NULL,
+    run_instance_id bigint NOT NULL,
     CONSTRAINT ck_compliance_instance_computing_time_ms CHECK (((computing_time_ms IS NULL) OR (computing_time_ms >= 0))),
     CONSTRAINT ck_compliance_instance_confidence CHECK (((confidence IS NULL) OR ((confidence >= (0)::numeric) AND (confidence <= (1)::numeric)))),
     CONSTRAINT ck_compliance_instance_cost CHECK (((cost_in_dollar IS NULL) OR (cost_in_dollar >= (0)::numeric))),
@@ -178,6 +179,33 @@ CREATE TABLE riskm_manager_model_evaluation.document (
 
 ALTER TABLE riskm_manager_model_evaluation.document ALTER COLUMN document_id ADD GENERATED ALWAYS AS IDENTITY (
     SEQUENCE NAME riskm_manager_model_evaluation.document_document_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: gold_outcome; Type: TABLE; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+CREATE TABLE riskm_manager_model_evaluation.gold_outcome (
+    gold_outcome_id bigint NOT NULL,
+    rule_id bigint NOT NULL,
+    case_id bigint NOT NULL,
+    body jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: gold_outcome_gold_outcome_id_seq; Type: SEQUENCE; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE riskm_manager_model_evaluation.gold_outcome ALTER COLUMN gold_outcome_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME riskm_manager_model_evaluation.gold_outcome_gold_outcome_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -268,6 +296,30 @@ ALTER TABLE riskm_manager_model_evaluation.rule_definition ALTER COLUMN rule_id 
 
 
 --
+-- Name: run_instance; Type: TABLE; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+CREATE TABLE riskm_manager_model_evaluation.run_instance (
+    run_instance_id bigint NOT NULL,
+    run_datetime timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: run_instance_run_instance_id_seq; Type: SEQUENCE; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE riskm_manager_model_evaluation.run_instance ALTER COLUMN run_instance_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME riskm_manager_model_evaluation.run_instance_run_instance_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: clinical_case clinical_case_pkey; Type: CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
 --
 
@@ -324,6 +376,14 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.document
 
 
 --
+-- Name: gold_outcome gold_outcome_pkey; Type: CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE ONLY riskm_manager_model_evaluation.gold_outcome
+    ADD CONSTRAINT gold_outcome_pkey PRIMARY KEY (gold_outcome_id);
+
+
+--
 -- Name: inference_params inference_params_pkey; Type: CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
 --
 
@@ -364,11 +424,27 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.rule_definition
 
 
 --
+-- Name: run_instance run_instance_pkey; Type: CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE ONLY riskm_manager_model_evaluation.run_instance
+    ADD CONSTRAINT run_instance_pkey PRIMARY KEY (run_instance_id);
+
+
+--
 -- Name: clinical_case uq_case_identifier_per_pathway; Type: CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
 --
 
 ALTER TABLE ONLY riskm_manager_model_evaluation.clinical_case
     ADD CONSTRAINT uq_case_identifier_per_pathway UNIQUE (clinical_pathway_id, identifier);
+
+
+--
+-- Name: gold_outcome uq_gold_outcome_rule_case; Type: CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE ONLY riskm_manager_model_evaluation.gold_outcome
+    ADD CONSTRAINT uq_gold_outcome_rule_case UNIQUE (rule_id, case_id);
 
 
 --
@@ -430,6 +506,13 @@ CREATE INDEX ix_compliance_instance_run_date ON riskm_manager_model_evaluation.c
 
 
 --
+-- Name: ix_compliance_instance_run_instance; Type: INDEX; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+CREATE INDEX ix_compliance_instance_run_instance ON riskm_manager_model_evaluation.compliance_instance USING btree (run_instance_id);
+
+
+--
 -- Name: ix_compliance_supporting_document_document; Type: INDEX; Schema: riskm_manager_model_evaluation; Owner: -
 --
 
@@ -444,6 +527,20 @@ CREATE INDEX ix_document_case ON riskm_manager_model_evaluation.document USING b
 
 
 --
+-- Name: ix_gold_outcome_case; Type: INDEX; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+CREATE INDEX ix_gold_outcome_case ON riskm_manager_model_evaluation.gold_outcome USING btree (case_id);
+
+
+--
+-- Name: ix_gold_outcome_rule; Type: INDEX; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+CREATE INDEX ix_gold_outcome_rule ON riskm_manager_model_evaluation.gold_outcome USING btree (rule_id);
+
+
+--
 -- Name: ix_inference_params_pathway; Type: INDEX; Schema: riskm_manager_model_evaluation; Owner: -
 --
 
@@ -455,6 +552,13 @@ CREATE INDEX ix_inference_params_pathway ON riskm_manager_model_evaluation.infer
 --
 
 CREATE INDEX ix_rule_definition_pathway ON riskm_manager_model_evaluation.rule_definition USING btree (clinical_pathway_id);
+
+
+--
+-- Name: ix_run_instance_run_datetime; Type: INDEX; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+CREATE INDEX ix_run_instance_run_datetime ON riskm_manager_model_evaluation.run_instance USING btree (run_datetime);
 
 
 --
@@ -506,6 +610,14 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.compliance_instance
 
 
 --
+-- Name: compliance_instance compliance_instance_run_instance_id_fkey; Type: FK CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE ONLY riskm_manager_model_evaluation.compliance_instance
+    ADD CONSTRAINT compliance_instance_run_instance_id_fkey FOREIGN KEY (run_instance_id) REFERENCES riskm_manager_model_evaluation.run_instance(run_instance_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
 -- Name: compliance_supporting_document compliance_supporting_document_compliance_instance_id_fkey; Type: FK CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
 --
 
@@ -530,6 +642,22 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.document
 
 
 --
+-- Name: gold_outcome gold_outcome_case_id_fkey; Type: FK CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE ONLY riskm_manager_model_evaluation.gold_outcome
+    ADD CONSTRAINT gold_outcome_case_id_fkey FOREIGN KEY (case_id) REFERENCES riskm_manager_model_evaluation.clinical_case(case_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: gold_outcome gold_outcome_rule_id_fkey; Type: FK CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE ONLY riskm_manager_model_evaluation.gold_outcome
+    ADD CONSTRAINT gold_outcome_rule_id_fkey FOREIGN KEY (rule_id) REFERENCES riskm_manager_model_evaluation.rule_definition(rule_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
 -- Name: inference_params inference_params_clinical_pathway_id_fkey; Type: FK CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
 --
 
@@ -549,7 +677,7 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.rule_definition
 -- PostgreSQL database dump complete
 --
 
-\unrestrict EWLoJgZLLmpE9c9p8kMhOw05hsp5b8H2BxamWc402mcS4LY0TA8OuLBsvXb1rw0
+\unrestrict cckOwYUDLYd5GtsrFB3MObpHS4jPCTh6Fqbp4dheStfLlDFLhaWb2TN3JGlvGKK
 
 
 
@@ -561,7 +689,7 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.rule_definition
 -- PostgreSQL database dump
 --
 
-\restrict DUIxNAfMnNiXztkr8MgyeGkqdgndIhVRONc07KHxu8VFXe3E3aABv2HhDF077Kg
+\restrict Pd3r42WeuPuYNFt4ZwM2YG1Akc9j2NhNIcQLz1fhtmZNAAK4hsgEAF5hHbF38nY
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -681,5 +809,5 @@ SELECT pg_catalog.setval('riskm_manager_model_evaluation.rule_definition_rule_id
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DUIxNAfMnNiXztkr8MgyeGkqdgndIhVRONc07KHxu8VFXe3E3aABv2HhDF077Kg
+\unrestrict Pd3r42WeuPuYNFt4ZwM2YG1Akc9j2NhNIcQLz1fhtmZNAAK4hsgEAF5hHbF38nY
 
