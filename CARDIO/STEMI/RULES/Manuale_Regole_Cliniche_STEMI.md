@@ -1,4 +1,4 @@
-# Manuale delle Regole Cliniche: PDTA STEMI
+﻿# Manuale delle Regole Cliniche: PDTA STEMI
 **Percorso Diagnostico Terapeutico Assistenziale per Infarto Miocardico con Sopraslivellamento del tratto ST**
 
 ---
@@ -52,7 +52,7 @@ Di seguito sono riportate le regole cliniche formalizzate, afferenti al monitora
 - **Grado di Obbligatorietà:** Raccomandata
 - **Forza della Raccomandazione Clinica:** Classe I (fortemente raccomandato)
 - **Livello di Evidenza Scientifico:** Livello di evidenza B
-- **Dichiarazione Originale:** Si raccomanda che i pazienti con sospetto STEMI siano immediatamente valutati per una emergency reperfusion strategy.
+
 - **Declinazione Operativa per la Valutazione:** Ogni paziente con sospetto clinico ed elettrocardiografico di STEMI deve essere immediatamente valutato per determinare la strategia di riperfusione d'emergenza più appropriata.
 - **Intento di Risk Management:** Garantire che ogni paziente con sospetto STEMI riceva una valutazione tempestiva finalizzata alla selezione e attivazione della strategia di riperfusione d'emergenza più appropriata, riducendo il tempo totale di ischemia miocardica.
 - **Razionale Scientifico:** La tempestività della riperfusione miocardica è il principale determinante della prognosi nei pazienti con STEMI. La valutazione immediata per la strategia di riperfusione consente di ridurre il ritardo tra il primo contatto medico e l'apertura del vaso coronarico occluso, migliorando la sopravvivenza e riducendo l'estensione dell'infarto.
@@ -185,7 +185,7 @@ La conformità del percorso si basa sull'adeguata compilazione dei seguenti camp
 - **Grado di Obbligatorietà:** Obbligatoria (Mandatory)
 - **Forza della Raccomandazione Clinica:** Classe I
 - **Livello di Evidenza Scientifico:** Livello di evidenza B
-- **Dichiarazione Originale:** It is recommended to base the diagnosis and initial short-term risk stratification of ACS on a combination of clinical history, symptoms, vital signs, other physical findings, ECG, and hs-cTn.
+
 - **Declinazione Operativa per la Valutazione:** La diagnosi e la stratificazione iniziale del rischio a breve termine della sindrome coronarica acuta devono essere basate sulla combinazione di anamnesi clinica, sintomi, segni vitali, altri reperti dell'esame obiettivo, elettrocardiogramma e troponina cardiaca ad alta sensibilità.
 - **Intento di Risk Management:** Garantire una diagnosi accurata e una stratificazione del rischio a breve termine della SCA mediante un approccio diagnostico multiparametrico integrato che combini dati clinici, strumentali e di laboratorio.
 - **Razionale Scientifico:** L'utilizzo combinato di anamnesi, sintomi, parametri vitali, esame obiettivo, ECG e troponina ad alta sensibilità consente di aumentare la sensibilità e la specificità diagnostica della SCA, riducendo il rischio di mancata diagnosi e permettendo una stratificazione prognostica precoce che orienta il trattamento tempestivo.
@@ -324,7 +324,7 @@ La conformità del percorso si basa sull'adeguata compilazione dei seguenti camp
 - **Grado di Obbligatorietà:** Raccomandata
 - **Forza della Raccomandazione Clinica:** Classe I (Raccomandato)
 - **Livello di Evidenza Scientifico:** Livello di evidenza B
-- **Dichiarazione Originale:** Twelve-lead ECG recording and interpretation is recommended as soon as possible at the point of first medical contact, with a target of <10 min.
+
 - **Declinazione Operativa per la Valutazione:** La registrazione e l'interpretazione dell'ECG a 12 derivazioni devono essere eseguite il prima possibile al punto di primo contatto medico, con un obiettivo temporale inferiore a 10 minuti.
 - **Intento di Risk Management:** Garantire una diagnosi ECG rapida di STEMI per consentire l'attivazione tempestiva del percorso di riperfusione e ridurre il tempo totale di ischemia miocardica.
 - **Razionale Scientifico:** La diagnosi precoce mediante ECG a 12 derivazioni è fondamentale per l'identificazione dello STEMI e l'attivazione immediata della strategia di riperfusione. Il ritardo comporta un prolungamento del tempo di ischemia, con conseguente aumento dell'area di necrosi miocardica e peggioramento degli esiti clinici.
@@ -458,7 +458,7 @@ La conformità del percorso si basa sull'adeguata compilazione dei seguenti camp
 - **Grado di Obbligatorietà:** Obbligatoria
 - **Forza della Raccomandazione Clinica:** Classe I
 - **Livello di Evidenza Scientifico:** Livello di evidenza B
-- **Dichiarazione Originale:** Continuous ECG monitoring and the availability of defibrillator capacity is recommended as soon as possible in all patients with suspected STEMI, in suspected ACS with other ECG changes or ongoing chest pain, and once the diagnosis of MI is made.
+
 - **Declinazione Operativa per la Valutazione:** Il monitoraggio ECG continuo e la disponibilità di un defibrillatore devono essere garantiti il prima possibile in tutti i pazienti con sospetto STEMI, con sospetta SCA con alterazioni ECG o dolore toracico in corso, e una volta che la diagnosi di infarto miocardico sia stata posta.
 - **Intento di Risk Management:** Garantire la sorveglianza elettrocardiografica continua e la capacità di defibrillazione immediata per la rilevazione e il trattamento tempestivo di aritmie potenzialmente fatali nei pazienti con sindrome coronarica acuta sospetta o confermata.
 - **Razionale Scientifico:** I pazienti con STEMI o SCA sono a elevato rischio di aritmie ventricolari maligne, inclusa la fibrillazione ventricolare, specialmente nelle prime ore dall'esordio dei sintomi. Il monitoraggio ECG continuo consente la rilevazione precoce di aritmie, mentre la disponibilità immediata di un defibrillatore permette la defibrillazione tempestiva, riducendo significativamente la mortalità per arresto cardiaco.
@@ -593,7 +593,7 @@ La conformità del percorso si basa sull'adeguata compilazione dei seguenti camp
 - **Grado di Obbligatorietà:** Raccomandata
 - **Forza della Raccomandazione Clinica:** Classe I
 - **Livello di Evidenza Scientifico:** Livello di evidenza C
-- **Dichiarazione Originale:** The use of additional ECG leads (V3R, V4R, and V7–V9) is recommended in cases of inferior STEMI or if total vessel occlusion is suspected and standard leads are inconclusive.
+
 - **Declinazione Operativa per la Valutazione:** In presenza di STEMI inferiore o di sospetta occlusione coronarica totale con derivazioni ECG standard non conclusive, si raccomanda l'esecuzione di un ECG con derivazioni aggiuntive V3R, V4R e V7–V9.
 - **Intento di Risk Management:** Migliorare la sensibilità diagnostica dell'ECG per identificare l'estensione dell'infarto al ventricolo destro e alla parete posteriore, nonché per confermare un'occlusione coronarica totale.
 - **Razionale Scientifico:** Le derivazioni standard a 12 canali possono non evidenziare il sopraslivellamento del tratto ST nel coinvolgimento del ventricolo destro o della parete posteriore. La mancata identificazione di tali territori può comportare una sottovalutazione dell'estensione dell'infarto e un trattamento inadeguato.
@@ -719,7 +719,7 @@ La conformità del percorso si basa sull'adeguata compilazione dei seguenti camp
 - **Grado di Obbligatorietà:** Raccomandata
 - **Forza della Raccomandazione Clinica:** Classe I
 - **Livello di Evidenza Scientifico:** Livello di evidenza C
-- **Dichiarazione Originale:** An additional 12-lead ECG is recommended in cases with recurrent symptoms or diagnostic uncertainty.
+
 - **Declinazione Operativa per la Valutazione:** In presenza di sintomi ricorrenti o incertezza diagnostica, è raccomandata l'esecuzione di un ECG a 12 derivazioni aggiuntivo.
 - **Intento di Risk Management:** Garantire una rivalutazione elettrocardiografica tempestiva per identificare variazioni ischemiche evolutive e supportare decisioni terapeutiche appropriate.
 - **Razionale Scientifico:** Un ECG a 12 derivazioni aggiuntivo consente di identificare alterazioni del segmento ST di nuova insorgenza o in evoluzione nei casi di incertezza e nei pazienti con sintomi ricorrenti. L'omissione potrebbe ritardare il riconoscimento di STEMI.
@@ -846,7 +846,7 @@ La conformità del percorso si basa sull'adeguata compilazione dei seguenti camp
 - **Grado di Obbligatorietà:** Obbligatoria (Mandatory)
 - **Forza della Raccomandazione Clinica:** Classe I
 - **Livello di Evidenza Scientifico:** Livello B
-- **Dichiarazione Originale:** It is recommended to measure cardiac troponins with high-sensitivity assays immediately after presentation and to obtain the results within 60 min of blood sampling.
+
 - **Declinazione Operativa per la Valutazione:** Si raccomanda di dosare le troponine cardiache con metodo ad alta sensibilità immediatamente dopo la presentazione del paziente e di ottenere i risultati entro 60 minuti dal prelievo ematico.
 - **Intento di Risk Management:** Garantire una diagnosi biochimica tempestiva di necrosi miocardica mediante il dosaggio rapido delle troponine cardiache ad alta sensibilità per supportare la diagnosi differenziale e la stratificazione del rischio nei pazienti con sospetto STEMI.
 - **Razionale Scientifico:** Il dosaggio precoce consente di confermare o escludere rapidamente la necrosi miocardica, supportando le decisioni terapeutiche urgenti e migliorando gli outcome clinici.
@@ -1040,9 +1040,7 @@ La conformità del percorso si basa sull'adeguata compilazione dei seguenti camp
 
 #### 2.9.3 Forza della Regola ed Evidenze Scientifiche
 - **Grado di Obbligatorietà:** Raccomandata
-- **Dichiarazione Originale:** Additional testing after 3 h is recommended if the first two hs-cTn measurements of the 0 h/1 h algorithm are inconclusive and no alternative diagnoses explaining the condition have been made.
 
-#### 2.9.4 Fonti e Riferimenti Normativi
 - **Codice Fonte:** ESC-ACS-2023
 
 #### 2.9.5 Condizioni di Applicabilità Clinica
@@ -1194,4 +1192,5 @@ La conformità del percorso si basa sull'adeguata compilazione dei seguenti camp
 
 #### 2.11.14 Governance e Controllo d'Aggiornamento Clinico
 - Direzione Inter-Dipartimentale Radiologia e Cardiologia.
+
 

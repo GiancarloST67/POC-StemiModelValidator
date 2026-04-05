@@ -28,6 +28,7 @@ Ogni nuova regola deve essere aggiunta in coda al manuale. Deve iniziare con un 
 L'agente AI che esegue la traduzione dal file `.json` sorgente **non deve mai esporre terminologia informatica** (jargon del Rule Engine) al lettore (Medici, Dirigenti Sanitari), operando le seguenti sostituzioni fisse:
 
 *   **Forza Deontica / Deontic Strength** ➔ `Grado di Obbligatorietà` (es. Obbligatoria/Mandatory o Raccomandata)
+*   **Dichiarazione Originale (o Declinazione Originale)** ➔ `Deve essere omessa e rimossa del tutto` dal testo finale in italiano.
 *   **Trigger** ➔ `Evento Scatenante`
 *   **Timestamp / Time target** ➔ `Data e Ora` / `Tempo Zero` / `Orizzonte Temporale`
 *   **Clinical Data Element / Data Array** ➔ `Set Minimo di Dati` (identificati come parametri clinici, non come var informatiche)
