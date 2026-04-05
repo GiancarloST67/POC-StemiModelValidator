@@ -16,6 +16,50 @@ CREATE TABLE IF NOT EXISTS model (
 );
 
 /*
+Seed data: models from check_rules_openrouter.py
+- DEFAULT_GOLD_MODEL
+- DEFAULT_RATIONALE_ALIGNMENT_MODEL
+- COMPARISON_MODELS
+- runaway caps from RUNAWAY_TOKEN_LIMITS_BY_MODEL
+- providers from _provider_for_model
+*/
+INSERT INTO model (code, max_runaway_tokens, providers)
+VALUES
+    ('anthropic/claude-opus-4.6', NULL, NULL),
+    ('anthropic/claude-sonnet-4.6', NULL, NULL),
+    ('qwen/qwen3.5-35b-a3b', 10000, NULL),
+    ('google/gemini-3-flash-preview', NULL, '{"order":["google-vertex"],"allow_fallbacks":false}'::jsonb),
+    ('google/gemini-3.1-flash-lite-preview', 10000, '{"order":["google-vertex"],"allow_fallbacks":false}'::jsonb),
+    ('google/gemini-3.1-pro-preview', NULL, '{"order":["google-vertex"],"allow_fallbacks":false}'::jsonb),
+    ('openai/gpt-oss-120b', NULL, '{"order":["baseten/fp4"],"allow_fallbacks":false}'::jsonb),
+    ('openai/gpt-5.4', NULL, NULL),
+    ('anthropic/claude-haiku-4.5', NULL, NULL),
+    ('anthropic/claude-sonnet-4.5', NULL, NULL),
+    ('deepseek/deepseek-v3.2', NULL, NULL),
+    ('z-ai/glm-5', NULL, NULL),
+    ('mistralai/mistral-small-2603', NULL, NULL),
+    ('x-ai/grok-4.1-fast', NULL, NULL),
+    ('google/gemma-4-26b-a4b-it', NULL, '{"order":["novita/bf16"],"allow_fallbacks":false}'::jsonb),
+    ('google/gemma-4-31b-it', NULL, NULL),
+    ('openai/gpt-5.4-pro', NULL, NULL),
+    ('z-ai/glm-5-turbo', NULL, NULL),
+    ('meta-llama/llama-3.3-70b-instruct', NULL, NULL),
+    ('mistralai/mistral-small-3.2-24b-instruct', NULL, NULL),
+    ('qwen/qwen3.5-flash-02-23', NULL, NULL),
+    ('qwen/qwen3.5-9b', NULL, NULL),
+    ('qwen/qwen3.5-27b', NULL, NULL),
+    ('qwen/qwen3.6-plus:free', NULL, NULL),
+    ('openai/gpt-oss-safeguard-20b:nitro', NULL, NULL),
+    ('meta-llama/llama-3.1-8b-instruct:nitro', NULL, NULL),
+    ('z-ai/glm-4.7', NULL, NULL),
+    ('qwen/qwen3-235b-a22b-2507', 10000, NULL),
+    ('moonshotai/kimi-k2.5', NULL, NULL)
+ON CONFLICT (code) DO UPDATE
+SET
+    max_runaway_tokens = EXCLUDED.max_runaway_tokens,
+    providers = EXCLUDED.providers;
+
+/*
 Entity: ClinicalPathway
 */
 CREATE TABLE IF NOT EXISTS clinical_pathway (
@@ -49,6 +93,19 @@ CREATE TABLE IF NOT EXISTS compliance_type (
     compliance_type_id SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT NOT NULL UNIQUE
 );
+
+/*
+Seed data: compliance outcomes from check_rule_schema.json (outcome enum).
+*/
+INSERT INTO compliance_type (name)
+VALUES
+    ('compliant'),
+    ('non_compliant'),
+    ('justified_deviation'),
+    ('not_applicable'),
+    ('not_evaluable'),
+    ('probable_non_compliance')
+ON CONFLICT (name) DO NOTHING;
 
 /*
 Entity: Case
