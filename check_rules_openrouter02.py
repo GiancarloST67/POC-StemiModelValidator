@@ -371,32 +371,33 @@ def _load_cases_for_pathway_from_db(conn, *, clinical_pathway_id: int) -> list[C
 
     return selections
 
-def _choose_case_from_db(conn, *, clinical_pathway_id: int, clinical_pathway_name: str) -> CaseSelection:
+def _choose_cases_from_db(conn, *, clinical_pathway_id: int, clinical_pathway_name: str) -> list[CaseSelection]:
     case_rows = _load_cases_for_pathway_from_db(conn, clinical_pathway_id=clinical_pathway_id)
 
     options: dict[int, str] = {}
-    default_id: int | None = None
+    default_ids: list[int] = []
 
     print("\nCasi disponibili da DB (case_id -> identifier):")
     for case_row in case_rows:
         options[case_row.case_id] = case_row.identifier
         marker = ""
-        if default_id is None:
-            default_id = case_row.case_id
+        if not default_ids:
+            default_ids = [case_row.case_id]
             marker = " [default]"
         print(f"  {case_row.case_id:>3}) {case_row.identifier}{marker}")
 
-    selected_case_id = _prompt_select_db_id(
+    selected_case_ids = _prompt_select_multiple_db_ids(
         options,
-        prompt=f"Seleziona case_id DB per pathway {clinical_pathway_name}",
-        default_id=default_id,
+        prompt=f"Seleziona uno o più case_id DB per pathway {clinical_pathway_name}",
+        default_ids=default_ids,
+        allow_all=True,
     )
 
-    for case_row in case_rows:
-        if case_row.case_id == selected_case_id:
-            return case_row
-
-    raise RuleCheckError(f"Case ID DB {selected_case_id} non trovato dopo selezione.")
+    selected_ids = set(selected_case_ids)
+    selected_cases = [case_row for case_row in case_rows if case_row.case_id in selected_ids]
+    if not selected_cases:
+        raise RuleCheckError("Nessun clinical_case selezionato.")
+    return selected_cases
 
 def _load_rules_for_pathway_from_db(conn, *, clinical_pathway_id: int) -> list[DbRule]:
     with conn.cursor() as cur:
@@ -691,13 +692,75 @@ def _prompt_select_db_id(options: dict[int, str], *, prompt: str, default_id: in
 
         print("Selezione non valida. Inserire un ID presente in elenco.")
 
-def _choose_model_from_db(conn, *, mode_gold: bool) -> tuple[int, str]:
+def _parse_db_id_selection(raw: str, options: dict[int, str]) -> list[int] | None:
+    tokens = [token.strip() for token in raw.split(",") if token.strip()]
+    if not tokens:
+        return []
+
+    selected: set[int] = set()
+    for token in tokens:
+        if "-" in token:
+            bounds = [part.strip() for part in token.split("-", 1)]
+            if len(bounds) != 2 or not bounds[0].isdigit() or not bounds[1].isdigit():
+                return None
+            start, end = int(bounds[0]), int(bounds[1])
+            if start > end:
+                start, end = end, start
+            for value in range(start, end + 1):
+                if value not in options:
+                    return None
+                selected.add(value)
+            continue
+
+        if not token.isdigit():
+            return None
+        value = int(token)
+        if value not in options:
+            return None
+        selected.add(value)
+
+    return sorted(selected)
+
+def _prompt_select_multiple_db_ids(options: dict[int, str], *, prompt: str,
+                                   default_ids: list[int] | None = None,
+                                   allow_all: bool = True) -> list[int]:
+    if not options:
+        raise RuleCheckError("Nessuna opzione disponibile nel DB.")
+
+    default_ids_clean = sorted({item for item in (default_ids or []) if item in options})
+    all_ids_sorted = sorted(options.keys())
+
+    while True:
+        full_prompt = prompt
+        if allow_all:
+            full_prompt += " [A=all]"
+        if default_ids_clean:
+            full_prompt += f" (default {','.join(str(item) for item in default_ids_clean)})"
+        full_prompt += ": "
+
+        raw = input(full_prompt).strip()
+        if not raw:
+            if default_ids_clean:
+                return default_ids_clean
+            print("Selezione non valida. Inserire almeno un ID.")
+            continue
+
+        if allow_all and raw.upper() in {"A", "ALL", "*"}:
+            return all_ids_sorted
+
+        parsed = _parse_db_id_selection(raw, options)
+        if parsed:
+            return parsed
+
+        print("Selezione non valida. Usa ID singoli/multipli (es. 1,3,7 o 2-5).")
+
+def _choose_models_from_db(conn, *, mode_gold: bool) -> list[tuple[int, str]]:
     with conn.cursor() as cur:
         cur.execute(
             """
             SELECT model_id, code
             FROM riskm_manager_model_evaluation.model
-            ORDER BY model_id
+            ORDER BY LOWER(code), model_id
             """
         )
         rows = cur.fetchall()
@@ -715,16 +778,16 @@ def _choose_model_from_db(conn, *, mode_gold: bool) -> tuple[int, str]:
                     "\nModalita GOLD: modello fissato hard a "
                     f"{code} (model_id DB {model_id})."
                 )
-                return model_id, code
+                return [(model_id, code)]
 
         raise RuleCheckError(
             "Modalita GOLD: il modello hard richiesto non esiste in tabella model: "
             f"{DEFAULT_GOLD_MODEL}. Inserirlo prima di procedere."
         )
 
-    default_code = ""
+    default_code = (os.getenv("OPENROUTER_MODEL") or "").strip().lower()
     options: dict[int, str] = {}
-    default_id: int | None = None
+    default_ids: list[int] = []
 
     print("\nModelli disponibili da DB (model_id -> code):")
     for model_id_raw, code_raw in rows:
@@ -733,12 +796,19 @@ def _choose_model_from_db(conn, *, mode_gold: bool) -> tuple[int, str]:
         options[model_id] = code
         marker = ""
         if default_code and code.strip().lower() == default_code:
-            default_id = model_id
+            default_ids = [model_id]
             marker = " [default env OPENROUTER_MODEL]"
         print(f"  {model_id:>3}) {code}{marker}")
 
-    selected_id = _prompt_select_db_id(options, prompt="Seleziona model_id DB", default_id=default_id)
-    return selected_id, options[selected_id]
+    selected_ids = _prompt_select_multiple_db_ids(
+        options,
+        prompt="Seleziona uno o più model_id DB (es. 2,5,9 o 2-4)",
+        default_ids=default_ids,
+        allow_all=True,
+    )
+    selected_models = [(model_id, options[model_id]) for model_id in selected_ids]
+    selected_models.sort(key=lambda item: (item[1].strip().lower(), item[0]))
+    return selected_models
 
 def _choose_clinical_pathway_from_db(conn) -> tuple[int, str]:
     with conn.cursor() as cur:
@@ -1642,13 +1712,14 @@ def main() -> int:
 
     try:
         mode_gold = _mode_is_gold()
-        model_id, model = _choose_model_from_db(conn, mode_gold=mode_gold)
+        selected_models = _choose_models_from_db(conn, mode_gold=mode_gold)
     except RuleCheckError as e:
         print(f"Errore modalità/modello: {e}")
         conn.close()
         return 1
 
     if mode_gold:
+        model_id, model = selected_models[0]
         try:
             return _run_gold_outcome_backfill(
                 conn,
@@ -1680,13 +1751,11 @@ def main() -> int:
 
     try:
         selected_pathway_id, selected_pathway_name = _choose_clinical_pathway_from_db(conn)
-        case_selection = _choose_case_from_db(
+        case_selections = _choose_cases_from_db(
             conn,
             clinical_pathway_id=selected_pathway_id,
             clinical_pathway_name=selected_pathway_name,
         )
-        case_id = case_selection.case_id
-        case_identifier = case_selection.identifier
         inference_params_id, inference_params_name = _choose_inference_params_from_db(
             conn,
             clinical_pathway_id=selected_pathway_id,
@@ -1700,22 +1769,22 @@ def main() -> int:
             conn,
             clinical_pathway_id=selected_pathway_id,
         )
-        case_pathway_id, case_pathway_name = _get_case_pathway(conn, case_id)
         inference_pathway_id, inference_pathway_name = _get_inference_params_pathway(conn, inference_params_id)
-        _assert_case_inference_pathway_compatibility(
-            case_id=case_id,
-            case_pathway_id=case_pathway_id,
-            case_pathway_name=case_pathway_name,
-            inference_params_id=inference_params_id,
-            inference_pathway_id=inference_pathway_id,
-            inference_pathway_name=inference_pathway_name,
-        )
+        for case_selection in case_selections:
+            case_pathway_id, case_pathway_name = _get_case_pathway(conn, case_selection.case_id)
+            _assert_case_inference_pathway_compatibility(
+                case_id=case_selection.case_id,
+                case_pathway_id=case_pathway_id,
+                case_pathway_name=case_pathway_name,
+                inference_params_id=inference_params_id,
+                inference_pathway_id=inference_pathway_id,
+                inference_pathway_name=inference_pathway_name,
+            )
         compliance_type_map = _load_compliance_type_map(conn)
         if not mode_gold:
             _ensure_gold_outcome_schema(conn)
 
         validator = _load_jsonschema_validator(check_schema)
-        episode_json = case_selection.body
         rationale_prompt_text = ""
         if not mode_gold:
             rationale_prompt_text = RATIONALE_ALIGNMENT_PROMPT_PATH.read_text(encoding="utf-8").strip()
@@ -1726,13 +1795,23 @@ def main() -> int:
         conn.close()
         return 1
 
-    print(f"\nCaso selezionato:     {case_identifier} (da DB)")
+    total_combinations = len(db_rules) * len(case_selections) * len(selected_models)
+
+    print(f"\nCasi selezionati:     {len(case_selections)}")
+    for case_selection in case_selections:
+        print(f"  {case_selection.case_id:>3}) {case_selection.identifier}")
     print(f"Numero regole:        {len(db_rules)}")
     print(f"Modalità:             {'GOLD' if mode_gold else 'COMPARAZIONE'}")
-    print(f"Model ID DB:          {model_id}")
-    print(f"Modello:              {model}")
+    print(f"Modelli selezionati:  {len(selected_models)} (ordine alfabetico)")
+    for selected_model_id, selected_model_code in selected_models:
+        selected_provider_cfg = _provider_for_model(selected_model_code)
+        selected_provider_display = "NULL" if selected_provider_cfg is None else json.dumps(selected_provider_cfg, ensure_ascii=False)
+        print(
+            f"  {selected_model_id:>3}) {selected_model_code} "
+            f"| provider: {selected_provider_display} "
+            f"| runaway token cap: {_runaway_token_limit_for_model(selected_model_code)}"
+        )
     print(f"Clinical pathway DB:  {selected_pathway_id} ({selected_pathway_name})")
-    print(f"Case ID DB:           {case_id} ({case_identifier})")
     print(f"Inference params DB:  {inference_params_id} ({inference_params_name})")
     print(f"Run DB:               {run_instance_id} ({_format_run_datetime_for_ui(run_datetime)})")
     print(f"Gestione già eseguiti:{' Overwrite' if overwrite_or_skip == 'O' else ' Skip'}")
@@ -1740,10 +1819,7 @@ def main() -> int:
     print("DB table target:      riskm_manager_model_evaluation.compliance_instance")
     print("Prompt base:          DB (inference_params.prompt1/clinical_pathway.prompt1)")
     print("Schema check:         DB (inference_params.json_schema1)")
-    provider_cfg = _provider_for_model(model)
-    provider_display = "NULL" if provider_cfg is None else json.dumps(provider_cfg, ensure_ascii=False)
-    print(f"Provider:             {provider_display}")
-    print(f"Runaway token cap:    {_runaway_token_limit_for_model(model)}")
+    print(f"Combinazioni totali:  {total_combinations} (regole x case x modelli)")
     print(f"Retry OpenRouter:     {OPENROUTER_MAX_RETRIES} (base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)")
     if not mode_gold:
         print(f"Giudice rationale:    {rationale_alignment_model}")
@@ -1754,150 +1830,168 @@ def main() -> int:
 
     ok_count = 0
     ko_count = 0
+    skip_count = 0
 
     for db_rule in db_rules:
         rule_json = db_rule.body
         db_rule_id = db_rule.rule_id
         rule_name = str(rule_json.get("rule_id") or db_rule.name)
         rule_label = _format_rule_name_for_status(rule_name)
-        line_open = False
-        
-        check_elapsed_sec: float | None = None
-        check_cost_usd: float | None = None
+        for case_selection in case_selections:
+            case_id = case_selection.case_id
+            case_identifier = case_selection.identifier
+            episode_json = case_selection.body
 
-        try:
-            existing_tests_in_run = _count_existing_tests_for_run(
-                conn,
-                run_instance_id=run_instance_id,
-                model_id=model_id,
-                inference_params_id=inference_params_id,
-                case_id=case_id,
-                rule_id=db_rule_id,
-            )
-            if overwrite_or_skip == "S" and existing_tests_in_run > 0:
-                print(
-                    f"[SKIP] {rule_label} -> test gia presente nel Run {run_instance_id} "
-                    f"({_format_run_datetime_for_ui(run_datetime)}), record trovati: {existing_tests_in_run}"
-                )
-                continue
-
-            prompt_text = _build_prompt(base_prompt=base_prompt, episode=episode_json, rule=rule_json)
-
-            check_started = perf_counter()
-            try:
-                result_json, check_cost_usd = _call_openrouter_check(
-                    api_key=api_key,
-                    model=model,
-                    prompt_text=prompt_text,
-                    check_schema=check_schema,
-                    reasoning_effort=reasoning_effort,
-                )
-            finally:
-                check_elapsed_sec = perf_counter() - check_started
-
-            result_json["rule_id"] = rule_json.get("rule_id", rule_name)
-            result_json.setdefault("check_id", f"CHECK-{rule_name}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}")
-            result_json.setdefault("check_timestamp", datetime.now(UTC).isoformat())
-            result_json.setdefault("patient_id_hash", _derive_patient_hash(episode_json))
-
-            errors = sorted(validator.iter_errors(result_json), key=lambda e: e.path)
-            if errors:
-                first = errors[0]
-                loc = "/".join(str(x) for x in first.path) or "<root>"
-                raise RuleCheckError(f"Output non conforme allo schema in '{loc}': {first.message}")
-
-            # DB Saving Preparation
-            quality_score_total = None
-            quality_score_rationale = None
-            quality_score_classification = None
-
-            instance_id, overwritten_rows = save_to_db(
-                conn,
-                run_instance_id,
-                model_id,
-                case_id,
-                db_rule_id,
-                inference_params_id,
-                compliance_type_map,
-                result_json,
-                overwrite_existing_in_run=(overwrite_or_skip == "O"),
-                check_elapsed_sec=check_elapsed_sec,
-                check_cost_usd=check_cost_usd,
-            )
-            overwrite_info = f" | sovrascritti: {overwritten_rows}" if overwrite_or_skip == "O" else ""
-            print(
-                f"[OK ] {rule_label} | tempo: {check_elapsed_sec:.2f}s "
-                f"| costo: {_format_inference_cost_usd(check_cost_usd)} "
-                f"| compliance_instance_id: {instance_id}{overwrite_info}",
-                end="",
-                flush=True,
-            )
-            line_open = True
-
-            gold_json = _load_gold_outcome_from_db(
-                conn,
-                case_id=case_id,
-                rule_id=db_rule_id,
-            )
-            if gold_json is None:
-                print(" | conformità vs GOLD: N/D (gold mancante su DB)")
+            for model_id, model in selected_models:
                 line_open = False
-            else:
-                rationale_mode = "inferenziale"
+                check_elapsed_sec: float | None = None
+                check_cost_usd: float | None = None
+                execution_label = (
+                    f"{rule_label} | case_id={case_id} ({case_identifier}) "
+                    f"| model_id={model_id} ({model})"
+                )
+
                 try:
-                    inferential_alignment = _call_openrouter_rationale_alignment(
-                        api_key=api_key,
-                        judge_model=rationale_alignment_model,
-                        judge_prompt_text=rationale_prompt_text,
-                        candidate=result_json,
-                        gold=gold_json,
+                    existing_tests_in_run = _count_existing_tests_for_run(
+                        conn,
+                        run_instance_id=run_instance_id,
+                        model_id=model_id,
+                        inference_params_id=inference_params_id,
+                        case_id=case_id,
+                        rule_id=db_rule_id,
                     )
-                except Exception:
-                    inferential_alignment = _rationale_alignment_score_jaccard_0_10(result_json, gold_json)
-                    rationale_mode = "fallback-lessicale"
+                    if overwrite_or_skip == "S" and existing_tests_in_run > 0:
+                        print(
+                            f"[SKIP] {execution_label} -> test gia presente nel Run {run_instance_id} "
+                            f"({_format_run_datetime_for_ui(run_datetime)}), record trovati: {existing_tests_in_run}"
+                        )
+                        skip_count += 1
+                        continue
 
-                outcome_alignment = _outcome_alignment_score_0_10(result_json, gold_json)
+                    prompt_text = _build_prompt(base_prompt=base_prompt, episode=episode_json, rule=rule_json)
 
-                conformity = _conformity_score_0_10(
-                    inferential_alignment_0_10=inferential_alignment,
-                    outcome_alignment_0_10=outcome_alignment,
-                )
-                conformity_colored = _format_conformity_score_colored(conformity)
+                    check_started = perf_counter()
+                    try:
+                        result_json, check_cost_usd = _call_openrouter_check(
+                            api_key=api_key,
+                            model=model,
+                            prompt_text=prompt_text,
+                            check_schema=check_schema,
+                            reasoning_effort=reasoning_effort,
+                        )
+                    finally:
+                        check_elapsed_sec = perf_counter() - check_started
 
-                quality_score_total = float(conformity)
-                quality_score_rationale = float(inferential_alignment)
-                quality_score_classification = float(outcome_alignment)
+                    result_json["rule_id"] = rule_json.get("rule_id", rule_name)
+                    result_json.setdefault(
+                        "check_id",
+                        f"CHECK-{case_id}-{model_id}-{rule_name}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}"
+                    )
+                    result_json.setdefault("check_timestamp", datetime.now(UTC).isoformat())
+                    result_json.setdefault("patient_id_hash", _derive_patient_hash(episode_json))
 
-                update_quality_scores_in_db(
-                    conn,
-                    instance_id,
-                    quality_score_total,
-                    quality_score_rationale,
-                    quality_score_classification,
-                )
+                    errors = sorted(validator.iter_errors(result_json), key=lambda e: e.path)
+                    if errors:
+                        first = errors[0]
+                        loc = "/".join(str(x) for x in first.path) or "<root>"
+                        raise RuleCheckError(f"Output non conforme allo schema in '{loc}': {first.message}")
 
-                print(
-                    f" | conformità vs GOLD: {conformity_colored} "
-                    f"| giudice rationale: {inferential_alignment}/10 ({rationale_mode}) "
-                    f"| allineamento outcome: {outcome_alignment}/10"
-                )
-                line_open = False
+                    quality_score_total = None
+                    quality_score_rationale = None
+                    quality_score_classification = None
 
-            ok_count += 1
+                    instance_id, overwritten_rows = save_to_db(
+                        conn,
+                        run_instance_id,
+                        model_id,
+                        case_id,
+                        db_rule_id,
+                        inference_params_id,
+                        compliance_type_map,
+                        result_json,
+                        overwrite_existing_in_run=(overwrite_or_skip == "O"),
+                        check_elapsed_sec=check_elapsed_sec,
+                        check_cost_usd=check_cost_usd,
+                    )
+                    overwrite_info = f" | sovrascritti: {overwritten_rows}" if overwrite_or_skip == "O" else ""
+                    print(
+                        f"[OK ] {execution_label} | tempo: {check_elapsed_sec:.2f}s "
+                        f"| costo: {_format_inference_cost_usd(check_cost_usd)} "
+                        f"| compliance_instance_id: {instance_id}{overwrite_info}",
+                        end="",
+                        flush=True,
+                    )
+                    line_open = True
 
-        except Exception as e:
-            conn.rollback()
-            if line_open:
-                print(f" | errore: {e}")
-            elif check_elapsed_sec is None:
-                print(f"[KO ] {rule_label} -> errore: {e} | costo: {_format_inference_cost_usd(check_cost_usd)}")
-            else:
-                print(f"[KO ] {rule_label} -> errore: {e} | tempo check: {check_elapsed_sec:.2f}s | costo: {_format_inference_cost_usd(check_cost_usd)}")
-            ko_count += 1
+                    gold_json = _load_gold_outcome_from_db(
+                        conn,
+                        case_id=case_id,
+                        rule_id=db_rule_id,
+                    )
+                    if gold_json is None:
+                        print(" | conformità vs GOLD: N/D (gold mancante su DB)")
+                        line_open = False
+                    else:
+                        rationale_mode = "inferenziale"
+                        try:
+                            inferential_alignment = _call_openrouter_rationale_alignment(
+                                api_key=api_key,
+                                judge_model=rationale_alignment_model,
+                                judge_prompt_text=rationale_prompt_text,
+                                candidate=result_json,
+                                gold=gold_json,
+                            )
+                        except Exception:
+                            inferential_alignment = _rationale_alignment_score_jaccard_0_10(result_json, gold_json)
+                            rationale_mode = "fallback-lessicale"
+
+                        outcome_alignment = _outcome_alignment_score_0_10(result_json, gold_json)
+
+                        conformity = _conformity_score_0_10(
+                            inferential_alignment_0_10=inferential_alignment,
+                            outcome_alignment_0_10=outcome_alignment,
+                        )
+                        conformity_colored = _format_conformity_score_colored(conformity)
+
+                        quality_score_total = float(conformity)
+                        quality_score_rationale = float(inferential_alignment)
+                        quality_score_classification = float(outcome_alignment)
+
+                        update_quality_scores_in_db(
+                            conn,
+                            instance_id,
+                            quality_score_total,
+                            quality_score_rationale,
+                            quality_score_classification,
+                        )
+
+                        print(
+                            f" | conformità vs GOLD: {conformity_colored} "
+                            f"| giudice rationale: {inferential_alignment}/10 ({rationale_mode}) "
+                            f"| allineamento outcome: {outcome_alignment}/10"
+                        )
+                        line_open = False
+
+                    ok_count += 1
+
+                except Exception as e:
+                    conn.rollback()
+                    if line_open:
+                        print(f" | errore: {e}")
+                    elif check_elapsed_sec is None:
+                        print(f"[KO ] {execution_label} -> errore: {e} | costo: {_format_inference_cost_usd(check_cost_usd)}")
+                    else:
+                        print(
+                            f"[KO ] {execution_label} -> errore: {e} "
+                            f"| tempo check: {check_elapsed_sec:.2f}s "
+                            f"| costo: {_format_inference_cost_usd(check_cost_usd)}"
+                        )
+                    ko_count += 1
 
     print("\n=== Riepilogo ===")
     print(f"OK: {ok_count}")
     print(f"KO: {ko_count}")
+    print(f"SKIP: {skip_count}")
     print(f"Salvataggio effettuato su Database (riskm_manager_model_evaluation.compliance_instance).")
     
     if conn:

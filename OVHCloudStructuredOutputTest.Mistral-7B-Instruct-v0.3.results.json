@@ -1,0 +1,93 @@
+{
+  "base_url": "https://oai.endpoints.kepler.ai.cloud.ovh.net",
+  "model": "Mistral-7B-Instruct-v0.3",
+  "targets": [
+    10000,
+    25000,
+    75000,
+    100000
+  ],
+  "pricing": {
+    "prompt_per_token_usd": 1.1e-07,
+    "completion_per_token_usd": 1.1e-07,
+    "request_per_call_usd": 0.0,
+    "currency_unit": "USD",
+    "raw_pricing": {
+      "currency_unit": "USD",
+      "completion": "0.00000011",
+      "image": "0",
+      "prompt": "0.00000011",
+      "request": "0",
+      "input_cache_reads": "0",
+      "input_cache_writes": "0"
+    }
+  },
+  "results": [
+    {
+      "target_prompt_tokens": 10000,
+      "filler_tokens_used": 9750,
+      "observed_prompt_tokens": 9896,
+      "observed_completion_tokens": 512,
+      "observed_total_tokens": 10408,
+      "latency_seconds": 14.423443499952555,
+      "finish_reason": "length",
+      "structured_output_valid": false,
+      "structured_output": null,
+      "request_id": "chatcmpl-af8c59500c154aca95941ab6924e2093",
+      "cost_usd": 0.00114488,
+      "cost_source": "estimated_from_models_pricing",
+      "error": null
+    },
+    {
+      "target_prompt_tokens": 25000,
+      "filler_tokens_used": 24792,
+      "observed_prompt_tokens": 24938,
+      "observed_completion_tokens": 512,
+      "observed_total_tokens": 25450,
+      "latency_seconds": 16.700085500022396,
+      "finish_reason": "length",
+      "structured_output_valid": false,
+      "structured_output": null,
+      "request_id": "chatcmpl-af890c1a54bd4bcf85c5f1f006542b2f",
+      "cost_usd": 0.0027995,
+      "cost_source": "estimated_from_models_pricing",
+      "error": null
+    },
+    {
+      "target_prompt_tokens": 75000,
+      "filler_tokens_used": 74817,
+      "observed_prompt_tokens": null,
+      "observed_completion_tokens": null,
+      "observed_total_tokens": null,
+      "latency_seconds": null,
+      "finish_reason": null,
+      "structured_output_valid": false,
+      "structured_output": null,
+      "request_id": null,
+      "cost_usd": null,
+      "cost_source": "unavailable",
+      "error": "HTTP 400 on https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions: {\"message\":\"max_tokens must be at least 1, got -42195.\"}"
+    },
+    {
+      "target_prompt_tokens": 100000,
+      "filler_tokens_used": 99817,
+      "observed_prompt_tokens": null,
+      "observed_completion_tokens": null,
+      "observed_total_tokens": null,
+      "latency_seconds": null,
+      "finish_reason": null,
+      "structured_output_valid": false,
+      "structured_output": null,
+      "request_id": null,
+      "cost_usd": null,
+      "cost_source": "unavailable",
+      "error": "HTTP 400 on https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions: {\"message\":\"max_tokens must be at least 1, got -67196.\"}"
+    }
+  ],
+  "aggregate": {
+    "structured_output_valid_count": 0,
+    "total_runs": 4,
+    "known_cost_count": 2,
+    "total_known_cost_usd": 0.00394438
+  }
+}
