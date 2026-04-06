@@ -11,7 +11,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from urllib import error, request
+from urllib import error, parse, request
 
 try:
     import psycopg2
@@ -27,6 +27,7 @@ DO_NOT_SCHEMA_PATH = ROOT / "SRS" / "do_not_rule.schema.json"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OVH_DEFAULT_BASE_URL = "https://oai.endpoints.kepler.ai.cloud.ovh.net"
 OVH_DEFAULT_CHAT_COMPLETIONS_PATH = "/v1/chat/completions"
+NEBIUS_DEFAULT_BASE_URL = "https://api.tokenfactory.nebius.com/v1"
 DEFAULT_MODEL = "anthropic/claude-opus-4.6"
 DEFAULT_DB_NAME = "RiskMgm"
 
@@ -95,6 +96,55 @@ def _normalize_chat_path(path: str | None) -> str:
 def _build_ovh_chat_url(*, base_url: str, chat_path: str | None) -> str:
     base = base_url.strip() or OVH_DEFAULT_BASE_URL
     return f"{base.rstrip('/')}{_normalize_chat_path(chat_path)}"
+
+
+def _normalize_endpoint_api_url(api_url: str) -> str:
+    raw_url = _safe_string(api_url)
+    if not raw_url:
+        return raw_url
+
+    raw_no_slash = raw_url.rstrip("/")
+    if raw_no_slash.lower().endswith("/chat/completions"):
+        return raw_no_slash
+
+    try:
+        parts = parse.urlsplit(raw_url)
+    except Exception:
+        return raw_url
+
+    if not parts.scheme or not parts.netloc:
+        return raw_url
+
+    path = (parts.path or "").rstrip("/")
+    path_norm = path.lower()
+
+    if path_norm.endswith("/chat/completions"):
+        new_path = path
+    elif not path:
+        new_path = "/v1/chat/completions"
+    elif path_norm.endswith("/v1") or path_norm.endswith("/api/v1"):
+        new_path = f"{path}/chat/completions"
+    else:
+        return raw_url
+
+    return parse.urlunsplit((parts.scheme, parts.netloc, new_path, parts.query, parts.fragment))
+
+
+def _normalize_model_for_endpoint(*, model_code: str, endpoint_type: str) -> str:
+    model_clean = _safe_string(model_code)
+    if not model_clean:
+        return model_clean
+
+    endpoint_norm = _safe_string(endpoint_type).lower().replace("-", "_")
+    if endpoint_norm not in {"nebius", "tokenfactory", "nebius_tokenfactory", "nebius_openai"}:
+        return model_clean
+    if "/" in model_clean:
+        return model_clean
+
+    if model_clean.lower().startswith("qwen"):
+        return f"Qwen/{model_clean}"
+
+    return model_clean
 
 
 def _model_routing_from_db(conn, *, model: str) -> ModelRoutingConfig:
@@ -184,6 +234,23 @@ def _model_routing_from_db(conn, *, model: str) -> ModelRoutingConfig:
             model_to_call = model_override or model_code
             openrouter_provider = None
 
+        elif endpoint_type_norm in {"nebius", "tokenfactory", "nebius_tokenfactory", "nebius_openai"}:
+            endpoint_type = "nebius_openai"
+            api_url = (
+                _safe_string(endpoint_cfg.get("url"))
+                or _safe_string(providers.get("url"))
+                or _safe_string(endpoint_cfg.get("base_url"))
+                or _safe_string(providers.get("base_url"))
+                or NEBIUS_DEFAULT_BASE_URL
+            )
+            api_key_env = (
+                _safe_string(endpoint_cfg.get("api_key_env"))
+                or _safe_string(providers.get("api_key_env"))
+                or "NEBIUS_API_KEY"
+            )
+            model_to_call = model_override or model_code
+            openrouter_provider = None
+
         elif endpoint_type_norm in {"openrouter", "open_router"}:
             endpoint_type = "openrouter"
             api_url = (
@@ -197,6 +264,9 @@ def _model_routing_from_db(conn, *, model: str) -> ModelRoutingConfig:
                 or "OPENROUTER_API_KEY"
             )
             model_to_call = model_override or model_code
+
+    api_url = _normalize_endpoint_api_url(api_url)
+    model_to_call = _normalize_model_for_endpoint(model_code=model_to_call, endpoint_type=endpoint_type)
 
     return ModelRoutingConfig(
         model_id=model_id,
@@ -276,6 +346,7 @@ def _sanitize_json_schema_for_openrouter(schema: object) -> object:
 
 def _post_model_api(*, api_key: str, payload: dict, api_url: str, endpoint_type: str) -> str:
     data = json.dumps(payload).encode("utf-8")
+    resolved_api_url = _normalize_endpoint_api_url(api_url)
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -286,7 +357,7 @@ def _post_model_api(*, api_key: str, payload: dict, api_url: str, endpoint_type:
         headers["X-Title"] = "Rule Generator DB"
 
     req = request.Request(
-        api_url,
+        resolved_api_url,
         data=data,
         method="POST",
         headers=headers,

@@ -41,7 +41,8 @@ def extract_ddl(dbname="RiskMgm", host="localhost", user="postgres", output_file
             "riskm_manager_model_evaluation.clinical_pathway",
             "riskm_manager_model_evaluation.rule_definition",
             "riskm_manager_model_evaluation.compliance_type",
-            "riskm_manager_model_evaluation.model"
+            "riskm_manager_model_evaluation.model",
+            "riskm_manager_model_evaluation.router",
         ]
         
         # Comando per i dati

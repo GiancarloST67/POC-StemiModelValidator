@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter, sleep
-from urllib import error, request
+from urllib import error, parse, request
 
 try:
     import psycopg2
@@ -32,8 +32,10 @@ DEBUG_MARKDOWN_PATH = ROOT / "check_rules03_debug.md"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OVHCLOUD_DEFAULT_BASE_URL = "https://oai.endpoints.kepler.ai.cloud.ovh.net"
 OVHCLOUD_DEFAULT_CHAT_PATH = "/v1/chat/completions"
+NEBIUS_DEFAULT_BASE_URL = "https://api.tokenfactory.nebius.com/v1"
 DEFAULT_OPENROUTER_ROUTER_CODE = "OpenRouter"
 DEFAULT_OVHCLOUD_ROUTER_CODE = "OVHCloud"
+DEFAULT_NEBIUS_ROUTER_CODE = "NebiusTokenFactory"
 DEFAULT_GOLD_MODEL = "anthropic/claude-opus-4.6"
 DEFAULT_RATIONALE_ALIGNMENT_MODEL = "anthropic/claude-sonnet-4.6"
 COMPARISON_MODELS = {
@@ -225,6 +227,69 @@ def _build_ovh_chat_url(*, base_url: str, chat_path: str | None) -> str:
     return f"{base.rstrip('/')}{_normalize_chat_path(chat_path)}"
 
 
+def _is_nebius_router(router_code: str) -> bool:
+    router_norm = _safe_string(router_code).lower()
+    return "nebius" in router_norm or "tokenfactory" in router_norm
+
+
+def _default_api_key_env_for_router(router_code: str) -> str:
+    router_norm = _safe_string(router_code).lower().replace("-", "_")
+    if router_norm == DEFAULT_OVHCLOUD_ROUTER_CODE.lower():
+        return "OVH_API_KEY"
+    if _is_nebius_router(router_code):
+        return "NEBIUS_API_KEY"
+    return "OPENROUTER_API_KEY"
+
+
+def _normalize_model_code_for_router(*, model_code: str, router_code: str) -> str:
+    model_clean = _safe_string(model_code)
+    if not model_clean:
+        return model_clean
+    if not _is_nebius_router(router_code):
+        return model_clean
+    if "/" in model_clean:
+        return model_clean
+
+    # Nebius TokenFactory expects provider/model naming for Qwen models.
+    if model_clean.lower().startswith("qwen"):
+        return f"Qwen/{model_clean}"
+
+    return model_clean
+
+
+def _normalize_router_api_url(*, api_url: str, router_code: str) -> str:
+    raw_url = _safe_string(api_url)
+    if not raw_url:
+        return raw_url
+
+    # Accept OpenAI-compatible base URLs (e.g. .../v1/) and normalize to chat/completions.
+    raw_no_slash = raw_url.rstrip("/")
+    if raw_no_slash.lower().endswith("/chat/completions"):
+        return raw_no_slash
+
+    try:
+        parts = parse.urlsplit(raw_url)
+    except Exception:
+        return raw_url
+
+    if not parts.scheme or not parts.netloc:
+        return raw_url
+
+    path = (parts.path or "").rstrip("/")
+    path_norm = path.lower()
+
+    if path_norm.endswith("/chat/completions"):
+        new_path = path
+    elif not path:
+        new_path = "/v1/chat/completions"
+    elif path_norm.endswith("/v1") or path_norm.endswith("/api/v1"):
+        new_path = f"{path}/chat/completions"
+    else:
+        return raw_url
+
+    return parse.urlunsplit((parts.scheme, parts.netloc, new_path, parts.query, parts.fragment))
+
+
 def _json_object_or_none(value: object) -> dict | None:
     if isinstance(value, dict):
         return value
@@ -346,6 +411,9 @@ def _model_routing_from_db(conn, *, model_code: str) -> ModelRoutingConfig:
         endpoint_cfg = endpoint_cfg_raw if isinstance(endpoint_cfg_raw, dict) else {}
         endpoint_type_raw = endpoint_cfg_raw if isinstance(endpoint_cfg_raw, str) else endpoint_cfg.get("type")
         endpoint_type_norm = _safe_string(endpoint_type_raw).lower().replace("-", "_")
+        model_override = _safe_string(endpoint_cfg.get("model_override")) or _safe_string(
+            providers.get("model_override")
+        )
 
         if endpoint_type_norm in {"ovh", "ovh_openai", "ovhcloud"}:
             if not router_code:
@@ -369,6 +437,27 @@ def _model_routing_from_db(conn, *, model_code: str) -> ModelRoutingConfig:
                 )
             openrouter_provider = None
 
+        elif endpoint_type_norm in {"nebius", "tokenfactory", "nebius_tokenfactory", "nebius_openai"}:
+            if not router_code:
+                router_code = DEFAULT_NEBIUS_ROUTER_CODE
+            if not api_url:
+                api_url = (
+                    _safe_string(endpoint_cfg.get("url"))
+                    or _safe_string(providers.get("url"))
+                    or _safe_string(endpoint_cfg.get("base_url"))
+                    or _safe_string(providers.get("base_url"))
+                    or NEBIUS_DEFAULT_BASE_URL
+                )
+            if not api_key_env:
+                api_key_env = (
+                    _safe_string(endpoint_cfg.get("api_key_env"))
+                    or _safe_string(providers.get("api_key_env"))
+                    or "NEBIUS_API_KEY"
+                )
+            if model_override:
+                resolved_model_code = model_override
+            openrouter_provider = None
+
         elif endpoint_type_norm in {"openrouter", "open_router"}:
             if not router_code:
                 router_code = DEFAULT_OPENROUTER_ROUTER_CODE
@@ -389,16 +478,19 @@ def _model_routing_from_db(conn, *, model_code: str) -> ModelRoutingConfig:
         router_code = DEFAULT_OPENROUTER_ROUTER_CODE
 
     if not api_url:
-        if router_code.strip().lower() == DEFAULT_OVHCLOUD_ROUTER_CODE.lower():
+        router_norm = router_code.strip().lower()
+        if router_norm == DEFAULT_OVHCLOUD_ROUTER_CODE.lower():
             api_url = _build_ovh_chat_url(base_url=OVHCLOUD_DEFAULT_BASE_URL, chat_path=OVHCLOUD_DEFAULT_CHAT_PATH)
+        elif _is_nebius_router(router_code):
+            api_url = NEBIUS_DEFAULT_BASE_URL
         else:
             api_url = OPENROUTER_URL
 
     if not api_key_env:
-        if router_code.strip().lower() == DEFAULT_OVHCLOUD_ROUTER_CODE.lower():
-            api_key_env = "OVH_API_KEY"
-        else:
-            api_key_env = "OPENROUTER_API_KEY"
+        api_key_env = _default_api_key_env_for_router(router_code)
+
+    resolved_model_code = _normalize_model_code_for_router(model_code=resolved_model_code, router_code=router_code)
+    api_url = _normalize_router_api_url(api_url=api_url, router_code=router_code)
 
     if router_code.strip().lower() != DEFAULT_OPENROUTER_ROUTER_CODE.lower():
         openrouter_provider = None
@@ -485,6 +577,29 @@ def _to_int(value: object) -> int | None:
             return None
     return None
 
+
+def _normalize_check_output_for_validation(result_json: object) -> dict:
+    if not isinstance(result_json, dict):
+        raise RuleCheckError(f"Output modello: atteso oggetto JSON, trovato {type(result_json).__name__}.")
+
+    docs = result_json.get("supporting_documents")
+    if not isinstance(docs, list):
+        return result_json
+
+    for item in docs:
+        if not isinstance(item, dict):
+            continue
+        doc_id = item.get("document_id")
+        if isinstance(doc_id, bool) or doc_id is None or isinstance(doc_id, str):
+            continue
+        if isinstance(doc_id, int):
+            item["document_id"] = str(doc_id)
+            continue
+        if isinstance(doc_id, float):
+            item["document_id"] = str(int(doc_id)) if doc_id.is_integer() else str(doc_id)
+
+    return result_json
+
 def _extract_inference_cost_usd(body: dict, header_cost_usd: float | None) -> float | None:
     usage_raw = body.get("usage")
     usage: dict[str, object] = usage_raw if isinstance(usage_raw, dict) else {}
@@ -515,10 +630,18 @@ def _usage_tokens_from_body(body: dict) -> tuple[int | None, int | None]:
 
 def _ovh_base_url_from_chat_api_url(api_url: str) -> str:
     url = (api_url or "").strip().rstrip("/")
-    marker = "/v1/chat/completions"
     low = url.lower()
-    if low.endswith(marker):
-        return url[: -len(marker)]
+    markers = (
+        "/v1/chat/completions",
+        "/chat/completions",
+        "/v1/completions",
+        "/completions",
+    )
+    for marker in markers:
+        if low.endswith(marker):
+            return url[: -len(marker)]
+    if low.endswith("/v1"):
+        return url[:-3]
     return url
 
 
@@ -527,26 +650,32 @@ def _fetch_ovh_pricing(*, base_url: str, api_key: str, model: str) -> dict[str, 
     if cache_key in _OVH_PRICING_CACHE:
         return _OVH_PRICING_CACHE[cache_key]
 
-    models_url = f"{base_url.rstrip('/')}/v1/models"
-    req = request.Request(
-        models_url,
-        data=None,
-        method="GET",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-    )
+    models_base = f"{base_url.rstrip('/')}/v1/models"
 
-    try:
-        with request.urlopen(req, timeout=60) as resp:
-            raw = resp.read().decode("utf-8")
-        body = json.loads(raw)
-    except Exception:
-        _OVH_PRICING_CACHE[cache_key] = None
-        return None
+    def _fetch_models_data(*, verbose: bool) -> list[dict] | None:
+        models_url = f"{models_base}?verbose=true" if verbose else models_base
+        req = request.Request(
+            models_url,
+            data=None,
+            method="GET",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+        )
+        try:
+            with request.urlopen(req, timeout=60) as resp:
+                raw = resp.read().decode("utf-8")
+            body = json.loads(raw)
+        except Exception:
+            return None
 
-    data = body.get("data") if isinstance(body, dict) else None
+        data = body.get("data") if isinstance(body, dict) else None
+        if not isinstance(data, list):
+            return None
+        return [item for item in data if isinstance(item, dict)]
+
+    data = _fetch_models_data(verbose=True) or _fetch_models_data(verbose=False)
     if not isinstance(data, list):
         _OVH_PRICING_CACHE[cache_key] = None
         return None
@@ -554,8 +683,6 @@ def _fetch_ovh_pricing(*, base_url: str, api_key: str, model: str) -> dict[str, 
     model_norm = model.strip().lower()
     found: dict | None = None
     for item in data:
-        if not isinstance(item, dict):
-            continue
         item_id = str(item.get("id") or "").strip().lower()
         if item_id == model_norm:
             found = item
@@ -636,6 +763,7 @@ def _post_router_with_meta(*,
     model_name = str(payload.get("model", "")).strip() or "<unknown-model>"
     router_label = _safe_string(router_code) or DEFAULT_OPENROUTER_ROUTER_CODE
     is_openrouter = router_label.lower() == DEFAULT_OPENROUTER_ROUTER_CODE.lower()
+    resolved_api_url = _normalize_router_api_url(api_url=api_url, router_code=router_label)
     request_timeout_sec = _request_timeout_seconds_for_router(router_label)
     retry_count = 0
     while True:
@@ -648,7 +776,7 @@ def _post_router_with_meta(*,
             headers["X-Title"] = "STEMI Rule Checker"
 
         req = request.Request(
-            api_url,
+            resolved_api_url,
             data=data,
             method="POST",
             headers=headers,
@@ -709,7 +837,7 @@ def _post_router_with_meta(*,
         if cost_usd is None and not is_openrouter:
             cost_usd = _estimate_ovh_cost_usd(
                 body=body,
-                api_url=api_url,
+                api_url=resolved_api_url,
                 api_key=api_key,
                 model=model_name,
             )
@@ -907,7 +1035,7 @@ def _build_prompt(base_prompt: str, episode: dict, rule: dict) -> str:
         "ISTRUZIONI FINALI:\n"
         "- Restituisci SOLO JSON valido, senza markdown e senza testo extra.\n"
         "- L'output deve essere conforme allo schema check_rule_schema.\n"
-        "- In supporting_documents includi almeno un documento clinico con: document_id, rationale sintetico, confidence (0..1).\n"
+        "- In supporting_documents includi almeno un documento clinico con: document_id (SEMPRE stringa, anche se numerico), rationale sintetico, confidence (0..1).\n"
         "- Il rationale di ogni documento deve essere coerente con il rationale generale dell'output.\n"
         "- Non confondere MAI l'orario di insorgenza dei sintomi con il First Medical Contact (FMC).\n"
         "- Se compare testo tipo 'dolore insorto alle ...', quello NON e' FMC.\n"
@@ -922,7 +1050,7 @@ def _call_router_check(*,
                        check_schema: dict,
                        reasoning_effort: str) -> tuple[dict, float | None]:
     system_prompt = "Sei un valutatore clinico STEMI. Ricevi episodio + regola e devi produrre esclusivamente un JSON conforme allo schema di check fornito. Nessun testo extra."
-    model = routing.model_code
+    model = _normalize_model_code_for_router(model_code=routing.model_code, router_code=routing.router_code)
     schema_for_provider = _sanitize_json_schema_for_openrouter(check_schema) if routing.is_openrouter else check_schema
     provider_cfg = routing.openrouter_provider if routing.is_openrouter else None
     runaway_limit = _effective_runaway_token_limit(model=model, routing=routing)
@@ -1018,8 +1146,9 @@ def _call_router_check(*,
 
     cleaned = _strip_markdown_fences(content)
     try:
+        normalized = _normalize_check_output_for_validation(json.loads(cleaned))
         check_cost_usd = total_cost_usd if (call_count > 0 and all_costs_known) else None
-        return json.loads(cleaned), check_cost_usd
+        return normalized, check_cost_usd
     except json.JSONDecodeError as e:
         raise RuleCheckError(f"JSON modello non parsabile: {e}. Estratto: {cleaned[:700]}") from e
 
@@ -1088,7 +1217,7 @@ def _call_router_rationale_alignment(*,
         f"{json.dumps(compare_payload, ensure_ascii=False)}"
     )
 
-    judge_model = routing.model_code
+    judge_model = _normalize_model_code_for_router(model_code=routing.model_code, router_code=routing.router_code)
     schema_for_provider = _sanitize_json_schema_for_openrouter(schema) if routing.is_openrouter else schema
     provider_cfg = routing.openrouter_provider if routing.is_openrouter else None
     payload = {

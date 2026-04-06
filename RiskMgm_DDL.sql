@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict OMb6NWqNjdtRoVu5NqQElzvZrqICotzwTX2poYSXpNRIntdfWijy6j1p6Idcynr
+\restrict HpM47R08UpiKs7iYarCXbIa8AV6JrRZwXPiQ1OXbdwfWAsq9So9xYNc17ea3BVp
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -252,7 +252,35 @@ CREATE TABLE riskm_manager_model_evaluation.model (
     max_runaway_tokens integer,
     providers jsonb,
     router_code text,
+    model_family_id bigint,
     CONSTRAINT ck_model_max_runaway_tokens CHECK (((max_runaway_tokens IS NULL) OR (max_runaway_tokens > 0)))
+);
+
+
+--
+-- Name: model_family; Type: TABLE; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+CREATE TABLE riskm_manager_model_evaluation.model_family (
+    model_family_id bigint NOT NULL,
+    code text NOT NULL,
+    name text NOT NULL,
+    CONSTRAINT ck_model_family_code_not_blank CHECK ((btrim(code) <> ''::text)),
+    CONSTRAINT ck_model_family_name_not_blank CHECK ((btrim(name) <> ''::text))
+);
+
+
+--
+-- Name: model_family_model_family_id_seq; Type: SEQUENCE; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE riskm_manager_model_evaluation.model_family ALTER COLUMN model_family_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME riskm_manager_model_evaluation.model_family_model_family_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 
@@ -385,11 +413,15 @@ CREATE VIEW riskm_manager_model_evaluation.v_compliance_instance_flat AS
     (ci.body ->> 'check_timestamp'::text) AS check_timestamp,
     COALESCE(ds.supporting_docs_count, 0) AS supporting_docs_count,
     ds.supporting_docs_avg_confidence,
-    ds.supporting_doc_ids
-   FROM (((((((((((riskm_manager_model_evaluation.compliance_instance ci
+    ds.supporting_doc_ids,
+    m.model_family_id,
+    mf.code AS model_family_code,
+    mf.name AS model_family_name
+   FROM ((((((((((((riskm_manager_model_evaluation.compliance_instance ci
      LEFT JOIN riskm_manager_model_evaluation.run_instance ri ON ((ri.run_instance_id = ci.run_instance_id)))
      LEFT JOIN riskm_manager_model_evaluation.compliance_type ct ON ((ct.compliance_type_id = ci.compliance_type_id)))
      LEFT JOIN riskm_manager_model_evaluation.model m ON ((m.model_id = ci.model_id)))
+     LEFT JOIN riskm_manager_model_evaluation.model_family mf ON ((mf.model_family_id = m.model_family_id)))
      LEFT JOIN riskm_manager_model_evaluation.router r ON ((r.code = m.router_code)))
      LEFT JOIN riskm_manager_model_evaluation.inference_params ip ON ((ip.inference_params_id = ci.inference_params_id)))
      LEFT JOIN riskm_manager_model_evaluation.clinical_pathway cp_inf ON ((cp_inf.clinical_pathway_id = ip.clinical_pathway_id)))
@@ -478,6 +510,22 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.inference_params
 
 ALTER TABLE ONLY riskm_manager_model_evaluation.model
     ADD CONSTRAINT model_code_key UNIQUE (code);
+
+
+--
+-- Name: model_family model_family_code_key; Type: CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE ONLY riskm_manager_model_evaluation.model_family
+    ADD CONSTRAINT model_family_code_key UNIQUE (code);
+
+
+--
+-- Name: model_family model_family_pkey; Type: CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE ONLY riskm_manager_model_evaluation.model_family
+    ADD CONSTRAINT model_family_pkey PRIMARY KEY (model_family_id);
 
 
 --
@@ -637,6 +685,13 @@ CREATE INDEX ix_inference_params_pathway ON riskm_manager_model_evaluation.infer
 
 
 --
+-- Name: ix_model_model_family_id; Type: INDEX; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+CREATE INDEX ix_model_model_family_id ON riskm_manager_model_evaluation.model USING btree (model_family_id);
+
+
+--
 -- Name: ix_model_router_code; Type: INDEX; Schema: riskm_manager_model_evaluation; Owner: -
 --
 
@@ -762,6 +817,14 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.inference_params
 
 
 --
+-- Name: model model_model_family_id_fkey; Type: FK CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
+--
+
+ALTER TABLE ONLY riskm_manager_model_evaluation.model
+    ADD CONSTRAINT model_model_family_id_fkey FOREIGN KEY (model_family_id) REFERENCES riskm_manager_model_evaluation.model_family(model_family_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
 -- Name: model model_router_code_fkey; Type: FK CONSTRAINT; Schema: riskm_manager_model_evaluation; Owner: -
 --
 
@@ -781,7 +844,7 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.rule_definition
 -- PostgreSQL database dump complete
 --
 
-\unrestrict OMb6NWqNjdtRoVu5NqQElzvZrqICotzwTX2poYSXpNRIntdfWijy6j1p6Idcynr
+\unrestrict HpM47R08UpiKs7iYarCXbIa8AV6JrRZwXPiQ1OXbdwfWAsq9So9xYNc17ea3BVp
 
 
 
@@ -793,7 +856,7 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.rule_definition
 -- PostgreSQL database dump
 --
 
-\restrict dPdHjWh3B2vfpuRxRq4Xw8DHKQ24dWqns67oAWYjDGd8bWgRS0Z9S1GyoVGUeNE
+\restrict rlh2YZMgfv4cRHoqAYb2CegbID9lQCqlbRHna9Bn8rwCytFEhCm5oL1PehDjBwx
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -830,39 +893,50 @@ INSERT INTO riskm_manager_model_evaluation.compliance_type OVERRIDING SYSTEM VAL
 
 
 --
+-- Data for Name: router; Type: TABLE DATA; Schema: riskm_manager_model_evaluation; Owner: postgres
+--
+
+INSERT INTO riskm_manager_model_evaluation.router VALUES ('OpenRouter', 'https://openrouter.ai/api/v1/chat/completions', 'OPENROUTER_API_KEY');
+INSERT INTO riskm_manager_model_evaluation.router VALUES ('OVHCloud', 'https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions', 'OVH_API_KEY');
+INSERT INTO riskm_manager_model_evaluation.router VALUES ('Nebius', 'https://api.tokenfactory.nebius.com/v1/', 'NEBIUS_API_KEY');
+
+
+--
 -- Data for Name: model; Type: TABLE DATA; Schema: riskm_manager_model_evaluation; Owner: postgres
 --
 
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (1, 'anthropic/claude-opus-4.6', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (2, 'anthropic/claude-sonnet-4.6', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (3, 'qwen/qwen3.5-35b-a3b', 10000, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (4, 'google/gemini-3-flash-preview', NULL, '{"order": ["google-vertex"], "allow_fallbacks": false}', 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (5, 'google/gemini-3.1-flash-lite-preview', 10000, '{"order": ["google-vertex"], "allow_fallbacks": false}', 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (6, 'google/gemini-3.1-pro-preview', NULL, '{"order": ["google-vertex"], "allow_fallbacks": false}', 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (8, 'openai/gpt-5.4', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (9, 'anthropic/claude-haiku-4.5', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (10, 'anthropic/claude-sonnet-4.5', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (11, 'deepseek/deepseek-v3.2', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (12, 'z-ai/glm-5', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (13, 'mistralai/mistral-small-2603', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (14, 'x-ai/grok-4.1-fast', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (15, 'google/gemma-4-26b-a4b-it', NULL, '{"order": ["novita/bf16"], "allow_fallbacks": false}', 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (16, 'google/gemma-4-31b-it', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (17, 'openai/gpt-5.4-pro', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (18, 'z-ai/glm-5-turbo', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (19, 'meta-llama/llama-3.3-70b-instruct', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (20, 'mistralai/mistral-small-3.2-24b-instruct', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (21, 'qwen/qwen3.5-flash-02-23', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (22, 'qwen/qwen3.5-9b', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (23, 'qwen/qwen3.5-27b', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (24, 'qwen/qwen3.6-plus:free', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (25, 'openai/gpt-oss-safeguard-20b:nitro', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (27, 'z-ai/glm-4.7', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (28, 'qwen/qwen3-235b-a22b-2507', 10000, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (29, 'moonshotai/kimi-k2.5', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (7, 'gpt-oss-120b', 10000, '{"order": ["baseten/fp4"], "allow_fallbacks": false}', 'OVHCloud');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (30, 'gpt-oss-20b', NULL, NULL, 'OVHCloud');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (26, 'Meta-Llama-3_3-70B-Instruct', NULL, NULL, 'OVHCloud');
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (1, 'anthropic/claude-opus-4.6', NULL, NULL, 'OpenRouter', 2);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (2, 'anthropic/claude-sonnet-4.6', NULL, NULL, 'OpenRouter', 2);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (3, 'qwen/qwen3.5-35b-a3b', 10000, NULL, 'OpenRouter', 1);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (4, 'google/gemini-3-flash-preview', NULL, '{"order": ["google-vertex"], "allow_fallbacks": false}', 'OpenRouter', 3);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (5, 'google/gemini-3.1-flash-lite-preview', 10000, '{"order": ["google-vertex"], "allow_fallbacks": false}', 'OpenRouter', 3);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (6, 'google/gemini-3.1-pro-preview', NULL, '{"order": ["google-vertex"], "allow_fallbacks": false}', 'OpenRouter', 3);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (8, 'openai/gpt-5.4', NULL, NULL, 'OpenRouter', 5);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (9, 'anthropic/claude-haiku-4.5', NULL, NULL, 'OpenRouter', 2);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (10, 'anthropic/claude-sonnet-4.5', NULL, NULL, 'OpenRouter', 2);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (12, 'z-ai/glm-5', NULL, NULL, 'OpenRouter', 6);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (13, 'mistralai/mistral-small-2603', NULL, NULL, 'OpenRouter', 7);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (14, 'x-ai/grok-4.1-fast', NULL, NULL, 'OpenRouter', 8);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (15, 'google/gemma-4-26b-a4b-it', NULL, '{"order": ["novita/bf16"], "allow_fallbacks": false}', 'OpenRouter', 4);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (16, 'google/gemma-4-31b-it', NULL, NULL, 'OpenRouter', 4);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (17, 'openai/gpt-5.4-pro', NULL, NULL, 'OpenRouter', 5);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (18, 'z-ai/glm-5-turbo', NULL, NULL, 'OpenRouter', 6);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (19, 'meta-llama/llama-3.3-70b-instruct', NULL, NULL, 'OpenRouter', 9);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (20, 'mistralai/mistral-small-3.2-24b-instruct', NULL, NULL, 'OpenRouter', 7);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (21, 'qwen/qwen3.5-flash-02-23', NULL, NULL, 'OpenRouter', 1);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (22, 'qwen/qwen3.5-9b', NULL, NULL, 'OpenRouter', 1);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (23, 'qwen/qwen3.5-27b', NULL, NULL, 'OpenRouter', 1);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (24, 'qwen/qwen3.6-plus:free', NULL, NULL, 'OpenRouter', 1);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (25, 'openai/gpt-oss-safeguard-20b:nitro', NULL, NULL, 'OpenRouter', 5);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (27, 'z-ai/glm-4.7', NULL, NULL, 'OpenRouter', 6);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (28, 'qwen/qwen3-235b-a22b-2507', 10000, NULL, 'OpenRouter', 1);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (29, 'moonshotai/kimi-k2.5', NULL, NULL, 'OpenRouter', 10);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (7, 'gpt-oss-120b', 10000, '{"order": ["baseten/fp4"], "allow_fallbacks": false}', 'OVHCloud', 5);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (30, 'gpt-oss-20b', NULL, NULL, 'OVHCloud', 5);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (26, 'Meta-Llama-3_3-70B-Instruct', NULL, NULL, 'OVHCloud', 9);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (31, 'Qwen3-Coder-30B-A3B-Instruct', NULL, NULL, 'OVHCloud', 1);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (11, 'deepseek/deepseek-v3.2', 15000, NULL, 'OpenRouter', 11);
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (32, 'Qwen3-235B-A22B-Instruct-2507', 15000, NULL, 'Nebius', 1);
 
 
 --
@@ -901,7 +975,7 @@ SELECT pg_catalog.setval('riskm_manager_model_evaluation.compliance_type_complia
 -- Name: model_model_id_seq; Type: SEQUENCE SET; Schema: riskm_manager_model_evaluation; Owner: postgres
 --
 
-SELECT pg_catalog.setval('riskm_manager_model_evaluation.model_model_id_seq', 30, true);
+SELECT pg_catalog.setval('riskm_manager_model_evaluation.model_model_id_seq', 32, true);
 
 
 --
@@ -915,5 +989,5 @@ SELECT pg_catalog.setval('riskm_manager_model_evaluation.rule_definition_rule_id
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dPdHjWh3B2vfpuRxRq4Xw8DHKQ24dWqns67oAWYjDGd8bWgRS0Z9S1GyoVGUeNE
+\unrestrict rlh2YZMgfv4cRHoqAYb2CegbID9lQCqlbRHna9Bn8rwCytFEhCm5oL1PehDjBwx
 

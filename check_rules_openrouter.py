@@ -236,6 +236,29 @@ def _to_float(value: object) -> float | None:
     return None
 
 
+def _normalize_check_output_for_validation(result_json: object) -> dict:
+    if not isinstance(result_json, dict):
+        raise RuleCheckError(f"Output modello: atteso oggetto JSON, trovato {type(result_json).__name__}.")
+
+    docs = result_json.get("supporting_documents")
+    if not isinstance(docs, list):
+        return result_json
+
+    for item in docs:
+        if not isinstance(item, dict):
+            continue
+        doc_id = item.get("document_id")
+        if isinstance(doc_id, bool) or doc_id is None or isinstance(doc_id, str):
+            continue
+        if isinstance(doc_id, int):
+            item["document_id"] = str(doc_id)
+            continue
+        if isinstance(doc_id, float):
+            item["document_id"] = str(int(doc_id)) if doc_id.is_integer() else str(doc_id)
+
+    return result_json
+
+
 def _extract_inference_cost_usd(body: dict, header_cost_usd: float | None) -> float | None:
     usage_raw = body.get("usage")
     usage: dict[str, object] = usage_raw if isinstance(usage_raw, dict) else {}
@@ -468,7 +491,7 @@ def _build_prompt(base_prompt: str, episode: dict, rule: dict) -> str:
         "ISTRUZIONI FINALI:\n"
         "- Restituisci SOLO JSON valido, senza markdown e senza testo extra.\n"
         "- L'output deve essere conforme allo schema check_rule_schema.\n"
-        "- In supporting_documents includi almeno un documento clinico con: document_id, rationale sintetico, confidence (0..1).\n"
+        "- In supporting_documents includi almeno un documento clinico con: document_id (SEMPRE stringa, anche se numerico), rationale sintetico, confidence (0..1).\n"
         "- Il rationale di ogni documento deve essere coerente con il rationale generale dell'output.\n"
     )
 
@@ -578,8 +601,9 @@ def _call_openrouter_check(
 
     cleaned = _strip_markdown_fences(content)
     try:
+        normalized = _normalize_check_output_for_validation(json.loads(cleaned))
         check_cost_usd = total_cost_usd if (call_count > 0 and all_costs_known) else None
-        return json.loads(cleaned), check_cost_usd
+        return normalized, check_cost_usd
     except json.JSONDecodeError as e:
         raise RuleCheckError(f"JSON modello non parsabile: {e}. Estratto: {cleaned[:700]}") from e
 
@@ -848,7 +872,7 @@ def _ensure_reference_prompt_template(base_prompt: str) -> None:
         "ISTRUZIONI FINALI:\n"
         "- Restituisci SOLO JSON valido, senza markdown e senza testo extra.\n"
         "- L'output deve essere conforme allo schema check_rule_schema.\n"
-        "- In supporting_documents includi almeno un documento clinico con: document_id, rationale sintetico, confidence (0..1).\n"
+        "- In supporting_documents includi almeno un documento clinico con: document_id (SEMPRE stringa, anche se numerico), rationale sintetico, confidence (0..1).\n"
         "- Il rationale di ogni documento deve essere coerente con il rationale generale dell'output.\n"
     )
     REFERENCE_PROMPT_TEMPLATE_PATH.write_text(text, encoding="utf-8")
