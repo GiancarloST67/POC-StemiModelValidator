@@ -29,6 +29,7 @@ ROOT = Path(__file__).resolve().parent
 RATIONALE_ALIGNMENT_PROMPT_PATH = ROOT / "SRS" / "PROMPT_RationaleAlignmentJudge.md"
 RETROSPECTIVE_PROMPT_PATH = ROOT / "SRS" / "PROMPT_Retrospettiva.md"
 RETROSPECTIVE_SCHEMA_PATH = ROOT / "SRS" / "retrospettiva_output.schema.json"
+PROMPT_IMPROVEMENT_OUTPUT_DIR = ROOT / "SRS"
 DEBUG_MARKDOWN_PATH = ROOT / "check_rules03_debug.md"
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -1057,6 +1058,338 @@ def _load_retrospettiva_prompt_and_schema() -> tuple[str, dict]:
     )
     return prompt_text, schema
 
+
+def _load_inference_prompt_upgrade_inputs_from_db(conn, *, inference_params_id: int) -> tuple[str, str, str]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT ip.prompt1, cp.prompt1, cp.name
+            FROM riskm_manager_model_evaluation.inference_params ip
+            JOIN riskm_manager_model_evaluation.clinical_pathway cp
+              ON cp.clinical_pathway_id = ip.clinical_pathway_id
+            WHERE ip.inference_params_id = %s
+            """,
+            (inference_params_id,),
+        )
+        row = cur.fetchone()
+
+    if not row:
+        raise RuleCheckError(f"Inference Params ID DB {inference_params_id} non trovato per upgrade prompt.")
+
+    check_prompt = str(row[0] or "").strip()
+    pathway_prompt = str(row[1] or "").strip()
+    pathway_name = str(row[2] or "-").strip() or "-"
+    return check_prompt, pathway_prompt, pathway_name
+
+
+def _load_gold_winner_suggestions_for_inference_params(conn, *, inference_params_id: int) -> list[str]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT suggestion
+            FROM riskm_manager_model_evaluation.compliance_instance
+            WHERE inference_params_id = %s
+              AND winner = 'GOLD'
+              AND suggestion IS NOT NULL
+              AND btrim(suggestion) <> ''
+            ORDER BY run_date, compliance_instance_id
+            """,
+            (inference_params_id,),
+        )
+        rows = cur.fetchall()
+
+    suggestions: list[str] = []
+    for row in rows:
+        suggestion = str((row[0] if row else "") or "").strip()
+        if suggestion:
+            suggestions.append(suggestion)
+    return suggestions
+
+
+def _sanitize_generalist_prompt_text(prompt_text: str) -> str:
+    sanitized = re.sub(r"\bSTEMI\b", "clinical pathway target", prompt_text, flags=re.IGNORECASE)
+    return sanitized.strip()
+
+
+def _prompt_upgrade_nickname_base(inference_params_name: str) -> str:
+    nickname = str(inference_params_name or "").strip()
+    if nickname.lower().endswith(".md"):
+        nickname = nickname[:-3]
+
+    nickname = re.sub(r"\s+", "_", nickname)
+    nickname = re.sub(r"[^A-Za-z0-9_-]", "_", nickname)
+    nickname = re.sub(r"_+", "_", nickname).strip("_")
+    return nickname or "PROMPT_Check"
+
+
+def _next_prompt_improvement_output_path(*, inference_params_name: str) -> Path:
+    output_dir = PROMPT_IMPROVEMENT_OUTPUT_DIR
+    output_dir.mkdir(parents=True, exist_ok=True)
+    base_nickname = _prompt_upgrade_nickname_base(inference_params_name)
+
+    base_match = re.match(r"^(.*?)(?:[_-]v(\d+))?$", base_nickname, flags=re.IGNORECASE)
+    if base_match:
+        root_name = str(base_match.group(1) or "").strip("_") or "PROMPT_Check"
+        current_version_raw = base_match.group(2)
+    else:
+        root_name = base_nickname
+        current_version_raw = None
+
+    known_versions: list[int] = []
+    version_pattern = re.compile(rf"^{re.escape(root_name)}[_-]v(\d+)$", flags=re.IGNORECASE)
+    for candidate in output_dir.glob(f"{root_name}*.md"):
+        match = version_pattern.match(candidate.stem)
+        if not match:
+            continue
+        try:
+            known_versions.append(int(match.group(1)))
+        except ValueError:
+            continue
+
+    baseline_version = int(current_version_raw) if current_version_raw else 1
+    next_version = max([baseline_version, *known_versions]) + 1
+    width = max(len(current_version_raw or ""), 2)
+    file_name = f"{root_name}_v{next_version:0{width}d}.md"
+    return output_dir / file_name
+
+
+def _call_router_prompt_check_upgrade(*,
+                                      api_key: str,
+                                      routing: ModelRoutingConfig,
+                                      check_prompt: str,
+                                      clinical_pathway_prompt: str,
+                                      suggestions: list[str]) -> tuple[str, list[str]]:
+    upgrade_schema = {
+        "type": "object",
+        "properties": {
+            "improved_check_prompt": {"type": "string"},
+            "applied_improvement_themes": {
+                "type": "array",
+                "items": {"type": "string"},
+            },
+        },
+        "required": ["improved_check_prompt", "applied_improvement_themes"],
+        "additionalProperties": False,
+    }
+
+    system_prompt = (
+        "Sei un clinical prompt engineer senior. "
+        "Devi migliorare un prompt di check clinico in modo professionale, operativo e robusto. "
+        "Integra i suggerimenti accumulati astraendo i concetti ricorrenti e senza copiare frasi letterali ridondanti. "
+        "Il prompt finale deve restare generalista e NON deve contenere riferimenti espliciti a STEMI. "
+        "La contestualizzazione clinica deve emergere da regola e clinical_pathway prompt."
+    )
+
+    user_payload = {
+        "check_prompt": check_prompt,
+        "clinical_pathway_prompt": clinical_pathway_prompt,
+        "gold_winner_suggestions": suggestions,
+        "constraints": {
+            "language": "it",
+            "tone": "professionale",
+            "avoid_hardcoded_stemi": True,
+            "target": "nuova versione del prompt di check che riduca errori delle iterazioni precedenti",
+        },
+    }
+    user_prompt = (
+        "Genera una nuova versione del prompt di check usando gli input forniti. "
+        "Restituisci solo JSON conforme allo schema richiesto.\n\n"
+        "INPUT UPGRADE PROMPT:\n"
+        f"{json.dumps(user_payload, ensure_ascii=False)}"
+    )
+
+    upgrade_model = _normalize_model_code_for_router(
+        model_code=routing.model_code,
+        router_code=routing.router_code,
+    )
+    schema_for_provider = (
+        _sanitize_json_schema_for_openrouter(upgrade_schema)
+        if routing.is_openrouter
+        else upgrade_schema
+    )
+    provider_cfg = routing.openrouter_provider if routing.is_openrouter else None
+    runaway_limit = _effective_runaway_token_limit(model=upgrade_model, routing=routing)
+
+    payload = {
+        "model": upgrade_model,
+        "temperature": 0.0,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "prompt_upgrade_output",
+                "strict": True,
+                "schema": schema_for_provider,
+            },
+        },
+    }
+    if routing.is_openrouter:
+        payload["reasoning"] = {"effort": "high"}
+    if provider_cfg is not None:
+        payload["provider"] = provider_cfg
+    if runaway_limit is not None:
+        payload["max_tokens"] = runaway_limit
+
+    try:
+        content = _post_router(
+            api_key=api_key,
+            payload=payload,
+            api_url=routing.api_url,
+            router_code=routing.router_code,
+        )
+    except RuleCheckError as e:
+        if "compiled grammar is too large" not in str(e).lower():
+            raise
+        print(
+            f"[WARN] {routing.router_code} schema upgrade prompt troppo grande per {upgrade_model}: "
+            "fallback a response_format=json_object."
+        )
+        fallback_payload = {
+            "model": upgrade_model,
+            "temperature": 0.0,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_prompt + " Segui rigorosamente lo schema JSON allegato nel prompt utente.",
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"{user_prompt}\n\n"
+                        "SCHEMA JSON DA RISPETTARE:\n"
+                        f"{json.dumps(upgrade_schema, ensure_ascii=False)}"
+                    ),
+                },
+            ],
+            "response_format": {"type": "json_object"},
+        }
+        if routing.is_openrouter:
+            fallback_payload["reasoning"] = {"effort": "high"}
+        if provider_cfg is not None:
+            fallback_payload["provider"] = provider_cfg
+        if runaway_limit is not None:
+            fallback_payload["max_tokens"] = runaway_limit
+        content = _post_router(
+            api_key=api_key,
+            payload=fallback_payload,
+            api_url=routing.api_url,
+            router_code=routing.router_code,
+        )
+
+    cleaned = _strip_markdown_fences(content)
+    try:
+        upgrade_json = json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        raise RuleCheckError(f"JSON upgrade prompt non parsabile: {e}. Estratto: {cleaned[:700]}") from e
+
+    if not isinstance(upgrade_json, dict):
+        raise RuleCheckError("Output upgrade prompt non valido: atteso oggetto JSON.")
+
+    improved_prompt = str(upgrade_json.get("improved_check_prompt") or "").strip()
+    if not improved_prompt:
+        raise RuleCheckError("Output upgrade prompt senza improved_check_prompt valorizzato.")
+    improved_prompt = _sanitize_generalist_prompt_text(improved_prompt)
+
+    themes_raw = upgrade_json.get("applied_improvement_themes")
+    themes: list[str] = []
+    if isinstance(themes_raw, list):
+        for item in themes_raw:
+            theme = str(item or "").strip()
+            if theme:
+                themes.append(theme)
+
+    return improved_prompt, themes
+
+
+def _write_prompt_improvement_markdown(*,
+                                       output_path: Path,
+                                       inference_params_id: int,
+                                       inference_params_name: str,
+                                       clinical_pathway_name: str,
+                                       model_code: str,
+                                       suggestions_count: int,
+                                       themes: list[str],
+                                       improved_prompt: str) -> None:
+    generated_at = datetime.now(UTC).isoformat()
+    themes_block = "\n".join(f"- {theme}" for theme in themes) if themes else "- (nessun tema esplicitato dal modello)"
+
+    content = (
+        "# Prompt Improvement\n\n"
+        f"- generated_at_utc: {generated_at}\n"
+        f"- model: {model_code}\n"
+        f"- inference_params_id: {inference_params_id}\n"
+        f"- inference_params_name: {inference_params_name}\n"
+        f"- clinical_pathway: {clinical_pathway_name}\n"
+        f"- source_suggestions: {suggestions_count} (winner=GOLD)\n"
+        "- source_prompt: inference_params.prompt1\n\n"
+        "## Applied Improvement Themes\n\n"
+        f"{themes_block}\n\n"
+        "## Improved Check Prompt\n\n"
+        f"{improved_prompt}\n"
+    )
+
+    output_path.write_text(content, encoding="utf-8")
+
+
+def _run_upgrade_prompt_check(conn,
+                              *,
+                              inference_params_id: int,
+                              inference_params_name: str) -> tuple[str, int, str, Path]:
+    check_prompt, pathway_prompt, pathway_name = _load_inference_prompt_upgrade_inputs_from_db(
+        conn,
+        inference_params_id=inference_params_id,
+    )
+    if not check_prompt:
+        raise RuleCheckError(
+            f"Inference params {inference_params_id} senza prompt1: upgrade non eseguibile."
+        )
+
+    suggestions = _load_gold_winner_suggestions_for_inference_params(
+        conn,
+        inference_params_id=inference_params_id,
+    )
+    if not suggestions:
+        raise RuleCheckError(
+            f"Nessuna suggestion disponibile su compliance_instance per inference_params_id={inference_params_id} con winner=GOLD."
+        )
+
+    upgrade_model = DEFAULT_RETROSPECTIVE_MODEL
+    upgrade_routing = _model_routing_from_db(conn, model_code=upgrade_model)
+    upgrade_api_key = (os.getenv(upgrade_routing.api_key_env) or "").strip()
+    if not upgrade_api_key:
+        raise RuleCheckError(
+            f"Variabile ambiente {upgrade_routing.api_key_env} non impostata "
+            f"per Upgrade Prompt Check {upgrade_routing.model_code} "
+            f"(router {upgrade_routing.router_code})."
+        )
+
+    improved_prompt, themes = _call_router_prompt_check_upgrade(
+        api_key=upgrade_api_key,
+        routing=upgrade_routing,
+        check_prompt=check_prompt,
+        clinical_pathway_prompt=pathway_prompt,
+        suggestions=suggestions,
+    )
+
+    output_path = _next_prompt_improvement_output_path(
+        inference_params_name=inference_params_name,
+    )
+    _write_prompt_improvement_markdown(
+        output_path=output_path,
+        inference_params_id=inference_params_id,
+        inference_params_name=inference_params_name,
+        clinical_pathway_name=pathway_name,
+        model_code=upgrade_routing.model_code,
+        suggestions_count=len(suggestions),
+        themes=themes,
+        improved_prompt=improved_prompt,
+    )
+
+    return upgrade_routing.model_code, len(suggestions), pathway_name, output_path
+
 def _build_prompt(base_prompt: str, episode: dict, rule: dict) -> str:
     return (
         f"{base_prompt.strip()}\n\n"
@@ -1446,13 +1779,19 @@ def _derive_patient_hash(episode_json: dict) -> str:
         if cf: return hashlib.sha256(cf.encode("utf-8")).hexdigest()[:16]
     return "unknown_patient"
 
-def _mode_is_gold() -> bool:
+def _choose_initial_mode() -> str:
     print("\nModalità iniziale:")
     print("  1) Creazione GOLD standard")
     print("  2) Comparazione tra modelli")
-    choice = input("Seleziona modalità [1/2] (default 1): ").strip() or "1"
-    if choice not in {"1", "2"}: raise RuleCheckError("Modalità non valida.")
-    return choice == "1"
+    print("  3) Upgrade Prompt Check")
+    choice = input("Seleziona modalità [1/2/3] (default 1): ").strip() or "1"
+    if choice == "1":
+        return "gold"
+    if choice == "2":
+        return "compare"
+    if choice == "3":
+        return "upgrade"
+    raise RuleCheckError("Modalità non valida.")
 
 def _normalize_lookup_key(value: object) -> str:
     return re.sub(r"\s+", "", str(value or "").strip().upper())
@@ -1960,7 +2299,7 @@ def _choose_check_model_post_actions() -> CheckModelPostActionOptions:
             return CheckModelPostActionOptions(debug_gold_vs_model=False, suggest_prompt_improvement=True)
         if choice == "4":
             return CheckModelPostActionOptions(debug_gold_vs_model=True, suggest_prompt_improvement=True)
-        print("Selezione non valida. Inserire 1, 2, 3 o 4.")
+        print("Selezione non valida. Inserire un valore tra 1 e 4.")
 
 
 def _next_debug_entry_index(debug_path: Path) -> int:
@@ -2692,10 +3031,41 @@ def main() -> int:
         return 1
 
     try:
-        mode_gold = _mode_is_gold()
+        initial_mode = _choose_initial_mode()
+    except RuleCheckError as e:
+        print(f"Errore modalità: {e}")
+        conn.close()
+        return 1
+
+    if initial_mode == "upgrade":
+        try:
+            _ensure_compliance_instance_retro_columns(conn)
+            print("\nUpgrade Prompt Check: selezionare inference_params di riferimento.")
+            upgrade_inference_params_id, upgrade_inference_params_name = _choose_inference_params_from_db(conn)
+            upgrade_model_code, upgrade_suggestions_count, _, upgrade_output_path = _run_upgrade_prompt_check(
+                conn,
+                inference_params_id=upgrade_inference_params_id,
+                inference_params_name=upgrade_inference_params_name,
+            )
+            upgrade_output_name = upgrade_output_path.name if isinstance(upgrade_output_path, Path) else "-"
+            print(
+                f"[UPGRADE] Prompt aggiornato generato con {upgrade_model_code} "
+                f"su inference_params_id={upgrade_inference_params_id} "
+                f"(suggestions winner=GOLD: {upgrade_suggestions_count}) -> {upgrade_output_name}"
+            )
+            conn.close()
+            return 0
+        except Exception as e:
+            print(f"Errore modalità upgrade: {e}")
+            conn.close()
+            return 1
+
+    mode_gold = initial_mode == "gold"
+
+    try:
         selected_models = _choose_models_from_db(conn, mode_gold=mode_gold)
     except RuleCheckError as e:
-        print(f"Errore modalità/modello: {e}")
+        print(f"Errore setup modello: {e}")
         conn.close()
         return 1
 
@@ -2838,6 +3208,7 @@ def main() -> int:
                     f"per retrospettiva {retrospective_routing.model_code} "
                     f"(router {retrospective_routing.router_code})."
                 )
+
     except Exception as e:
         print(f"Errore setup post-actions: {e}")
         conn.close()
