@@ -27,6 +27,8 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent
 RATIONALE_ALIGNMENT_PROMPT_PATH = ROOT / "SRS" / "PROMPT_RationaleAlignmentJudge.md"
+RETROSPECTIVE_PROMPT_PATH = ROOT / "SRS" / "PROMPT_Retrospettiva.md"
+RETROSPECTIVE_SCHEMA_PATH = ROOT / "SRS" / "retrospettiva_output.schema.json"
 DEBUG_MARKDOWN_PATH = ROOT / "check_rules03_debug.md"
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -38,6 +40,8 @@ DEFAULT_OVHCLOUD_ROUTER_CODE = "OVHCloud"
 DEFAULT_NEBIUS_ROUTER_CODE = "NebiusTokenFactory"
 DEFAULT_GOLD_MODEL = "anthropic/claude-opus-4.6"
 DEFAULT_RATIONALE_ALIGNMENT_MODEL = "anthropic/claude-sonnet-4.6"
+DEFAULT_RETROSPECTIVE_MODEL = "anthropic/claude-opus-4.6"
+RETROSPECTIVE_TRIGGER_THRESHOLD = 7
 COMPARISON_MODELS = {
     "1": "qwen/qwen3.5-35b-a3b",
     "2": "google/gemini-3-flash-preview",
@@ -197,6 +201,12 @@ class DbRule:
     clinical_pathway_id: int
     name: str
     body: dict
+
+
+@dataclass(frozen=True)
+class CheckModelPostActionOptions:
+    debug_gold_vs_model: bool
+    suggest_prompt_improvement: bool
 
 
 def _effective_runaway_token_limit(*, model: str, routing: ModelRoutingConfig | None = None) -> int | None:
@@ -979,7 +989,7 @@ def _load_rules_for_pathway_from_db(conn, *, clinical_pathway_id: int) -> list[D
 def _load_prompt_and_schema_from_db(conn,
                                     *,
                                     inference_params_id: int,
-                                    selected_pathway_id: int) -> tuple[str, dict]:
+                                    selected_pathway_id: int) -> tuple[str, dict, str]:
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -1023,7 +1033,29 @@ def _load_prompt_and_schema_from_db(conn,
         context=f"inference_params.json_schema1 inference_params_id={inference_params_id}",
     )
 
-    return base_prompt, check_schema
+    return base_prompt, check_schema, inference_prompt
+
+
+def _load_retrospettiva_prompt_and_schema() -> tuple[str, dict]:
+    if not RETROSPECTIVE_PROMPT_PATH.exists():
+        raise RuleCheckError(f"Prompt retrospettiva non trovato: {RETROSPECTIVE_PROMPT_PATH}")
+    if not RETROSPECTIVE_SCHEMA_PATH.exists():
+        raise RuleCheckError(f"Schema retrospettiva non trovato: {RETROSPECTIVE_SCHEMA_PATH}")
+
+    prompt_text = RETROSPECTIVE_PROMPT_PATH.read_text(encoding="utf-8").strip()
+    if not prompt_text:
+        raise RuleCheckError("Prompt retrospettiva vuoto.")
+
+    try:
+        schema_raw = json.loads(RETROSPECTIVE_SCHEMA_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise RuleCheckError(f"Schema retrospettiva non parsabile: {e}") from e
+
+    schema = _coerce_json_object(
+        schema_raw,
+        context=f"retrospettiva schema ({RETROSPECTIVE_SCHEMA_PATH.name})",
+    )
+    return prompt_text, schema
 
 def _build_prompt(base_prompt: str, episode: dict, rule: dict) -> str:
     return (
@@ -1269,6 +1301,143 @@ def _call_router_rationale_alignment(*,
     raw_score = alignment_json.get("alignment_score_0_10")
     if not isinstance(raw_score, (int, float)): raise RuleCheckError("Risposta giudice rationale senza alignment_score_0_10 numerico.")
     return _clip_0_10(float(raw_score))
+
+
+def _normalize_retrospettiva_winner(value: object) -> str:
+    winner = str(value or "").strip().upper()
+    if winner not in {"GOLD", "CHECK", "NONE"}:
+        raise RuleCheckError(f"Winner retrospettiva non valido: {value}")
+    return winner
+
+
+def _retrospettiva_suggestion_text(value: object) -> str:
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, list):
+        lines: list[str] = []
+        for item in value:
+            txt = str(item or "").strip()
+            if txt:
+                lines.append(txt)
+        return "\n".join(lines).strip()
+    return ""
+
+
+def _call_router_retrospettiva(*,
+                               api_key: str,
+                               routing: ModelRoutingConfig,
+                               retrospective_prompt_text: str,
+                               retrospective_schema: dict,
+                               retrospective_payload: dict) -> tuple[str, str]:
+    system_prompt = (retrospective_prompt_text or "").strip()
+    if not system_prompt:
+        raise RuleCheckError("Prompt retrospettiva vuoto.")
+
+    retrospective_model = _normalize_model_code_for_router(
+        model_code=routing.model_code,
+        router_code=routing.router_code,
+    )
+    schema_for_provider = (
+        _sanitize_json_schema_for_openrouter(retrospective_schema)
+        if routing.is_openrouter
+        else retrospective_schema
+    )
+    provider_cfg = routing.openrouter_provider if routing.is_openrouter else None
+    runaway_limit = _effective_runaway_token_limit(model=retrospective_model, routing=routing)
+
+    user_prompt = (
+        "Esegui una retrospettiva del check clinico e proponi miglioramenti al prompt di verifica.\n"
+        "Restituisci solo JSON conforme allo schema richiesto.\n\n"
+        "INPUT RETROSPETTIVA:\n"
+        f"{json.dumps(retrospective_payload, ensure_ascii=False)}"
+    )
+
+    payload = {
+        "model": retrospective_model,
+        "temperature": 0.0,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "retrospettiva_output",
+                "strict": True,
+                "schema": schema_for_provider,
+            },
+        },
+    }
+    if routing.is_openrouter:
+        payload["reasoning"] = {"effort": "high"}
+    if provider_cfg is not None:
+        payload["provider"] = provider_cfg
+    if runaway_limit is not None:
+        payload["max_tokens"] = runaway_limit
+
+    try:
+        content = _post_router(
+            api_key=api_key,
+            payload=payload,
+            api_url=routing.api_url,
+            router_code=routing.router_code,
+        )
+    except RuleCheckError as e:
+        if "compiled grammar is too large" not in str(e).lower():
+            raise
+        print(
+            f"[WARN] {routing.router_code} schema retrospettiva troppo grande per {retrospective_model}: "
+            "fallback a response_format=json_object."
+        )
+        fallback_payload = {
+            "model": retrospective_model,
+            "temperature": 0.0,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_prompt + " Segui rigorosamente lo schema JSON allegato nel prompt utente.",
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"{user_prompt}\n\n"
+                        "SCHEMA JSON DA RISPETTARE:\n"
+                        f"{json.dumps(retrospective_schema, ensure_ascii=False)}"
+                    ),
+                },
+            ],
+            "response_format": {"type": "json_object"},
+        }
+        if routing.is_openrouter:
+            fallback_payload["reasoning"] = {"effort": "high"}
+        if provider_cfg is not None:
+            fallback_payload["provider"] = provider_cfg
+        if runaway_limit is not None:
+            fallback_payload["max_tokens"] = runaway_limit
+        content = _post_router(
+            api_key=api_key,
+            payload=fallback_payload,
+            api_url=routing.api_url,
+            router_code=routing.router_code,
+        )
+
+    cleaned = _strip_markdown_fences(content)
+    try:
+        retrospective_json = json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        raise RuleCheckError(f"JSON retrospettiva non parsabile: {e}. Estratto: {cleaned[:700]}") from e
+
+    if not isinstance(retrospective_json, dict):
+        raise RuleCheckError("Output retrospettiva non valido: atteso oggetto JSON.")
+
+    winner = _normalize_retrospettiva_winner(retrospective_json.get("winner"))
+    suggestion = _retrospettiva_suggestion_text(retrospective_json.get("suggestion"))
+    if not suggestion:
+        suggestion = _retrospettiva_suggestion_text(retrospective_json.get("suggestions"))
+    if not suggestion:
+        raise RuleCheckError("Output retrospettiva senza campo suggestion valorizzato.")
+
+    return winner, suggestion
 
 def _derive_patient_hash(episode_json: dict) -> str:
     patient = episode_json.get("paziente") if isinstance(episode_json, dict) else None
@@ -1774,16 +1943,24 @@ def _choose_reasoning_effort() -> str:
     return REASONING_EFFORTS[choice]
 
 
-def _choose_debug_gold_vs_model() -> bool:
+def _choose_check_model_post_actions() -> CheckModelPostActionOptions:
+    print("\nUltima domanda del flusso Check model:")
+    print("  1) Nessuna azione extra")
+    print("  2) Debug, comparazione GOLD versus modello")
+    print("  3) Suggest Prompt Improvement")
+    print("  4) Debug + Suggest Prompt Improvement")
+
     while True:
-        choice = input("Debug, comparazione GOLD versus modello [S/N] (default N): ").strip().lower()
-        if not choice:
-            return False
-        if choice in {"s", "si", "y", "yes"}:
-            return True
-        if choice in {"n", "no"}:
-            return False
-        print("Selezione non valida. Inserire S oppure N, oppure Invio per default N.")
+        choice = input("Seleziona opzione [1/2/3/4] (default 1): ").strip() or "1"
+        if choice == "1":
+            return CheckModelPostActionOptions(debug_gold_vs_model=False, suggest_prompt_improvement=False)
+        if choice == "2":
+            return CheckModelPostActionOptions(debug_gold_vs_model=True, suggest_prompt_improvement=False)
+        if choice == "3":
+            return CheckModelPostActionOptions(debug_gold_vs_model=False, suggest_prompt_improvement=True)
+        if choice == "4":
+            return CheckModelPostActionOptions(debug_gold_vs_model=True, suggest_prompt_improvement=True)
+        print("Selezione non valida. Inserire 1, 2, 3 o 4.")
 
 
 def _next_debug_entry_index(debug_path: Path) -> int:
@@ -1957,6 +2134,25 @@ def _ensure_run_instance_schema(conn) -> None:
         raise RuleCheckError(
             "Colonna DB mancante: riskm_manager_model_evaluation.compliance_instance.run_instance_id. "
             "Applicare prima la migrazione DDL del run."
+        )
+
+
+def _ensure_compliance_instance_retro_columns(conn) -> None:
+    missing: list[str] = []
+    for column_name in ("winner", "suggestion"):
+        if not _column_exists(
+            conn,
+            schema="riskm_manager_model_evaluation",
+            table="compliance_instance",
+            column=column_name,
+        ):
+            missing.append(column_name)
+
+    if missing:
+        missing_csv = ", ".join(missing)
+        raise RuleCheckError(
+            "Colonne DB mancanti in riskm_manager_model_evaluation.compliance_instance: "
+            f"{missing_csv}. Applicare prima il DDL di alter table per winner/suggestion."
         )
 
 def _load_existing_runs(conn) -> list[tuple[int, object]]:
@@ -2169,7 +2365,7 @@ def _run_gold_outcome_backfill(conn, *, selected_model: SelectedModel) -> int:
         conn,
         clinical_pathway_id=selected_pathway_id,
     )
-    base_prompt, check_schema = _load_prompt_and_schema_from_db(
+    base_prompt, check_schema, _ = _load_prompt_and_schema_from_db(
         conn,
         inference_params_id=inference_params_id,
         selected_pathway_id=selected_pathway_id,
@@ -2457,6 +2653,33 @@ def update_quality_scores_in_db(conn, compliance_instance_id: int,
             ),
         )
     conn.commit()
+
+
+def update_retrospettiva_result_in_db(conn,
+                                      compliance_instance_id: int,
+                                      winner: str,
+                                      suggestion: str) -> None:
+    winner_norm = _normalize_retrospettiva_winner(winner)
+    suggestion_text = str(suggestion or "").strip()
+    if not suggestion_text:
+        raise RuleCheckError("Suggestion retrospettiva vuota: update DB annullato.")
+
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE riskm_manager_model_evaluation.compliance_instance
+            SET winner = %s,
+                suggestion = %s
+            WHERE compliance_instance_id = %s
+            """,
+            (winner_norm, suggestion_text, compliance_instance_id),
+        )
+        if cursor.rowcount != 1:
+            raise RuleCheckError(
+                f"Update retrospettiva non riuscito per compliance_instance_id={compliance_instance_id}."
+            )
+
+    conn.commit()
     
 
 def main() -> int:
@@ -2490,8 +2713,15 @@ def main() -> int:
     rationale_alignment_routing: ModelRoutingConfig | None = None
     rationale_alignment_api_key: str = ""
     debug_gold_vs_model = False
+    suggest_prompt_improvement = False
     debug_entry_index = 1
     debug_entries_written = 0
+    retrospective_prompt_text = ""
+    retrospective_schema: dict = {}
+    retrospective_model = DEFAULT_RETROSPECTIVE_MODEL
+    retrospective_routing: ModelRoutingConfig | None = None
+    retrospective_api_key: str = ""
+    selected_inference_prompt = ""
 
     try:
         rationale_alignment_model = os.getenv("OPENROUTER_ALIGNMENT_MODEL", DEFAULT_RATIONALE_ALIGNMENT_MODEL)
@@ -2547,7 +2777,7 @@ def main() -> int:
             conn,
             clinical_pathway_id=selected_pathway_id,
         )
-        base_prompt, check_schema = _load_prompt_and_schema_from_db(
+        base_prompt, check_schema, selected_inference_prompt = _load_prompt_and_schema_from_db(
             conn,
             inference_params_id=inference_params_id,
             selected_pathway_id=selected_pathway_id,
@@ -2582,13 +2812,34 @@ def main() -> int:
         conn.close()
         return 1
 
-    # Ultima domanda del ramo "check models": debug comparazione GOLD vs modello.
+    # Ultima domanda del ramo "check model": opzioni debug e suggest improvement.
     try:
-        debug_gold_vs_model = _choose_debug_gold_vs_model()
+        post_actions = _choose_check_model_post_actions()
+        debug_gold_vs_model = post_actions.debug_gold_vs_model
+        suggest_prompt_improvement = post_actions.suggest_prompt_improvement
+
         if debug_gold_vs_model:
             debug_entry_index = _ensure_debug_markdown_file(DEBUG_MARKDOWN_PATH)
+
+        if suggest_prompt_improvement:
+            _ensure_compliance_instance_retro_columns(conn)
+            if not selected_inference_prompt:
+                raise RuleCheckError(
+                    "Suggest Prompt Improvement richiede inference_params.prompt1 valorizzato "
+                    "(senza fallback su clinical_pathway.prompt1)."
+                )
+            retrospective_prompt_text, retrospective_schema = _load_retrospettiva_prompt_and_schema()
+            retrospective_model = DEFAULT_RETROSPECTIVE_MODEL
+            retrospective_routing = _model_routing_from_db(conn, model_code=retrospective_model)
+            retrospective_api_key = (os.getenv(retrospective_routing.api_key_env) or "").strip()
+            if not retrospective_api_key:
+                raise RuleCheckError(
+                    f"Variabile ambiente {retrospective_routing.api_key_env} non impostata "
+                    f"per retrospettiva {retrospective_routing.model_code} "
+                    f"(router {retrospective_routing.router_code})."
+                )
     except Exception as e:
-        print(f"Errore setup debug: {e}")
+        print(f"Errore setup post-actions: {e}")
         conn.close()
         return 1
 
@@ -2642,12 +2893,29 @@ def main() -> int:
                 f"Debug markdown:       {DEBUG_MARKDOWN_PATH.name} "
                 f"(append progressivo da entry {debug_entry_index})"
             )
+        print(f"Suggest improvement:  {'SI' if suggest_prompt_improvement else 'NO'}")
+        if suggest_prompt_improvement and retrospective_routing is not None:
+            print(
+                f"Retrospettiva model:  {retrospective_model} "
+                f"(router: {retrospective_routing.router_code}, key_env: {retrospective_routing.api_key_env})"
+            )
+            print(
+                "Prompt check retro:   check_prompt=inference_params.prompt1 "
+                "(singolo, no fallback)"
+            )
+            print(f"Lunghezza check_prompt: {len(selected_inference_prompt)} chars")
+            print(f"Prompt retrospettiva: {RETROSPECTIVE_PROMPT_PATH.name}")
+            print(f"Schema retrospettiva: {RETROSPECTIVE_SCHEMA_PATH.name}")
+            print(f"Trigger retrospettiva: conformita' < {RETROSPECTIVE_TRIGGER_THRESHOLD}")
     print(f"Reasoning effort:     {reasoning_effort}")
     print("Inizio elaborazione...\n")
 
     ok_count = 0
     ko_count = 0
     skip_count = 0
+    retrospective_invoked_count = 0
+    retrospective_saved_count = 0
+    retrospective_ko_count = 0
 
     for db_rule in db_rules:
         rule_json = db_rule.body
@@ -2724,6 +2992,8 @@ def main() -> int:
                     outcome_alignment: int | None = None
                     conformity: int | None = None
                     rationale_mode: str | None = None
+                    retrospective_winner: str | None = None
+                    retrospective_suggestion: str | None = None
 
                     instance_id, overwritten_rows = save_to_db(
                         conn,
@@ -2797,6 +3067,56 @@ def main() -> int:
                         )
                         line_open = False
 
+                        if suggest_prompt_improvement and conformity < RETROSPECTIVE_TRIGGER_THRESHOLD:
+                            retrospective_invoked_count += 1
+                            if retrospective_routing is None:
+                                raise RuleCheckError("Routing retrospettiva non risolto.")
+
+                            retrospective_payload = {
+                                "check_prompt": selected_inference_prompt,
+                                "clinical_case": episode_json,
+                                "rule": rule_json,
+                                "gold_output": gold_json,
+                                "check_output": result_json,
+                                "scoring": {
+                                    "conformity_0_10": conformity,
+                                    "rationale_alignment_0_10": inferential_alignment,
+                                    "outcome_alignment_0_10": outcome_alignment,
+                                    "threshold": RETROSPECTIVE_TRIGGER_THRESHOLD,
+                                },
+                            }
+
+                            try:
+                                retrospective_winner, retrospective_suggestion = _call_router_retrospettiva(
+                                    api_key=retrospective_api_key,
+                                    routing=retrospective_routing,
+                                    retrospective_prompt_text=retrospective_prompt_text,
+                                    retrospective_schema=retrospective_schema,
+                                    retrospective_payload=retrospective_payload,
+                                )
+                                update_retrospettiva_result_in_db(
+                                    conn,
+                                    instance_id,
+                                    winner=retrospective_winner,
+                                    suggestion=retrospective_suggestion,
+                                )
+                                retrospective_saved_count += 1
+                                print(
+                                    f"[RETRO] {execution_label} | trigger: conformita' {conformity}/10 < {RETROSPECTIVE_TRIGGER_THRESHOLD} "
+                                    f"| check_prompt: inference_params.prompt1 "
+                                    f"| winner: {retrospective_winner} | suggestion salvata"
+                                )
+                            except Exception as retrospective_error:
+                                try:
+                                    conn.rollback()
+                                except Exception:
+                                    pass
+                                retrospective_ko_count += 1
+                                print(
+                                    f"[WARN] Retrospettiva non completata su {execution_label}: "
+                                    f"{retrospective_error}"
+                                )
+
                     if debug_gold_vs_model:
                         try:
                             _append_debug_gold_vs_model_markdown(
@@ -2846,6 +3166,10 @@ def main() -> int:
     print(f"OK: {ok_count}")
     print(f"KO: {ko_count}")
     print(f"SKIP: {skip_count}")
+    if suggest_prompt_improvement:
+        print(f"RETRO trigger: {retrospective_invoked_count}")
+        print(f"RETRO salvate: {retrospective_saved_count}")
+        print(f"RETRO KO: {retrospective_ko_count}")
     if debug_gold_vs_model:
         print(
             f"DEBUG markdown append: {debug_entries_written} "

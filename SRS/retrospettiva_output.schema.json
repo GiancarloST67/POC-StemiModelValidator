@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Retrospettiva Prompt Improvement Output",
+  "description": "Risultato della chiamata retrospettiva su un check con scoring basso.",
+  "type": "object",
+  "properties": {
+    "winner": {
+      "type": "string",
+      "enum": [
+        "GOLD",
+        "CHECK",
+        "NONE"
+      ],
+      "description": "Vincitore del confronto clinico tra output GOLD e output CHECK."
+    },
+    "suggestion": {
+      "type": "string",
+      "description": "Suggerimenti operativi per migliorare il prompt di check salvato su database."
+    }
+  },
+  "required": [
+    "winner",
+    "suggestion"
+  ],
+  "additionalProperties": false
+}

@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict HpM47R08UpiKs7iYarCXbIa8AV6JrRZwXPiQ1OXbdwfWAsq9So9xYNc17ea3BVp
+\restrict SYhUDcO0rXglqevCrpbG2JrRNfJoE5IjxZOA7dlnmBkfALQz5lTQRkpSHzkPYjQ
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -844,7 +844,7 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.rule_definition
 -- PostgreSQL database dump complete
 --
 
-\unrestrict HpM47R08UpiKs7iYarCXbIa8AV6JrRZwXPiQ1OXbdwfWAsq9So9xYNc17ea3BVp
+\unrestrict SYhUDcO0rXglqevCrpbG2JrRNfJoE5IjxZOA7dlnmBkfALQz5lTQRkpSHzkPYjQ
 
 
 
@@ -856,7 +856,7 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.rule_definition
 -- PostgreSQL database dump
 --
 
-\restrict rlh2YZMgfv4cRHoqAYb2CegbID9lQCqlbRHna9Bn8rwCytFEhCm5oL1PehDjBwx
+\restrict ajE4jlc6peoIEW7dnhWW7ZhDp8YYOUdwA5XolEw6NFrjlaOhxt3cSzhOAX7rika
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -905,6 +905,7 @@ INSERT INTO riskm_manager_model_evaluation.router VALUES ('Nebius', 'https://api
 -- Data for Name: model; Type: TABLE DATA; Schema: riskm_manager_model_evaluation; Owner: postgres
 --
 
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (33, 'Qwen/Qwen3-235B-A22B-Thinking-2507', 15000, NULL, 'Nebius', 1);
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (1, 'anthropic/claude-opus-4.6', NULL, NULL, 'OpenRouter', 2);
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (2, 'anthropic/claude-sonnet-4.6', NULL, NULL, 'OpenRouter', 2);
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (3, 'qwen/qwen3.5-35b-a3b', 10000, NULL, 'OpenRouter', 1);
@@ -975,7 +976,7 @@ SELECT pg_catalog.setval('riskm_manager_model_evaluation.compliance_type_complia
 -- Name: model_model_id_seq; Type: SEQUENCE SET; Schema: riskm_manager_model_evaluation; Owner: postgres
 --
 
-SELECT pg_catalog.setval('riskm_manager_model_evaluation.model_model_id_seq', 32, true);
+SELECT pg_catalog.setval('riskm_manager_model_evaluation.model_model_id_seq', 33, true);
 
 
 --
@@ -989,5 +990,5 @@ SELECT pg_catalog.setval('riskm_manager_model_evaluation.rule_definition_rule_id
 -- PostgreSQL database dump complete
 --
 
-\unrestrict rlh2YZMgfv4cRHoqAYb2CegbID9lQCqlbRHna9Bn8rwCytFEhCm5oL1PehDjBwx
+\unrestrict ajE4jlc6peoIEW7dnhWW7ZhDp8YYOUdwA5XolEw6NFrjlaOhxt3cSzhOAX7rika
 
