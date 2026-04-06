@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Check batch regole STEMI con salvataggio su PostgreSQL (compliance_instance)
+con routing router generalizzato da tabella model/router.
 """
 
 from __future__ import annotations
@@ -25,8 +26,13 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent
 RATIONALE_ALIGNMENT_PROMPT_PATH = ROOT / "SRS" / "PROMPT_RationaleAlignmentJudge.md"
+DEBUG_MARKDOWN_PATH = ROOT / "check_rules03_debug.md"
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+OVHCLOUD_DEFAULT_BASE_URL = "https://oai.endpoints.kepler.ai.cloud.ovh.net"
+OVHCLOUD_DEFAULT_CHAT_PATH = "/v1/chat/completions"
+DEFAULT_OPENROUTER_ROUTER_CODE = "OpenRouter"
+DEFAULT_OVHCLOUD_ROUTER_CODE = "OVHCloud"
 DEFAULT_GOLD_MODEL = "anthropic/claude-opus-4.6"
 DEFAULT_RATIONALE_ALIGNMENT_MODEL = "anthropic/claude-sonnet-4.6"
 COMPARISON_MODELS = {
@@ -132,7 +138,9 @@ _RETRYABLE_OPENROUTER_TEXT_MARKERS = (
     "overloaded",
 )
 
-def _provider_for_model(model: str) -> dict | None:
+_OVH_PRICING_CACHE: dict[tuple[str, str], dict[str, float] | None] = {}
+
+def _legacy_openrouter_provider_for_model(model: str) -> dict | None:
     m = (model or "").strip().lower()
     if "gpt-oss-120b" in m or "gpt-oss120b" in m:
         return {"order": ["baseten/fp4"], "allow_fallbacks": False}
@@ -155,6 +163,27 @@ def _is_runaway_cap_hit(finish_reason: str | None) -> bool:
 class RuleCheckError(Exception):
     pass
 
+
+@dataclass(frozen=True)
+class ModelRoutingConfig:
+    model_id: int | None
+    model_code: str
+    router_code: str
+    api_url: str
+    api_key_env: str
+    openrouter_provider: dict | None
+
+    @property
+    def is_openrouter(self) -> bool:
+        return self.router_code.strip().lower() == DEFAULT_OPENROUTER_ROUTER_CODE.lower()
+
+
+@dataclass(frozen=True)
+class SelectedModel:
+    model_id: int
+    model_code: str
+    routing: ModelRoutingConfig
+
 @dataclass(frozen=True)
 class CaseSelection:
     case_id: int
@@ -168,6 +197,205 @@ class DbRule:
     clinical_pathway_id: int
     name: str
     body: dict
+
+
+def _safe_string(value: object) -> str:
+    if isinstance(value, str):
+        return value.strip()
+    return ""
+
+
+def _normalize_chat_path(path: str | None) -> str:
+    p = (path or "").strip()
+    if not p:
+        p = OVHCLOUD_DEFAULT_CHAT_PATH
+    if not p.startswith("/"):
+        p = "/" + p
+    return p
+
+
+def _build_ovh_chat_url(*, base_url: str, chat_path: str | None) -> str:
+    base = base_url.strip() or OVHCLOUD_DEFAULT_BASE_URL
+    return f"{base.rstrip('/')}{_normalize_chat_path(chat_path)}"
+
+
+def _json_object_or_none(value: object) -> dict | None:
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        txt = value.strip()
+        if not txt:
+            return None
+        try:
+            parsed = json.loads(txt)
+        except json.JSONDecodeError:
+            return None
+        return parsed if isinstance(parsed, dict) else None
+    return None
+
+
+def _table_exists(conn, *, schema: str, table: str) -> bool:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = %s
+              AND table_name = %s
+            """,
+            (schema, table),
+        )
+        return cur.fetchone() is not None
+
+
+def _column_exists(conn, *, schema: str, table: str, column: str) -> bool:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = %s
+              AND table_name = %s
+              AND column_name = %s
+            """,
+            (schema, table, column),
+        )
+        return cur.fetchone() is not None
+
+
+def _model_routing_from_db(conn, *, model_code: str) -> ModelRoutingConfig:
+    model_code_clean = str(model_code or "").strip()
+    if not model_code_clean:
+        raise RuleCheckError("Modello vuoto: impossibile risolvere routing router.")
+
+    schema = "riskm_manager_model_evaluation"
+    has_model_router_col = _column_exists(conn, schema=schema, table="model", column="router_code")
+    has_router_table = _table_exists(conn, schema=schema, table="router")
+
+    if has_model_router_col and has_router_table:
+        query = """
+            SELECT m.model_id, m.code, m.providers, m.router_code, r.api_url, r.key_env_variable
+            FROM riskm_manager_model_evaluation.model m
+            LEFT JOIN riskm_manager_model_evaluation.router r
+                ON r.code = m.router_code
+            WHERE UPPER(m.code) = UPPER(%s)
+            LIMIT 1
+        """
+    elif has_model_router_col:
+        query = """
+            SELECT m.model_id, m.code, m.providers, m.router_code, NULL::text AS api_url, NULL::text AS key_env_variable
+            FROM riskm_manager_model_evaluation.model m
+            WHERE UPPER(m.code) = UPPER(%s)
+            LIMIT 1
+        """
+    else:
+        query = """
+            SELECT m.model_id, m.code, m.providers, NULL::text AS router_code, NULL::text AS api_url, NULL::text AS key_env_variable
+            FROM riskm_manager_model_evaluation.model m
+            WHERE UPPER(m.code) = UPPER(%s)
+            LIMIT 1
+        """
+
+    with conn.cursor() as cur:
+        cur.execute(query, (model_code_clean,))
+        row = cur.fetchone()
+
+    if not row:
+        return ModelRoutingConfig(
+            model_id=None,
+            model_code=model_code_clean,
+            router_code=DEFAULT_OPENROUTER_ROUTER_CODE,
+            api_url=OPENROUTER_URL,
+            api_key_env="OPENROUTER_API_KEY",
+            openrouter_provider=_legacy_openrouter_provider_for_model(model_code_clean),
+        )
+
+    model_id = int(row[0])
+    resolved_model_code = str(row[1]).strip()
+    providers = _json_object_or_none(row[2])
+    router_code = _safe_string(row[3])
+    api_url = _safe_string(row[4])
+    api_key_env = _safe_string(row[5])
+
+    openrouter_provider = _legacy_openrouter_provider_for_model(resolved_model_code)
+    if isinstance(providers, dict):
+        if "order" in providers or "allow_fallbacks" in providers:
+            openrouter_provider = providers
+        provider_from_json = providers.get("openrouter_provider")
+        if isinstance(provider_from_json, dict):
+            openrouter_provider = provider_from_json
+
+    # Backward compatibility: infer router from legacy providers.endpoint if router table/column not populated yet.
+    if isinstance(providers, dict):
+        endpoint_cfg_raw = providers.get("endpoint")
+        endpoint_cfg = endpoint_cfg_raw if isinstance(endpoint_cfg_raw, dict) else {}
+        endpoint_type_raw = endpoint_cfg_raw if isinstance(endpoint_cfg_raw, str) else endpoint_cfg.get("type")
+        endpoint_type_norm = _safe_string(endpoint_type_raw).lower().replace("-", "_")
+
+        if endpoint_type_norm in {"ovh", "ovh_openai", "ovhcloud"}:
+            if not router_code:
+                router_code = DEFAULT_OVHCLOUD_ROUTER_CODE
+            if not api_url:
+                explicit_url = _safe_string(endpoint_cfg.get("url")) or _safe_string(providers.get("url"))
+                base_url = (
+                    _safe_string(endpoint_cfg.get("base_url"))
+                    or _safe_string(providers.get("base_url"))
+                    or OVHCLOUD_DEFAULT_BASE_URL
+                )
+                chat_path = _safe_string(endpoint_cfg.get("chat_completions_path")) or _safe_string(
+                    providers.get("chat_completions_path")
+                )
+                api_url = explicit_url or _build_ovh_chat_url(base_url=base_url, chat_path=chat_path)
+            if not api_key_env:
+                api_key_env = (
+                    _safe_string(endpoint_cfg.get("api_key_env"))
+                    or _safe_string(providers.get("api_key_env"))
+                    or "OVH_API_KEY"
+                )
+            openrouter_provider = None
+
+        elif endpoint_type_norm in {"openrouter", "open_router"}:
+            if not router_code:
+                router_code = DEFAULT_OPENROUTER_ROUTER_CODE
+            if not api_url:
+                api_url = (
+                    _safe_string(endpoint_cfg.get("url"))
+                    or _safe_string(providers.get("url"))
+                    or OPENROUTER_URL
+                )
+            if not api_key_env:
+                api_key_env = (
+                    _safe_string(endpoint_cfg.get("api_key_env"))
+                    or _safe_string(providers.get("api_key_env"))
+                    or "OPENROUTER_API_KEY"
+                )
+
+    if not router_code:
+        router_code = DEFAULT_OPENROUTER_ROUTER_CODE
+
+    if not api_url:
+        if router_code.strip().lower() == DEFAULT_OVHCLOUD_ROUTER_CODE.lower():
+            api_url = _build_ovh_chat_url(base_url=OVHCLOUD_DEFAULT_BASE_URL, chat_path=OVHCLOUD_DEFAULT_CHAT_PATH)
+        else:
+            api_url = OPENROUTER_URL
+
+    if not api_key_env:
+        if router_code.strip().lower() == DEFAULT_OVHCLOUD_ROUTER_CODE.lower():
+            api_key_env = "OVH_API_KEY"
+        else:
+            api_key_env = "OPENROUTER_API_KEY"
+
+    if router_code.strip().lower() != DEFAULT_OPENROUTER_ROUTER_CODE.lower():
+        openrouter_provider = None
+
+    return ModelRoutingConfig(
+        model_id=model_id,
+        model_code=resolved_model_code,
+        router_code=router_code,
+        api_url=api_url,
+        api_key_env=api_key_env,
+        openrouter_provider=openrouter_provider,
+    )
 
 def _coerce_json_object(value: object, *, context: str) -> dict:
     if isinstance(value, dict):
@@ -223,6 +451,24 @@ def _to_float(value: object) -> float | None:
             return None
     return None
 
+
+def _to_int(value: object) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        txt = value.strip()
+        if not txt:
+            return None
+        try:
+            return int(float(txt))
+        except ValueError:
+            return None
+    return None
+
 def _extract_inference_cost_usd(body: dict, header_cost_usd: float | None) -> float | None:
     usage_raw = body.get("usage")
     usage: dict[str, object] = usage_raw if isinstance(usage_raw, dict) else {}
@@ -241,6 +487,103 @@ def _extract_inference_cost_usd(body: dict, header_cost_usd: float | None) -> fl
     if input_cost is not None or output_cost is not None:
         return (input_cost or 0.0) + (output_cost or 0.0)
     return header_cost_usd
+
+
+def _usage_tokens_from_body(body: dict) -> tuple[int | None, int | None]:
+    usage_raw = body.get("usage")
+    usage = usage_raw if isinstance(usage_raw, dict) else {}
+    prompt_tokens = _to_int(usage.get("prompt_tokens")) or _to_int(usage.get("input_tokens"))
+    completion_tokens = _to_int(usage.get("completion_tokens")) or _to_int(usage.get("output_tokens"))
+    return prompt_tokens, completion_tokens
+
+
+def _ovh_base_url_from_chat_api_url(api_url: str) -> str:
+    url = (api_url or "").strip().rstrip("/")
+    marker = "/v1/chat/completions"
+    low = url.lower()
+    if low.endswith(marker):
+        return url[: -len(marker)]
+    return url
+
+
+def _fetch_ovh_pricing(*, base_url: str, api_key: str, model: str) -> dict[str, float] | None:
+    cache_key = (base_url, model)
+    if cache_key in _OVH_PRICING_CACHE:
+        return _OVH_PRICING_CACHE[cache_key]
+
+    models_url = f"{base_url.rstrip('/')}/v1/models"
+    req = request.Request(
+        models_url,
+        data=None,
+        method="GET",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+    )
+
+    try:
+        with request.urlopen(req, timeout=60) as resp:
+            raw = resp.read().decode("utf-8")
+        body = json.loads(raw)
+    except Exception:
+        _OVH_PRICING_CACHE[cache_key] = None
+        return None
+
+    data = body.get("data") if isinstance(body, dict) else None
+    if not isinstance(data, list):
+        _OVH_PRICING_CACHE[cache_key] = None
+        return None
+
+    model_norm = model.strip().lower()
+    found: dict | None = None
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        item_id = str(item.get("id") or "").strip().lower()
+        if item_id == model_norm:
+            found = item
+            break
+
+    if not isinstance(found, dict):
+        _OVH_PRICING_CACHE[cache_key] = None
+        return None
+
+    pricing_raw = found.get("pricing")
+    pricing = pricing_raw if isinstance(pricing_raw, dict) else {}
+    prompt_rate = _to_float(pricing.get("prompt"))
+    completion_rate = _to_float(pricing.get("completion"))
+    request_rate = _to_float(pricing.get("request"))
+
+    if prompt_rate is None and completion_rate is None and request_rate is None:
+        _OVH_PRICING_CACHE[cache_key] = None
+        return None
+
+    resolved = {
+        "prompt": float(prompt_rate or 0.0),
+        "completion": float(completion_rate or 0.0),
+        "request": float(request_rate or 0.0),
+    }
+    _OVH_PRICING_CACHE[cache_key] = resolved
+    return resolved
+
+
+def _estimate_ovh_cost_usd(*, body: dict, api_url: str, api_key: str, model: str) -> float | None:
+    prompt_tokens, completion_tokens = _usage_tokens_from_body(body)
+    if prompt_tokens is None and completion_tokens is None:
+        return None
+
+    base_url = _ovh_base_url_from_chat_api_url(api_url)
+    pricing = _fetch_ovh_pricing(base_url=base_url, api_key=api_key, model=model)
+    if not isinstance(pricing, dict):
+        return None
+
+    estimated = (
+        float(prompt_tokens or 0) * float(pricing.get("prompt", 0.0))
+        + float(completion_tokens or 0) * float(pricing.get("completion", 0.0))
+        + float(pricing.get("request", 0.0))
+    )
+    return max(0.0, estimated)
 
 def _is_retryable_openrouter_http_error(*, status_code: int, details: str) -> bool:
     if status_code in _RETRYABLE_OPENROUTER_STATUS_CODES:
@@ -268,25 +611,34 @@ def _retry_delay_seconds(*, retry_index: int, retry_after_seconds: float | None)
     delay = OPENROUTER_RETRY_BASE_DELAY_SEC * (2**retry_index)
     return min(max(0.1, delay), OPENROUTER_RETRY_MAX_DELAY_SEC)
 
-def _post_openrouter_with_meta(api_key: str, payload: dict) -> tuple[str, str | None, float | None]:
+def _post_router_with_meta(*,
+                           api_key: str,
+                           payload: dict,
+                           api_url: str,
+                           router_code: str) -> tuple[str, str | None, float | None]:
     data = json.dumps(payload).encode("utf-8")
     model_name = str(payload.get("model", "")).strip() or "<unknown-model>"
+    router_label = _safe_string(router_code) or DEFAULT_OPENROUTER_ROUTER_CODE
+    is_openrouter = router_label.lower() == DEFAULT_OPENROUTER_ROUTER_CODE.lower()
     retry_count = 0
     while True:
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        if is_openrouter:
+            headers["HTTP-Referer"] = "https://local.stemi-rule-checker"
+            headers["X-Title"] = "STEMI Rule Checker"
+
         req = request.Request(
-            OPENROUTER_URL,
+            api_url,
             data=data,
             method="POST",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://local.stemi-rule-checker",
-                "X-Title": "STEMI Rule Checker",
-            },
+            headers=headers,
         )
         try:
             with request.urlopen(req, timeout=240) as resp:
-                header_cost_usd = _to_float(resp.headers.get("x-openrouter-cost"))
+                header_cost_usd = _to_float(resp.headers.get("x-openrouter-cost")) if is_openrouter else None
                 raw = resp.read().decode("utf-8")
             break
         except error.HTTPError as e:
@@ -294,20 +646,26 @@ def _post_openrouter_with_meta(api_key: str, payload: dict) -> tuple[str, str | 
             if _is_retryable_openrouter_http_error(status_code=e.code, details=details) and retry_count < OPENROUTER_MAX_RETRIES:
                 wait_seconds = _retry_delay_seconds(retry_index=retry_count, retry_after_seconds=_retry_after_seconds_from_headers(getattr(e, "headers", None)))
                 retry_count += 1
-                print(f"[WARN] OpenRouter HTTP {e.code} su {model_name}: retry {retry_count}/{OPENROUTER_MAX_RETRIES} tra {wait_seconds:.1f}s.")
+                print(
+                    f"[WARN] {router_label} HTTP {e.code} su {model_name}: "
+                    f"retry {retry_count}/{OPENROUTER_MAX_RETRIES} tra {wait_seconds:.1f}s."
+                )
                 sleep(wait_seconds)
                 continue
-            raise RuleCheckError(f"OpenRouter HTTP {e.code}: {details}") from e
+            raise RuleCheckError(f"{router_label} HTTP {e.code}: {details}") from e
         except (error.URLError, TimeoutError) as e:
             if retry_count < OPENROUTER_MAX_RETRIES:
                 wait_seconds = _retry_delay_seconds(retry_index=retry_count, retry_after_seconds=None)
                 retry_count += 1
-                print(f"[WARN] Errore rete OpenRouter su {model_name}: retry {retry_count}/{OPENROUTER_MAX_RETRIES} tra {wait_seconds:.1f}s.")
+                print(
+                    f"[WARN] Errore rete {router_label} su {model_name}: "
+                    f"retry {retry_count}/{OPENROUTER_MAX_RETRIES} tra {wait_seconds:.1f}s."
+                )
                 sleep(wait_seconds)
                 continue
-            raise RuleCheckError(f"Errore chiamata OpenRouter: {e}") from e
+            raise RuleCheckError(f"Errore chiamata {router_label}: {e}") from e
         except Exception as e:
-            raise RuleCheckError(f"Errore chiamata OpenRouter: {e}") from e
+            raise RuleCheckError(f"Errore chiamata {router_label}: {e}") from e
 
     try:
         body = json.loads(raw)
@@ -315,11 +673,25 @@ def _post_openrouter_with_meta(api_key: str, payload: dict) -> tuple[str, str | 
         content = choice0["message"]["content"]
         finish_reason = choice0.get("finish_reason")
         cost_usd = _extract_inference_cost_usd(body, header_cost_usd)
+        if cost_usd is None and not is_openrouter:
+            cost_usd = _estimate_ovh_cost_usd(
+                body=body,
+                api_url=api_url,
+                api_key=api_key,
+                model=model_name,
+            )
     except Exception as e:
-        raise RuleCheckError(f"Risposta OpenRouter non valida: {raw}") from e
+        raise RuleCheckError(f"Risposta {router_label} non valida: {raw}") from e
 
     if isinstance(content, list):
-        content = "\n".join(str(block.get("text", "")) for block in content if isinstance(block, dict))
+        content = "\n".join(
+            str(block.get("text") or block.get("content") or "")
+            for block in content
+            if isinstance(block, dict)
+        )
+
+    if isinstance(content, dict):
+        content = json.dumps(content, ensure_ascii=False)
 
     if not isinstance(content, str) or not content.strip():
         raise RuleCheckError("La risposta del modello non contiene JSON testuale.")
@@ -327,8 +699,13 @@ def _post_openrouter_with_meta(api_key: str, payload: dict) -> tuple[str, str | 
     return content, finish_reason, cost_usd
 
 
-def _post_openrouter(api_key: str, payload: dict) -> str:
-    content, _, _ = _post_openrouter_with_meta(api_key=api_key, payload=payload)
+def _post_router(*, api_key: str, payload: dict, api_url: str, router_code: str) -> str:
+    content, _, _ = _post_router_with_meta(
+        api_key=api_key,
+        payload=payload,
+        api_url=api_url,
+        router_code=router_code,
+    )
     return content
 
 def _load_jsonschema_validator(schema: dict):
@@ -493,37 +870,65 @@ def _build_prompt(base_prompt: str, episode: dict, rule: dict) -> str:
         "- L'output deve essere conforme allo schema check_rule_schema.\n"
         "- In supporting_documents includi almeno un documento clinico con: document_id, rationale sintetico, confidence (0..1).\n"
         "- Il rationale di ogni documento deve essere coerente con il rationale generale dell'output.\n"
+        "- Non confondere MAI l'orario di insorgenza dei sintomi con il First Medical Contact (FMC).\n"
+        "- Se compare testo tipo 'dolore insorto alle ...', quello NON e' FMC.\n"
+        "- Per i vincoli temporali basati su FMC usa solo evidenze di contatto sanitario (es. verbale 118, ECG pre-ospedaliero, triage).\n"
+        "- Se il timestamp FMC e' ambiguo/non determinabile con certezza, preferisci 'not_evaluable' con confidence prudente.\n"
     )
 
-def _call_openrouter_check(*, api_key: str, model: str, prompt_text: str, check_schema: dict, reasoning_effort: str) -> tuple[dict, float | None]:
+def _call_router_check(*,
+                       api_key: str,
+                       routing: ModelRoutingConfig,
+                       prompt_text: str,
+                       check_schema: dict,
+                       reasoning_effort: str) -> tuple[dict, float | None]:
     system_prompt = "Sei un valutatore clinico STEMI. Ricevi episodio + regola e devi produrre esclusivamente un JSON conforme allo schema di check fornito. Nessun testo extra."
-    schema_for_provider = _sanitize_json_schema_for_openrouter(check_schema)
-    provider_cfg = _provider_for_model(model)
+    model = routing.model_code
+    schema_for_provider = _sanitize_json_schema_for_openrouter(check_schema) if routing.is_openrouter else check_schema
+    provider_cfg = routing.openrouter_provider if routing.is_openrouter else None
     runaway_limit = _runaway_token_limit_for_model(model)
 
     def _invoke_once(user_prompt_text: str, *, effort: str, temperature: float) -> tuple[str, str | None, float | None]:
         payload = {
-            "model": model, "reasoning": {"effort": effort}, "temperature": temperature,
+            "model": model, "temperature": temperature,
             "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt_text}],
             "response_format": {"type": "json_schema", "json_schema": {"name": "check_rule_output", "strict": True, "schema": schema_for_provider}},
         }
+        if routing.is_openrouter:
+            payload["reasoning"] = {"effort": effort}
         if provider_cfg is not None: payload["provider"] = provider_cfg
         if runaway_limit is not None: payload["max_tokens"] = runaway_limit
         try:
-            return _post_openrouter_with_meta(api_key=api_key, payload=payload)
+            return _post_router_with_meta(
+                api_key=api_key,
+                payload=payload,
+                api_url=routing.api_url,
+                router_code=routing.router_code,
+            )
         except RuleCheckError as e:
             if "compiled grammar is too large" not in str(e).lower(): raise
+            print(
+                f"[WARN] {routing.router_code} schema troppo grande per {model}: "
+                "fallback a response_format=json_object."
+            )
             fallback_payload = {
-                "model": model, "reasoning": {"effort": effort}, "temperature": temperature,
+                "model": model, "temperature": temperature,
                 "messages": [
                     {"role": "system", "content": system_prompt + " Segui rigorosamente lo schema JSON allegato nel prompt utente."},
                     {"role": "user", "content": (f"{user_prompt_text}\n\nSCHEMA JSON DA RISPETTARE:\n{json.dumps(check_schema, ensure_ascii=False)}")},
                 ],
                 "response_format": {"type": "json_object"},
             }
+            if routing.is_openrouter:
+                fallback_payload["reasoning"] = {"effort": effort}
             if provider_cfg is not None: fallback_payload["provider"] = provider_cfg
             if runaway_limit is not None: fallback_payload["max_tokens"] = runaway_limit
-            return _post_openrouter_with_meta(api_key=api_key, payload=fallback_payload)
+            return _post_router_with_meta(
+                api_key=api_key,
+                payload=fallback_payload,
+                api_url=routing.api_url,
+                router_code=routing.router_code,
+            )
 
     call_count = 0
     all_costs_known = True
@@ -537,7 +942,8 @@ def _call_openrouter_check(*, api_key: str, model: str, prompt_text: str, check_
             return
         total_cost_usd += max(0.0, float(cost_usd))
 
-    content, finish_reason, call_cost_usd = _invoke_once(prompt_text, effort=reasoning_effort, temperature=0.1)
+    initial_temperature = 0.1 if routing.is_openrouter else 0.0
+    content, finish_reason, call_cost_usd = _invoke_once(prompt_text, effort=reasoning_effort, temperature=initial_temperature)
     _register_cost(call_cost_usd)
 
     if runaway_limit is not None and _is_runaway_cap_hit(finish_reason):
@@ -582,7 +988,12 @@ def _supporting_documents_for_alignment(report: dict) -> list[dict]:
         })
     return prepared
 
-def _call_openrouter_rationale_alignment(*, api_key: str, judge_model: str, judge_prompt_text: str, candidate: dict, gold: dict) -> int:
+def _call_router_rationale_alignment(*,
+                                     api_key: str,
+                                     routing: ModelRoutingConfig,
+                                     judge_prompt_text: str,
+                                     candidate: dict,
+                                     gold: dict) -> int:
     schema = {
         "type": "object",
         "properties": {
@@ -619,29 +1030,48 @@ def _call_openrouter_rationale_alignment(*, api_key: str, judge_model: str, judg
         f"{json.dumps(compare_payload, ensure_ascii=False)}"
     )
 
-    schema_for_provider = _sanitize_json_schema_for_openrouter(schema)
-    provider_cfg = _provider_for_model(judge_model)
+    judge_model = routing.model_code
+    schema_for_provider = _sanitize_json_schema_for_openrouter(schema) if routing.is_openrouter else schema
+    provider_cfg = routing.openrouter_provider if routing.is_openrouter else None
     payload = {
-        "model": judge_model, "reasoning": {"effort": "medium"}, "temperature": 0.0,
+        "model": judge_model, "temperature": 0.0,
         "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
         "response_format": {"type": "json_schema", "json_schema": {"name": "rationale_alignment", "strict": True, "schema": schema_for_provider}},
     }
+    if routing.is_openrouter:
+        payload["reasoning"] = {"effort": "medium"}
     if provider_cfg is not None: payload["provider"] = provider_cfg
 
     try:
-        content = _post_openrouter(api_key=api_key, payload=payload)
+        content = _post_router(
+            api_key=api_key,
+            payload=payload,
+            api_url=routing.api_url,
+            router_code=routing.router_code,
+        )
     except RuleCheckError as e:
         if "compiled grammar is too large" not in str(e).lower(): raise
+        print(
+            f"[WARN] {routing.router_code} schema giudice troppo grande per {judge_model}: "
+            "fallback a response_format=json_object."
+        )
         fallback_payload = {
-            "model": judge_model, "reasoning": {"effort": "medium"}, "temperature": 0.0,
+            "model": judge_model, "temperature": 0.0,
             "messages": [
                 {"role": "system", "content": system_prompt + " Segui rigorosamente lo schema JSON allegato nel prompt utente."},
                 {"role": "user", "content": f"{user_prompt}\n\nSCHEMA JSON DA RISPETTARE:\n{json.dumps(schema, ensure_ascii=False)}"},
             ],
             "response_format": {"type": "json_object"},
         }
+        if routing.is_openrouter:
+            fallback_payload["reasoning"] = {"effort": "medium"}
         if provider_cfg is not None: fallback_payload["provider"] = provider_cfg
-        content = _post_openrouter(api_key=api_key, payload=fallback_payload)
+        content = _post_router(
+            api_key=api_key,
+            payload=fallback_payload,
+            api_url=routing.api_url,
+            router_code=routing.router_code,
+        )
 
     cleaned = _strip_markdown_fences(content)
     try:
@@ -754,7 +1184,7 @@ def _prompt_select_multiple_db_ids(options: dict[int, str], *, prompt: str,
 
         print("Selezione non valida. Usa ID singoli/multipli (es. 1,3,7 o 2-5).")
 
-def _choose_models_from_db(conn, *, mode_gold: bool) -> list[tuple[int, str]]:
+def _choose_models_from_db(conn, *, mode_gold: bool) -> list[SelectedModel]:
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -774,11 +1204,18 @@ def _choose_models_from_db(conn, *, mode_gold: bool) -> list[tuple[int, str]]:
             code = str(code_raw).strip()
             if code.lower() == hard_gold_model:
                 model_id = int(model_id_raw)
+                routing = _model_routing_from_db(conn, model_code=code)
                 print(
                     "\nModalita GOLD: modello fissato hard a "
                     f"{code} (model_id DB {model_id})."
                 )
-                return [(model_id, code)]
+                return [
+                    SelectedModel(
+                        model_id=model_id,
+                        model_code=code,
+                        routing=routing,
+                    )
+                ]
 
         raise RuleCheckError(
             "Modalita GOLD: il modello hard richiesto non esiste in tabella model: "
@@ -787,18 +1224,21 @@ def _choose_models_from_db(conn, *, mode_gold: bool) -> list[tuple[int, str]]:
 
     default_code = (os.getenv("OPENROUTER_MODEL") or "").strip().lower()
     options: dict[int, str] = {}
+    routing_by_model_id: dict[int, ModelRoutingConfig] = {}
     default_ids: list[int] = []
 
-    print("\nModelli disponibili da DB (model_id -> code):")
+    print("\nModelli disponibili da DB (model_id -> code -> router):")
     for model_id_raw, code_raw in rows:
         model_id = int(model_id_raw)
-        code = str(code_raw)
+        code = str(code_raw).strip()
+        routing = _model_routing_from_db(conn, model_code=code)
         options[model_id] = code
+        routing_by_model_id[model_id] = routing
         marker = ""
-        if default_code and code.strip().lower() == default_code:
+        if default_code and code.lower() == default_code:
             default_ids = [model_id]
             marker = " [default env OPENROUTER_MODEL]"
-        print(f"  {model_id:>3}) {code}{marker}")
+        print(f"  {model_id:>3}) {code} | router: {routing.router_code}{marker}")
 
     selected_ids = _prompt_select_multiple_db_ids(
         options,
@@ -806,8 +1246,15 @@ def _choose_models_from_db(conn, *, mode_gold: bool) -> list[tuple[int, str]]:
         default_ids=default_ids,
         allow_all=True,
     )
-    selected_models = [(model_id, options[model_id]) for model_id in selected_ids]
-    selected_models.sort(key=lambda item: (item[1].strip().lower(), item[0]))
+    selected_models = [
+        SelectedModel(
+            model_id=model_id,
+            model_code=options[model_id],
+            routing=routing_by_model_id[model_id],
+        )
+        for model_id in selected_ids
+    ]
+    selected_models.sort(key=lambda item: (item.model_code.lower(), item.model_id))
     return selected_models
 
 def _choose_clinical_pathway_from_db(conn) -> tuple[int, str]:
@@ -1139,6 +1586,118 @@ def _choose_reasoning_effort() -> str:
     if choice not in REASONING_EFFORTS: raise RuleCheckError("Selezione reasoning non valida.")
     return REASONING_EFFORTS[choice]
 
+
+def _choose_debug_gold_vs_model() -> bool:
+    while True:
+        choice = input("Debug, comparazione GOLD versus modello [S/N] (default N): ").strip().lower()
+        if not choice:
+            return False
+        if choice in {"s", "si", "y", "yes"}:
+            return True
+        if choice in {"n", "no"}:
+            return False
+        print("Selezione non valida. Inserire S oppure N, oppure Invio per default N.")
+
+
+def _next_debug_entry_index(debug_path: Path) -> int:
+    if not debug_path.exists():
+        return 1
+    try:
+        content = debug_path.read_text(encoding="utf-8")
+    except Exception:
+        return 1
+    matches = re.findall(r"^## Debug Entry (\d+)\\b", content, flags=re.MULTILINE)
+    if not matches:
+        return 1
+    return max(int(match) for match in matches) + 1
+
+
+def _ensure_debug_markdown_file(debug_path: Path) -> int:
+    next_index = _next_debug_entry_index(debug_path)
+    if debug_path.exists() and debug_path.stat().st_size > 0:
+        return next_index
+
+    created_at = datetime.now(UTC).isoformat()
+    header = (
+        "# check_rules03 debug log\n\n"
+        f"Creato UTC: {created_at}\n\n"
+        "Log append-only con confronto progressivo tra output modello e GOLD.\n\n"
+    )
+    debug_path.write_text(header, encoding="utf-8")
+    return next_index
+
+
+def _append_debug_gold_vs_model_markdown(*,
+                                         debug_path: Path,
+                                         entry_index: int,
+                                         run_instance_id: int,
+                                         inference_params_id: int,
+                                         rule_id: int,
+                                         rule_name: str,
+                                         case_id: int,
+                                         case_identifier: str,
+                                         model_id: int,
+                                         model_code: str,
+                                         router_code: str,
+                                         compliance_instance_id: int,
+                                         candidate_json: dict,
+                                         gold_json: dict | None,
+                                         check_elapsed_sec: float | None,
+                                         check_cost_usd: float | None,
+                                         rationale_alignment: int | None,
+                                         outcome_alignment: int | None,
+                                         conformity: int | None,
+                                         rationale_mode: str | None) -> None:
+    timestamp_utc = datetime.now(UTC).isoformat()
+    candidate_outcome = candidate_json.get("outcome") if isinstance(candidate_json, dict) else None
+    gold_outcome = gold_json.get("outcome") if isinstance(gold_json, dict) else None
+
+    rationale_alignment_txt = "N/D" if rationale_alignment is None else f"{rationale_alignment}/10"
+    outcome_alignment_txt = "N/D" if outcome_alignment is None else f"{outcome_alignment}/10"
+    conformity_txt = "N/D" if conformity is None else f"{conformity}/10"
+    rationale_mode_txt = rationale_mode or "N/D"
+    check_time_txt = "N/D" if check_elapsed_sec is None else f"{check_elapsed_sec:.2f}s"
+    cost_txt = _format_inference_cost_usd(check_cost_usd)
+
+    candidate_pretty = json.dumps(candidate_json, ensure_ascii=False, indent=2)
+    if isinstance(gold_json, dict):
+        gold_pretty = json.dumps(gold_json, ensure_ascii=False, indent=2)
+    else:
+        gold_pretty = "null"
+
+    entry = (
+        f"## Debug Entry {entry_index}\n\n"
+        f"- timestamp_utc: {timestamp_utc}\n"
+        f"- run_instance_id: {run_instance_id}\n"
+        f"- inference_params_id: {inference_params_id}\n"
+        f"- compliance_instance_id: {compliance_instance_id}\n"
+        f"- rule_id: {rule_id}\n"
+        f"- rule_name: {rule_name}\n"
+        f"- case_id: {case_id}\n"
+        f"- case_identifier: {case_identifier}\n"
+        f"- model_id: {model_id}\n"
+        f"- model_code: {model_code}\n"
+        f"- router_code: {router_code}\n"
+        f"- outcome_modello: {candidate_outcome}\n"
+        f"- outcome_gold: {gold_outcome}\n"
+        f"- conformity_vs_gold: {conformity_txt}\n"
+        f"- rationale_alignment: {rationale_alignment_txt} ({rationale_mode_txt})\n"
+        f"- outcome_alignment: {outcome_alignment_txt}\n"
+        f"- check_time: {check_time_txt}\n"
+        f"- estimated_cost: {cost_txt}\n\n"
+        "### JSON modello\n\n"
+        "```json\n"
+        f"{candidate_pretty}\n"
+        "```\n\n"
+        "### JSON gold\n\n"
+        "```json\n"
+        f"{gold_pretty}\n"
+        "```\n\n"
+    )
+
+    with debug_path.open("a", encoding="utf-8") as f:
+        f.write(entry)
+
 def _normalize_text(value: object) -> str:
     return re.sub(r"\s+", " ", str(value or "").strip().lower())
 
@@ -1405,8 +1964,18 @@ def _conformity_score_0_10(*, inferential_alignment_0_10: int, outcome_alignment
     outcome = float(_clip_0_10(outcome_alignment_0_10))
     return _clip_0_10((0.6 * inferential) + (0.4 * outcome))
 
-def _run_gold_outcome_backfill(conn, *, api_key: str, model_id: int, model: str) -> int:
+def _run_gold_outcome_backfill(conn, *, selected_model: SelectedModel) -> int:
     _ensure_gold_outcome_schema(conn)
+
+    model_id = selected_model.model_id
+    model = selected_model.model_code
+    routing = selected_model.routing
+    api_key = (os.getenv(routing.api_key_env) or "").strip()
+    if not api_key:
+        raise RuleCheckError(
+            f"Variabile ambiente {routing.api_key_env} non impostata "
+            f"(router {routing.router_code}, modello {model})."
+        )
 
     selected_pathway_id, selected_pathway_name = _choose_clinical_pathway_from_db(conn)
     inference_params_id, inference_params_name = _choose_inference_params_for_gold_auto(
@@ -1441,11 +2010,14 @@ def _run_gold_outcome_backfill(conn, *, api_key: str, model_id: int, model: str)
     print("DB table target:      riskm_manager_model_evaluation.gold_outcome")
     print("Prompt base:          DB (inference_params.prompt1/clinical_pathway.prompt1)")
     print("Schema check:         DB (inference_params.json_schema1)")
-    provider_cfg = _provider_for_model(model)
+    provider_cfg = routing.openrouter_provider if routing.is_openrouter else None
     provider_display = "NULL" if provider_cfg is None else json.dumps(provider_cfg, ensure_ascii=False)
-    print(f"Provider:             {provider_display}")
+    print(f"Router:               {routing.router_code}")
+    print(f"Router API URL:       {routing.api_url}")
+    print(f"Router key env:       {routing.api_key_env}")
+    print(f"Provider OpenRouter:  {provider_display}")
     print(f"Runaway token cap:    {_runaway_token_limit_for_model(model)}")
-    print(f"Retry OpenRouter:     {OPENROUTER_MAX_RETRIES} (base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)")
+    print(f"Retry Router API:     {OPENROUTER_MAX_RETRIES} (base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)")
     print(f"Combinazioni case x rule: {total_pairs}")
     print(f"Gia presenti in GOLD:      {pre_existing_pairs}")
     print(f"Da generare:               {max(0, total_pairs - pre_existing_pairs)}")
@@ -1476,9 +2048,9 @@ def _run_gold_outcome_backfill(conn, *, api_key: str, model_id: int, model: str)
 
                 check_started = perf_counter()
                 try:
-                    result_json, check_cost_usd = _call_openrouter_check(
+                    result_json, check_cost_usd = _call_router_check(
                         api_key=api_key,
-                        model=model,
+                        routing=routing,
                         prompt_text=prompt_text,
                         check_schema=check_schema,
                         reasoning_effort=reasoning_effort,
@@ -1697,12 +2269,7 @@ def update_quality_scores_in_db(conn, compliance_instance_id: int,
     
 
 def main() -> int:
-    print("=== Check batch regole STEMI con OpenRouter (DB Save) ===")
-
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        print("Errore: variabile OPENROUTER_API_KEY non impostata.")
-        return 1
+    print("=== Check batch regole STEMI con routing router da DB (DB Save) ===")
 
     try:
         conn = get_db_connection()
@@ -1719,19 +2286,43 @@ def main() -> int:
         return 1
 
     if mode_gold:
-        model_id, model = selected_models[0]
+        selected_model = selected_models[0]
         try:
             return _run_gold_outcome_backfill(
                 conn,
-                api_key=api_key,
-                model_id=model_id,
-                model=model,
+                selected_model=selected_model,
             )
         finally:
             conn.close()
 
+    model_api_keys: dict[int, str] = {}
+    rationale_alignment_routing: ModelRoutingConfig | None = None
+    rationale_alignment_api_key: str = ""
+    debug_gold_vs_model = False
+    debug_entry_index = 1
+    debug_entries_written = 0
+
     try:
         rationale_alignment_model = os.getenv("OPENROUTER_ALIGNMENT_MODEL", DEFAULT_RATIONALE_ALIGNMENT_MODEL)
+        rationale_alignment_routing = _model_routing_from_db(conn, model_code=rationale_alignment_model)
+        rationale_alignment_api_key = (os.getenv(rationale_alignment_routing.api_key_env) or "").strip()
+        if not rationale_alignment_api_key:
+            raise RuleCheckError(
+                f"Variabile ambiente {rationale_alignment_routing.api_key_env} non impostata "
+                f"per giudice rationale {rationale_alignment_routing.model_code} "
+                f"(router {rationale_alignment_routing.router_code})."
+            )
+
+        for selected_model in selected_models:
+            api_key = (os.getenv(selected_model.routing.api_key_env) or "").strip()
+            if not api_key:
+                raise RuleCheckError(
+                    f"Variabile ambiente {selected_model.routing.api_key_env} non impostata "
+                    f"per modello {selected_model.model_code} "
+                    f"(router {selected_model.routing.router_code})."
+                )
+            model_api_keys[selected_model.model_id] = api_key
+
         reasoning_effort = _choose_reasoning_effort()
         run_instance_id, run_datetime, is_new_run = _choose_or_create_run_instance(conn)
         overwrite_or_skip = _choose_overwrite_or_skip_for_run(
@@ -1741,6 +2332,11 @@ def main() -> int:
         )
     except RuleCheckError as e:
         print(f"Errore setup comparazione: {e}")
+        conn.close()
+        return 1
+
+    if rationale_alignment_routing is None:
+        print("Errore setup comparazione: routing del giudice rationale non risolto.")
         conn.close()
         return 1
 
@@ -1795,6 +2391,16 @@ def main() -> int:
         conn.close()
         return 1
 
+    # Ultima domanda del ramo "check models": debug comparazione GOLD vs modello.
+    try:
+        debug_gold_vs_model = _choose_debug_gold_vs_model()
+        if debug_gold_vs_model:
+            debug_entry_index = _ensure_debug_markdown_file(DEBUG_MARKDOWN_PATH)
+    except Exception as e:
+        print(f"Errore setup debug: {e}")
+        conn.close()
+        return 1
+
     total_combinations = len(db_rules) * len(case_selections) * len(selected_models)
 
     print(f"\nCasi selezionati:     {len(case_selections)}")
@@ -1803,13 +2409,16 @@ def main() -> int:
     print(f"Numero regole:        {len(db_rules)}")
     print(f"Modalità:             {'GOLD' if mode_gold else 'COMPARAZIONE'}")
     print(f"Modelli selezionati:  {len(selected_models)} (ordine alfabetico)")
-    for selected_model_id, selected_model_code in selected_models:
-        selected_provider_cfg = _provider_for_model(selected_model_code)
+    for selected_model in selected_models:
+        selected_provider_cfg = selected_model.routing.openrouter_provider if selected_model.routing.is_openrouter else None
         selected_provider_display = "NULL" if selected_provider_cfg is None else json.dumps(selected_provider_cfg, ensure_ascii=False)
         print(
-            f"  {selected_model_id:>3}) {selected_model_code} "
-            f"| provider: {selected_provider_display} "
-            f"| runaway token cap: {_runaway_token_limit_for_model(selected_model_code)}"
+            f"  {selected_model.model_id:>3}) {selected_model.model_code} "
+            f"| router: {selected_model.routing.router_code} "
+            f"| api_url: {selected_model.routing.api_url} "
+            f"| key_env: {selected_model.routing.api_key_env} "
+            f"| provider_openrouter: {selected_provider_display} "
+            f"| runaway token cap: {_runaway_token_limit_for_model(selected_model.model_code)}"
         )
     print(f"Clinical pathway DB:  {selected_pathway_id} ({selected_pathway_name})")
     print(f"Inference params DB:  {inference_params_id} ({inference_params_name})")
@@ -1820,11 +2429,20 @@ def main() -> int:
     print("Prompt base:          DB (inference_params.prompt1/clinical_pathway.prompt1)")
     print("Schema check:         DB (inference_params.json_schema1)")
     print(f"Combinazioni totali:  {total_combinations} (regole x case x modelli)")
-    print(f"Retry OpenRouter:     {OPENROUTER_MAX_RETRIES} (base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)")
+    print(f"Retry Router API:     {OPENROUTER_MAX_RETRIES} (base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)")
     if not mode_gold:
-        print(f"Giudice rationale:    {rationale_alignment_model}")
+        print(
+            f"Giudice rationale:    {rationale_alignment_model} "
+            f"(router: {rationale_alignment_routing.router_code}, key_env: {rationale_alignment_routing.api_key_env})"
+        )
         print(f"Prompt giudice:       {RATIONALE_ALIGNMENT_PROMPT_PATH.name}")
         print("Riferimento GOLD:     riskm_manager_model_evaluation.gold_outcome (case_id, rule_id)")
+        print(f"Debug gold vs model:  {'SI' if debug_gold_vs_model else 'NO'}")
+        if debug_gold_vs_model:
+            print(
+                f"Debug markdown:       {DEBUG_MARKDOWN_PATH.name} "
+                f"(append progressivo da entry {debug_entry_index})"
+            )
     print(f"Reasoning effort:     {reasoning_effort}")
     print("Inizio elaborazione...\n")
 
@@ -1842,13 +2460,17 @@ def main() -> int:
             case_identifier = case_selection.identifier
             episode_json = case_selection.body
 
-            for model_id, model in selected_models:
+            for selected_model in selected_models:
+                model_id = selected_model.model_id
+                model = selected_model.model_code
+                routing = selected_model.routing
+                model_api_key = model_api_keys[model_id]
                 line_open = False
                 check_elapsed_sec: float | None = None
                 check_cost_usd: float | None = None
                 execution_label = (
                     f"{rule_label} | case_id={case_id} ({case_identifier}) "
-                    f"| model_id={model_id} ({model})"
+                    f"| model_id={model_id} ({model}) | router={routing.router_code}"
                 )
 
                 try:
@@ -1872,9 +2494,9 @@ def main() -> int:
 
                     check_started = perf_counter()
                     try:
-                        result_json, check_cost_usd = _call_openrouter_check(
-                            api_key=api_key,
-                            model=model,
+                        result_json, check_cost_usd = _call_router_check(
+                            api_key=model_api_key,
+                            routing=routing,
                             prompt_text=prompt_text,
                             check_schema=check_schema,
                             reasoning_effort=reasoning_effort,
@@ -1899,6 +2521,10 @@ def main() -> int:
                     quality_score_total = None
                     quality_score_rationale = None
                     quality_score_classification = None
+                    inferential_alignment: int | None = None
+                    outcome_alignment: int | None = None
+                    conformity: int | None = None
+                    rationale_mode: str | None = None
 
                     instance_id, overwritten_rows = save_to_db(
                         conn,
@@ -1934,9 +2560,9 @@ def main() -> int:
                     else:
                         rationale_mode = "inferenziale"
                         try:
-                            inferential_alignment = _call_openrouter_rationale_alignment(
-                                api_key=api_key,
-                                judge_model=rationale_alignment_model,
+                            inferential_alignment = _call_router_rationale_alignment(
+                                api_key=rationale_alignment_api_key,
+                                routing=rationale_alignment_routing,
                                 judge_prompt_text=rationale_prompt_text,
                                 candidate=result_json,
                                 gold=gold_json,
@@ -1972,6 +2598,35 @@ def main() -> int:
                         )
                         line_open = False
 
+                    if debug_gold_vs_model:
+                        try:
+                            _append_debug_gold_vs_model_markdown(
+                                debug_path=DEBUG_MARKDOWN_PATH,
+                                entry_index=debug_entry_index,
+                                run_instance_id=run_instance_id,
+                                inference_params_id=inference_params_id,
+                                rule_id=db_rule_id,
+                                rule_name=rule_name,
+                                case_id=case_id,
+                                case_identifier=case_identifier,
+                                model_id=model_id,
+                                model_code=model,
+                                router_code=routing.router_code,
+                                compliance_instance_id=instance_id,
+                                candidate_json=result_json,
+                                gold_json=gold_json,
+                                check_elapsed_sec=check_elapsed_sec,
+                                check_cost_usd=check_cost_usd,
+                                rationale_alignment=inferential_alignment,
+                                outcome_alignment=outcome_alignment,
+                                conformity=conformity,
+                                rationale_mode=rationale_mode,
+                            )
+                            debug_entry_index += 1
+                            debug_entries_written += 1
+                        except Exception as debug_error:
+                            print(f"[WARN] Debug markdown append fallito su {execution_label}: {debug_error}")
+
                     ok_count += 1
 
                 except Exception as e:
@@ -1992,6 +2647,11 @@ def main() -> int:
     print(f"OK: {ok_count}")
     print(f"KO: {ko_count}")
     print(f"SKIP: {skip_count}")
+    if debug_gold_vs_model:
+        print(
+            f"DEBUG markdown append: {debug_entries_written} "
+            f"entry su {DEBUG_MARKDOWN_PATH.name}"
+        )
     print(f"Salvataggio effettuato su Database (riskm_manager_model_evaluation.compliance_instance).")
     
     if conn:

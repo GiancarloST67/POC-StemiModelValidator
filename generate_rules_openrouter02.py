@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Genera una regola DO o DONOT su PostgreSQL (tabella rule_definition)
-usando OpenRouter e gli schema JSON locali.
+usando endpoint LLM configurato in tabella model e gli schema JSON locali.
 """
 
 from __future__ import annotations
@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from urllib import error, request
 
@@ -24,12 +25,25 @@ DO_SCHEMA_PATH = ROOT / "SRS" / "do_rule.schema.json"
 DO_NOT_SCHEMA_PATH = ROOT / "SRS" / "do_not_rule.schema.json"
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+OVH_DEFAULT_BASE_URL = "https://oai.endpoints.kepler.ai.cloud.ovh.net"
+OVH_DEFAULT_CHAT_COMPLETIONS_PATH = "/v1/chat/completions"
 DEFAULT_MODEL = "anthropic/claude-opus-4.6"
 DEFAULT_DB_NAME = "RiskMgm"
 
 
 class RuleGenerationError(Exception):
     pass
+
+
+@dataclass(frozen=True)
+class ModelRoutingConfig:
+    model_id: int | None
+    model_code: str
+    endpoint_type: str
+    api_url: str
+    api_key_env: str
+    model_to_call: str
+    openrouter_provider: dict | None
 
 
 def get_db_connection():
@@ -50,7 +64,7 @@ def _db_target_info() -> str:
     return f"{host}:{port}/{name} (user={user})"
 
 
-def _provider_for_model(model: str) -> dict | None:
+def _legacy_openrouter_provider_for_model(model: str) -> dict | None:
     m = (model or "").strip().lower()
     if "gpt-oss-120b" in m or "gpt-oss120b" in m:
         return {"order": ["baseten/fp4"], "allow_fallbacks": False}
@@ -61,6 +75,138 @@ def _provider_for_model(model: str) -> dict | None:
     if m.startswith("qwen/"):
         return {"order": ["parasail/fp8"], "allow_fallbacks": False}
     return None
+
+
+def _safe_string(value: object) -> str:
+    if isinstance(value, str):
+        return value.strip()
+    return ""
+
+
+def _normalize_chat_path(path: str | None) -> str:
+    p = (path or "").strip()
+    if not p:
+        p = OVH_DEFAULT_CHAT_COMPLETIONS_PATH
+    if not p.startswith("/"):
+        p = "/" + p
+    return p
+
+
+def _build_ovh_chat_url(*, base_url: str, chat_path: str | None) -> str:
+    base = base_url.strip() or OVH_DEFAULT_BASE_URL
+    return f"{base.rstrip('/')}{_normalize_chat_path(chat_path)}"
+
+
+def _model_routing_from_db(conn, *, model: str) -> ModelRoutingConfig:
+    legacy_provider = _legacy_openrouter_provider_for_model(model)
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT model_id, code, providers
+            FROM riskm_manager_model_evaluation.model
+            WHERE UPPER(code) = UPPER(%s)
+            LIMIT 1
+            """,
+            (model,),
+        )
+        row = cur.fetchone()
+
+    if not row:
+        return ModelRoutingConfig(
+            model_id=None,
+            model_code=model,
+            endpoint_type="openrouter",
+            api_url=OPENROUTER_URL,
+            api_key_env="OPENROUTER_API_KEY",
+            model_to_call=model,
+            openrouter_provider=legacy_provider,
+        )
+
+    model_id = int(row[0])
+    model_code = str(row[1]).strip()
+    providers_raw = row[2]
+
+    providers: dict | None = None
+    if isinstance(providers_raw, dict):
+        providers = providers_raw
+    elif isinstance(providers_raw, str):
+        txt = providers_raw.strip()
+        if txt:
+            try:
+                parsed = json.loads(txt)
+            except json.JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, dict):
+                providers = parsed
+
+    endpoint_type = "openrouter"
+    api_url = OPENROUTER_URL
+    api_key_env = "OPENROUTER_API_KEY"
+    model_to_call = model_code
+    openrouter_provider = legacy_provider
+
+    if isinstance(providers, dict):
+        if "order" in providers or "allow_fallbacks" in providers:
+            openrouter_provider = providers
+
+        provider_from_json = providers.get("openrouter_provider")
+        if isinstance(provider_from_json, dict):
+            openrouter_provider = provider_from_json
+
+        endpoint_cfg_raw = providers.get("endpoint")
+        endpoint_cfg = endpoint_cfg_raw if isinstance(endpoint_cfg_raw, dict) else {}
+        endpoint_type_raw = endpoint_cfg_raw if isinstance(endpoint_cfg_raw, str) else endpoint_cfg.get("type")
+        endpoint_type_norm = _safe_string(endpoint_type_raw).lower().replace("-", "_")
+
+        model_override = _safe_string(endpoint_cfg.get("model_override")) or _safe_string(
+            providers.get("model_override")
+        )
+
+        if endpoint_type_norm in {"ovh", "ovh_openai", "ovhcloud"}:
+            base_url = (
+                _safe_string(endpoint_cfg.get("base_url"))
+                or _safe_string(providers.get("base_url"))
+                or OVH_DEFAULT_BASE_URL
+            )
+            url = _safe_string(endpoint_cfg.get("url")) or _safe_string(providers.get("url"))
+            chat_path = _safe_string(endpoint_cfg.get("chat_completions_path")) or _safe_string(
+                providers.get("chat_completions_path")
+            )
+
+            endpoint_type = "ovh_openai"
+            api_url = url or _build_ovh_chat_url(base_url=base_url, chat_path=chat_path)
+            api_key_env = (
+                _safe_string(endpoint_cfg.get("api_key_env"))
+                or _safe_string(providers.get("api_key_env"))
+                or "OVH_API_KEY"
+            )
+            model_to_call = model_override or model_code
+            openrouter_provider = None
+
+        elif endpoint_type_norm in {"openrouter", "open_router"}:
+            endpoint_type = "openrouter"
+            api_url = (
+                _safe_string(endpoint_cfg.get("url"))
+                or _safe_string(providers.get("url"))
+                or OPENROUTER_URL
+            )
+            api_key_env = (
+                _safe_string(endpoint_cfg.get("api_key_env"))
+                or _safe_string(providers.get("api_key_env"))
+                or "OPENROUTER_API_KEY"
+            )
+            model_to_call = model_override or model_code
+
+    return ModelRoutingConfig(
+        model_id=model_id,
+        model_code=model_code,
+        endpoint_type=endpoint_type,
+        api_url=api_url,
+        api_key_env=api_key_env,
+        model_to_call=model_to_call,
+        openrouter_provider=openrouter_provider,
+    )
 
 
 def _is_yes(answer: str) -> bool:
@@ -128,37 +274,50 @@ def _sanitize_json_schema_for_openrouter(schema: object) -> object:
     return schema
 
 
-def _post_openrouter(api_key: str, payload: dict) -> str:
+def _post_model_api(*, api_key: str, payload: dict, api_url: str, endpoint_type: str) -> str:
     data = json.dumps(payload).encode("utf-8")
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+    if endpoint_type == "openrouter":
+        headers["HTTP-Referer"] = "https://local.rule-generator-db"
+        headers["X-Title"] = "Rule Generator DB"
+
     req = request.Request(
-        OPENROUTER_URL,
+        api_url,
         data=data,
         method="POST",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://local.rule-generator-db",
-            "X-Title": "Rule Generator DB",
-        },
+        headers=headers,
     )
+
+    provider_name = "OpenRouter" if endpoint_type == "openrouter" else "OVH/OpenAI-compatible"
 
     try:
         with request.urlopen(req, timeout=180) as resp:
             raw = resp.read().decode("utf-8")
     except error.HTTPError as e:
         details = e.read().decode("utf-8", errors="replace")
-        raise RuleGenerationError(f"OpenRouter HTTP {e.code}: {details}") from e
+        raise RuleGenerationError(f"{provider_name} HTTP {e.code}: {details}") from e
     except Exception as e:
-        raise RuleGenerationError(f"Errore chiamata OpenRouter: {e}") from e
+        raise RuleGenerationError(f"Errore chiamata {provider_name}: {e}") from e
 
     try:
         body = json.loads(raw)
         content = body["choices"][0]["message"]["content"]
     except Exception as e:
-        raise RuleGenerationError(f"Risposta OpenRouter non valida: {raw}") from e
+        raise RuleGenerationError(f"Risposta {provider_name} non valida: {raw}") from e
 
     if isinstance(content, list):
-        content = "\n".join(str(block.get("text", "")) for block in content if isinstance(block, dict))
+        content = "\n".join(
+            str(block.get("text") or block.get("content") or "")
+            for block in content
+            if isinstance(block, dict)
+        )
+
+    if isinstance(content, dict):
+        content = json.dumps(content, ensure_ascii=False)
 
     if not isinstance(content, str) or not content.strip():
         raise RuleGenerationError("La risposta del modello non contiene JSON testuale.")
@@ -169,6 +328,7 @@ def _post_openrouter(api_key: str, payload: dict) -> str:
 def _call_openrouter(
     api_key: str,
     model: str,
+    routing: ModelRoutingConfig,
     rule_text: str,
     target_rule_name: str,
     rule_type: str,
@@ -196,11 +356,11 @@ def _call_openrouter(
     )
 
     schema_for_provider = _sanitize_json_schema_for_openrouter(schema)
-    provider_cfg = _provider_for_model(model)
+    provider_cfg = routing.openrouter_provider if routing.endpoint_type == "openrouter" else None
+    model_to_call = routing.model_to_call
 
     payload_strict_schema = {
-        "model": model,
-        "reasoning": {"effort": "high"},
+        "model": model_to_call,
         "temperature": 0.2,
         "messages": [
             {"role": "system", "content": system_prompt},
@@ -215,11 +375,18 @@ def _call_openrouter(
             },
         },
     }
+    if routing.endpoint_type == "openrouter":
+        payload_strict_schema["reasoning"] = {"effort": "high"}
     if provider_cfg is not None:
         payload_strict_schema["provider"] = provider_cfg
 
     try:
-        content = _post_openrouter(api_key=api_key, payload=payload_strict_schema)
+        content = _post_model_api(
+            api_key=api_key,
+            payload=payload_strict_schema,
+            api_url=routing.api_url,
+            endpoint_type=routing.endpoint_type,
+        )
     except RuleGenerationError as e:
         msg = str(e)
         if "compiled grammar is too large" not in msg.lower():
@@ -237,8 +404,7 @@ def _call_openrouter(
         )
 
         payload_fallback = {
-            "model": model,
-            "reasoning": {"effort": "high"},
+            "model": model_to_call,
             "temperature": 0.2,
             "messages": [
                 {"role": "system", "content": fallback_system_prompt},
@@ -246,10 +412,17 @@ def _call_openrouter(
             ],
             "response_format": {"type": "json_object"},
         }
+        if routing.endpoint_type == "openrouter":
+            payload_fallback["reasoning"] = {"effort": "high"}
         if provider_cfg is not None:
             payload_fallback["provider"] = provider_cfg
 
-        content = _post_openrouter(api_key=api_key, payload=payload_fallback)
+        content = _post_model_api(
+            api_key=api_key,
+            payload=payload_fallback,
+            api_url=routing.api_url,
+            endpoint_type=routing.endpoint_type,
+        )
 
     cleaned = _strip_markdown_fences(content)
 
@@ -593,12 +766,7 @@ def _update_rule_definition(
 
 
 def main() -> int:
-    print("=== Generatore regola su rule_definition con OpenRouter ===")
-
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        print("Errore: variabile OPENROUTER_API_KEY non impostata.")
-        return 1
+    print("=== Generatore regola su rule_definition (routing modello da DB) ===")
 
     model = os.getenv("OPENROUTER_MODEL", DEFAULT_MODEL)
     rule_type, kind_token, schema_path = _choose_rule_kind()
@@ -616,6 +784,14 @@ def main() -> int:
         return 1
 
     try:
+        routing = _model_routing_from_db(conn, model=model)
+        api_key = os.getenv(routing.api_key_env)
+        if not api_key:
+            raise RuleGenerationError(
+                f"Variabile ambiente {routing.api_key_env} non impostata "
+                f"(endpoint {routing.endpoint_type})."
+            )
+
         clinical_pathway_id, clinical_pathway_name = _choose_clinical_pathway_from_db(conn)
         target_rule_name, overwrite_rule_id = _resolve_target_rule_name(
             conn,
@@ -624,8 +800,24 @@ def main() -> int:
             kind_token=kind_token,
         )
 
+        provider_display = (
+            "NULL"
+            if routing.openrouter_provider is None
+            else json.dumps(routing.openrouter_provider, ensure_ascii=False)
+        )
+
         print(f"\nDB target:           {_db_target_info()}")
         print("Tabella target:      riskm_manager_model_evaluation.rule_definition")
+        print(f"Modello richiesto:   {model}")
+        if routing.model_id is not None:
+            print(f"Model DB match:      {routing.model_code} (model_id={routing.model_id})")
+        else:
+            print("Model DB match:      nessuno (fallback legacy)")
+        print(f"Endpoint tipo:       {routing.endpoint_type}")
+        print(f"Endpoint URL:        {routing.api_url}")
+        print(f"Model API effettivo: {routing.model_to_call}")
+        print(f"API key env:         {routing.api_key_env}")
+        print(f"Provider OpenRouter: {provider_display}")
         print(f"Clinical pathway:    {clinical_pathway_id} ({clinical_pathway_name})")
         print(f"Regola target name:  {target_rule_name}")
         print(f"Azione DB:           {'UPDATE (overwrite)' if overwrite_rule_id is not None else 'INSERT'}")
@@ -637,6 +829,7 @@ def main() -> int:
         rule_json = _call_openrouter(
             api_key=api_key,
             model=model,
+            routing=routing,
             rule_text=rule_text,
             target_rule_name=target_rule_name,
             rule_type=rule_type,
