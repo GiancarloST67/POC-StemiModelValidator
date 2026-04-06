@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import re
+import socket
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -105,16 +106,9 @@ def _env_float(name: str, default: float, *, minimum: float = 0.0) -> float:
 OPENROUTER_MAX_RETRIES = _env_int("OPENROUTER_MAX_RETRIES", 3, minimum=0)
 OPENROUTER_RETRY_BASE_DELAY_SEC = _env_float("OPENROUTER_RETRY_BASE_DELAY_SEC", 1.5, minimum=0.1)
 OPENROUTER_RETRY_MAX_DELAY_SEC = _env_float("OPENROUTER_RETRY_MAX_DELAY_SEC", 20.0, minimum=0.1)
-
-RUNAWAY_TOKEN_LIMITS_BY_MODEL: dict[str, int | None] = {
-    model_name: None for model_name in COMPARISON_MODELS.values()
-}
-RUNAWAY_TOKEN_LIMITS_BY_MODEL["qwen/qwen3.5-35b-a3b"] = 10000
-RUNAWAY_TOKEN_LIMITS_BY_MODEL["google/gemini-3.1-flash-lite-preview"] = 10000
-RUNAWAY_TOKEN_LIMITS_BY_MODEL["qwen/qwen3-235b-a22b-2507"] = 10000
-_RUNAWAY_TOKEN_LIMITS_BY_MODEL_NORM = {
-    model_name.lower(): limit for model_name, limit in RUNAWAY_TOKEN_LIMITS_BY_MODEL.items()
-}
+ROUTER_REQUEST_TIMEOUT_SEC = _env_int("ROUTER_REQUEST_TIMEOUT_SEC", 240, minimum=30)
+OVHCLOUD_REQUEST_TIMEOUT_SEC = _env_int("OVHCLOUD_REQUEST_TIMEOUT_SEC", 420, minimum=30)
+DEFAULT_MAX_RUNAWAY_TOKENS = 50000
 
 OUTCOME_ALIGNMENT_TRUTH_MATRIX: dict[tuple[str, str], float] = {
     ("non_compliant", "probable_non_compliance"): 0.75,
@@ -150,9 +144,12 @@ def _legacy_openrouter_provider_for_model(model: str) -> dict | None:
         return {"order": ["google-vertex"], "allow_fallbacks": False}
     return None
 
-def _runaway_token_limit_for_model(model: str) -> int | None:
-    m = (model or "").strip().lower()
-    return _RUNAWAY_TOKEN_LIMITS_BY_MODEL_NORM.get(m)
+
+def _request_timeout_seconds_for_router(router_code: str) -> int:
+    router_norm = (router_code or "").strip().lower()
+    if router_norm == DEFAULT_OVHCLOUD_ROUTER_CODE.lower():
+        return OVHCLOUD_REQUEST_TIMEOUT_SEC
+    return ROUTER_REQUEST_TIMEOUT_SEC
 
 def _is_runaway_cap_hit(finish_reason: str | None) -> bool:
     if not finish_reason:
@@ -168,6 +165,7 @@ class RuleCheckError(Exception):
 class ModelRoutingConfig:
     model_id: int | None
     model_code: str
+    max_runaway_tokens: int
     router_code: str
     api_url: str
     api_key_env: str
@@ -197,6 +195,14 @@ class DbRule:
     clinical_pathway_id: int
     name: str
     body: dict
+
+
+def _effective_runaway_token_limit(*, model: str, routing: ModelRoutingConfig | None = None) -> int | None:
+    if routing is not None:
+        value = int(routing.max_runaway_tokens)
+        if value > 0:
+            return value
+    return DEFAULT_MAX_RUNAWAY_TOKENS
 
 
 def _safe_string(value: object) -> str:
@@ -270,31 +276,35 @@ def _model_routing_from_db(conn, *, model_code: str) -> ModelRoutingConfig:
 
     schema = "riskm_manager_model_evaluation"
     has_model_router_col = _column_exists(conn, schema=schema, table="model", column="router_code")
+    has_model_max_runaway_tokens_col = _column_exists(conn, schema=schema, table="model", column="max_runaway_tokens")
     has_router_table = _table_exists(conn, schema=schema, table="router")
 
     if has_model_router_col and has_router_table:
+        max_runaway_select = "m.max_runaway_tokens" if has_model_max_runaway_tokens_col else "NULL::integer AS max_runaway_tokens"
         query = """
-            SELECT m.model_id, m.code, m.providers, m.router_code, r.api_url, r.key_env_variable
+            SELECT m.model_id, m.code, m.providers, {max_runaway_select}, m.router_code, r.api_url, r.key_env_variable
             FROM riskm_manager_model_evaluation.model m
             LEFT JOIN riskm_manager_model_evaluation.router r
                 ON r.code = m.router_code
             WHERE UPPER(m.code) = UPPER(%s)
             LIMIT 1
-        """
+        """.format(max_runaway_select=max_runaway_select)
     elif has_model_router_col:
+        max_runaway_select = "m.max_runaway_tokens" if has_model_max_runaway_tokens_col else "NULL::integer AS max_runaway_tokens"
         query = """
-            SELECT m.model_id, m.code, m.providers, m.router_code, NULL::text AS api_url, NULL::text AS key_env_variable
+            SELECT m.model_id, m.code, m.providers, {max_runaway_select}, m.router_code, NULL::text AS api_url, NULL::text AS key_env_variable
             FROM riskm_manager_model_evaluation.model m
             WHERE UPPER(m.code) = UPPER(%s)
             LIMIT 1
-        """
+        """.format(max_runaway_select=max_runaway_select)
     else:
+        max_runaway_select = "m.max_runaway_tokens" if has_model_max_runaway_tokens_col else "NULL::integer AS max_runaway_tokens"
         query = """
-            SELECT m.model_id, m.code, m.providers, NULL::text AS router_code, NULL::text AS api_url, NULL::text AS key_env_variable
+            SELECT m.model_id, m.code, m.providers, {max_runaway_select}, NULL::text AS router_code, NULL::text AS api_url, NULL::text AS key_env_variable
             FROM riskm_manager_model_evaluation.model m
             WHERE UPPER(m.code) = UPPER(%s)
             LIMIT 1
-        """
+        """.format(max_runaway_select=max_runaway_select)
 
     with conn.cursor() as cur:
         cur.execute(query, (model_code_clean,))
@@ -304,6 +314,7 @@ def _model_routing_from_db(conn, *, model_code: str) -> ModelRoutingConfig:
         return ModelRoutingConfig(
             model_id=None,
             model_code=model_code_clean,
+            max_runaway_tokens=DEFAULT_MAX_RUNAWAY_TOKENS,
             router_code=DEFAULT_OPENROUTER_ROUTER_CODE,
             api_url=OPENROUTER_URL,
             api_key_env="OPENROUTER_API_KEY",
@@ -313,9 +324,13 @@ def _model_routing_from_db(conn, *, model_code: str) -> ModelRoutingConfig:
     model_id = int(row[0])
     resolved_model_code = str(row[1]).strip()
     providers = _json_object_or_none(row[2])
-    router_code = _safe_string(row[3])
-    api_url = _safe_string(row[4])
-    api_key_env = _safe_string(row[5])
+    max_runaway_tokens_raw = row[3]
+    max_runaway_tokens = _to_int(max_runaway_tokens_raw)
+    if max_runaway_tokens is None or max_runaway_tokens <= 0:
+        max_runaway_tokens = DEFAULT_MAX_RUNAWAY_TOKENS
+    router_code = _safe_string(row[4])
+    api_url = _safe_string(row[5])
+    api_key_env = _safe_string(row[6])
 
     openrouter_provider = _legacy_openrouter_provider_for_model(resolved_model_code)
     if isinstance(providers, dict):
@@ -391,6 +406,7 @@ def _model_routing_from_db(conn, *, model_code: str) -> ModelRoutingConfig:
     return ModelRoutingConfig(
         model_id=model_id,
         model_code=resolved_model_code,
+        max_runaway_tokens=max_runaway_tokens,
         router_code=router_code,
         api_url=api_url,
         api_key_env=api_key_env,
@@ -620,6 +636,7 @@ def _post_router_with_meta(*,
     model_name = str(payload.get("model", "")).strip() or "<unknown-model>"
     router_label = _safe_string(router_code) or DEFAULT_OPENROUTER_ROUTER_CODE
     is_openrouter = router_label.lower() == DEFAULT_OPENROUTER_ROUTER_CODE.lower()
+    request_timeout_sec = _request_timeout_seconds_for_router(router_label)
     retry_count = 0
     while True:
         headers = {
@@ -637,7 +654,7 @@ def _post_router_with_meta(*,
             headers=headers,
         )
         try:
-            with request.urlopen(req, timeout=240) as resp:
+            with request.urlopen(req, timeout=request_timeout_sec) as resp:
                 header_cost_usd = _to_float(resp.headers.get("x-openrouter-cost")) if is_openrouter else None
                 raw = resp.read().decode("utf-8")
             break
@@ -653,24 +670,40 @@ def _post_router_with_meta(*,
                 sleep(wait_seconds)
                 continue
             raise RuleCheckError(f"{router_label} HTTP {e.code}: {details}") from e
-        except (error.URLError, TimeoutError) as e:
+        except (error.URLError, TimeoutError, socket.timeout) as e:
+            reason_raw = getattr(e, "reason", None)
+            reason_txt = str(reason_raw if reason_raw is not None else e)
+            timeout_like = isinstance(e, (TimeoutError, socket.timeout)) or ("timed out" in reason_txt.lower())
             if retry_count < OPENROUTER_MAX_RETRIES:
                 wait_seconds = _retry_delay_seconds(retry_index=retry_count, retry_after_seconds=None)
                 retry_count += 1
-                print(
-                    f"[WARN] Errore rete {router_label} su {model_name}: "
-                    f"retry {retry_count}/{OPENROUTER_MAX_RETRIES} tra {wait_seconds:.1f}s."
-                )
+                if timeout_like:
+                    print(
+                        f"[WARN] Timeout {router_label} su {model_name} dopo {request_timeout_sec}s: "
+                        f"retry {retry_count}/{OPENROUTER_MAX_RETRIES} tra {wait_seconds:.1f}s."
+                    )
+                else:
+                    print(
+                        f"[WARN] Errore rete {router_label} su {model_name}: "
+                        f"retry {retry_count}/{OPENROUTER_MAX_RETRIES} tra {wait_seconds:.1f}s."
+                    )
                 sleep(wait_seconds)
                 continue
-            raise RuleCheckError(f"Errore chiamata {router_label}: {e}") from e
+            if timeout_like:
+                raise RuleCheckError(
+                    f"Timeout {router_label} dopo {request_timeout_sec}s su {model_name}: {reason_txt}"
+                ) from e
+            raise RuleCheckError(f"Errore chiamata {router_label}: {reason_txt}") from e
         except Exception as e:
             raise RuleCheckError(f"Errore chiamata {router_label}: {e}") from e
 
     try:
         body = json.loads(raw)
         choice0 = body["choices"][0]
-        content = choice0["message"]["content"]
+        message = choice0.get("message") if isinstance(choice0, dict) else {}
+        if not isinstance(message, dict):
+            message = {}
+        content = message.get("content")
         finish_reason = choice0.get("finish_reason")
         cost_usd = _extract_inference_cost_usd(body, header_cost_usd)
         if cost_usd is None and not is_openrouter:
@@ -694,7 +727,13 @@ def _post_router_with_meta(*,
         content = json.dumps(content, ensure_ascii=False)
 
     if not isinstance(content, str) or not content.strip():
-        raise RuleCheckError("La risposta del modello non contiene JSON testuale.")
+        reasoning_content = _safe_string(message.get("reasoning_content"))
+        if reasoning_content and _is_runaway_cap_hit(finish_reason):
+            # The model exhausted max_tokens while still in internal reasoning stream.
+            # Return a tiny placeholder so caller can trigger controlled retry on finish_reason=length.
+            content = "{}"
+        else:
+            raise RuleCheckError("La risposta del modello non contiene JSON testuale.")
 
     return content, finish_reason, cost_usd
 
@@ -886,14 +925,33 @@ def _call_router_check(*,
     model = routing.model_code
     schema_for_provider = _sanitize_json_schema_for_openrouter(check_schema) if routing.is_openrouter else check_schema
     provider_cfg = routing.openrouter_provider if routing.is_openrouter else None
-    runaway_limit = _runaway_token_limit_for_model(model)
+    runaway_limit = _effective_runaway_token_limit(model=model, routing=routing)
 
     def _invoke_once(user_prompt_text: str, *, effort: str, temperature: float) -> tuple[str, str | None, float | None]:
-        payload = {
-            "model": model, "temperature": temperature,
-            "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt_text}],
-            "response_format": {"type": "json_schema", "json_schema": {"name": "check_rule_output", "strict": True, "schema": schema_for_provider}},
-        }
+        if routing.is_openrouter:
+            payload = {
+                "model": model, "temperature": temperature,
+                "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt_text}],
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema": {"name": "check_rule_output", "strict": True, "schema": schema_for_provider},
+                },
+            }
+        else:
+            user_prompt_with_schema = (
+                f"{user_prompt_text}\n\n"
+                "SCHEMA JSON DA RISPETTARE (OBBLIGATORIO):\n"
+                f"{json.dumps(check_schema, ensure_ascii=False)}\n\n"
+                "VINCOLO FINALE: restituisci direttamente il JSON finale, senza testo extra."
+            )
+            payload = {
+                "model": model, "temperature": temperature,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt_with_schema},
+                ],
+                "response_format": {"type": "json_object"},
+            }
         if routing.is_openrouter:
             payload["reasoning"] = {"effort": effort}
         if provider_cfg is not None: payload["provider"] = provider_cfg
@@ -946,7 +1004,7 @@ def _call_router_check(*,
     content, finish_reason, call_cost_usd = _invoke_once(prompt_text, effort=reasoning_effort, temperature=initial_temperature)
     _register_cost(call_cost_usd)
 
-    if runaway_limit is not None and _is_runaway_cap_hit(finish_reason):
+    if _is_runaway_cap_hit(finish_reason):
         retry_prompt_text = (
             f"{prompt_text}\n\nVINCOLO EXTRA DI SINTESI:\n"
             "- Mantieni il campo rationale breve (massimo 120 parole).\n"
@@ -2016,8 +2074,12 @@ def _run_gold_outcome_backfill(conn, *, selected_model: SelectedModel) -> int:
     print(f"Router API URL:       {routing.api_url}")
     print(f"Router key env:       {routing.api_key_env}")
     print(f"Provider OpenRouter:  {provider_display}")
-    print(f"Runaway token cap:    {_runaway_token_limit_for_model(model)}")
-    print(f"Retry Router API:     {OPENROUTER_MAX_RETRIES} (base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)")
+    print(f"Runaway token cap:    {_effective_runaway_token_limit(model=model, routing=routing)}")
+    print(
+        f"Retry Router API:     {OPENROUTER_MAX_RETRIES} "
+        f"(base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)"
+    )
+    print(f"Request timeout:      {_request_timeout_seconds_for_router(routing.router_code)}s")
     print(f"Combinazioni case x rule: {total_pairs}")
     print(f"Gia presenti in GOLD:      {pre_existing_pairs}")
     print(f"Da generare:               {max(0, total_pairs - pre_existing_pairs)}")
@@ -2418,7 +2480,8 @@ def main() -> int:
             f"| api_url: {selected_model.routing.api_url} "
             f"| key_env: {selected_model.routing.api_key_env} "
             f"| provider_openrouter: {selected_provider_display} "
-            f"| runaway token cap: {_runaway_token_limit_for_model(selected_model.model_code)}"
+            f"| runaway token cap: {_effective_runaway_token_limit(model=selected_model.model_code, routing=selected_model.routing)} "
+            f"| timeout: {_request_timeout_seconds_for_router(selected_model.routing.router_code)}s"
         )
     print(f"Clinical pathway DB:  {selected_pathway_id} ({selected_pathway_name})")
     print(f"Inference params DB:  {inference_params_id} ({inference_params_name})")
@@ -2429,7 +2492,14 @@ def main() -> int:
     print("Prompt base:          DB (inference_params.prompt1/clinical_pathway.prompt1)")
     print("Schema check:         DB (inference_params.json_schema1)")
     print(f"Combinazioni totali:  {total_combinations} (regole x case x modelli)")
-    print(f"Retry Router API:     {OPENROUTER_MAX_RETRIES} (base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)")
+    print(
+        f"Retry Router API:     {OPENROUTER_MAX_RETRIES} "
+        f"(base {OPENROUTER_RETRY_BASE_DELAY_SEC:.1f}s, max {OPENROUTER_RETRY_MAX_DELAY_SEC:.1f}s)"
+    )
+    print(
+        f"Timeout default:      {ROUTER_REQUEST_TIMEOUT_SEC}s "
+        f"| OVHCloud: {OVHCLOUD_REQUEST_TIMEOUT_SEC}s"
+    )
     if not mode_gold:
         print(
             f"Giudice rationale:    {rationale_alignment_model} "

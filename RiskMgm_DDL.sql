@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict wtZB2etZdVjbYb9cxOcJ6nOLkYhCibNh343JgPwY2PIrgwQaCWip1MVJUoeRrkT
+\restrict OMb6NWqNjdtRoVu5NqQElzvZrqICotzwTX2poYSXpNRIntdfWijy6j1p6Idcynr
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -354,7 +354,10 @@ CREATE VIEW riskm_manager_model_evaluation.v_compliance_instance_flat AS
     ci.compliance_type_id,
     ct.name AS compliance_type_name,
     ci.model_id,
-    m.code AS model_code,
+        CASE
+            WHEN (NULLIF(btrim(COALESCE(r.code, m.router_code)), ''::text) IS NULL) THEN m.code
+            ELSE (((m.code || ' ('::text) || COALESCE(r.code, m.router_code)) || ')'::text)
+        END AS model_code,
     ci.inference_params_id,
     ip.name AS inference_params_name,
     ip.is_active AS inference_params_active,
@@ -383,10 +386,11 @@ CREATE VIEW riskm_manager_model_evaluation.v_compliance_instance_flat AS
     COALESCE(ds.supporting_docs_count, 0) AS supporting_docs_count,
     ds.supporting_docs_avg_confidence,
     ds.supporting_doc_ids
-   FROM ((((((((((riskm_manager_model_evaluation.compliance_instance ci
+   FROM (((((((((((riskm_manager_model_evaluation.compliance_instance ci
      LEFT JOIN riskm_manager_model_evaluation.run_instance ri ON ((ri.run_instance_id = ci.run_instance_id)))
      LEFT JOIN riskm_manager_model_evaluation.compliance_type ct ON ((ct.compliance_type_id = ci.compliance_type_id)))
      LEFT JOIN riskm_manager_model_evaluation.model m ON ((m.model_id = ci.model_id)))
+     LEFT JOIN riskm_manager_model_evaluation.router r ON ((r.code = m.router_code)))
      LEFT JOIN riskm_manager_model_evaluation.inference_params ip ON ((ip.inference_params_id = ci.inference_params_id)))
      LEFT JOIN riskm_manager_model_evaluation.clinical_pathway cp_inf ON ((cp_inf.clinical_pathway_id = ip.clinical_pathway_id)))
      LEFT JOIN riskm_manager_model_evaluation.clinical_case cc ON ((cc.case_id = ci.case_id)))
@@ -777,7 +781,7 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.rule_definition
 -- PostgreSQL database dump complete
 --
 
-\unrestrict wtZB2etZdVjbYb9cxOcJ6nOLkYhCibNh343JgPwY2PIrgwQaCWip1MVJUoeRrkT
+\unrestrict OMb6NWqNjdtRoVu5NqQElzvZrqICotzwTX2poYSXpNRIntdfWijy6j1p6Idcynr
 
 
 
@@ -789,7 +793,7 @@ ALTER TABLE ONLY riskm_manager_model_evaluation.rule_definition
 -- PostgreSQL database dump
 --
 
-\restrict eUXXHAn450eTUaiZeM9ew9odv1vRnjtNA3AoTxKXfIuHdwqtsnUsR3JygGCKRaZ
+\restrict dPdHjWh3B2vfpuRxRq4Xw8DHKQ24dWqns67oAWYjDGd8bWgRS0Z9S1GyoVGUeNE
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -853,12 +857,12 @@ INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES 
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (23, 'qwen/qwen3.5-27b', NULL, NULL, 'OpenRouter');
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (24, 'qwen/qwen3.6-plus:free', NULL, NULL, 'OpenRouter');
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (25, 'openai/gpt-oss-safeguard-20b:nitro', NULL, NULL, 'OpenRouter');
-INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (26, 'meta-llama/llama-3.1-8b-instruct:nitro', NULL, NULL, 'OpenRouter');
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (27, 'z-ai/glm-4.7', NULL, NULL, 'OpenRouter');
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (28, 'qwen/qwen3-235b-a22b-2507', 10000, NULL, 'OpenRouter');
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (29, 'moonshotai/kimi-k2.5', NULL, NULL, 'OpenRouter');
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (7, 'gpt-oss-120b', 10000, '{"order": ["baseten/fp4"], "allow_fallbacks": false}', 'OVHCloud');
 INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (30, 'gpt-oss-20b', NULL, NULL, 'OVHCloud');
+INSERT INTO riskm_manager_model_evaluation.model OVERRIDING SYSTEM VALUE VALUES (26, 'Meta-Llama-3_3-70B-Instruct', NULL, NULL, 'OVHCloud');
 
 
 --
@@ -911,5 +915,5 @@ SELECT pg_catalog.setval('riskm_manager_model_evaluation.rule_definition_rule_id
 -- PostgreSQL database dump complete
 --
 
-\unrestrict eUXXHAn450eTUaiZeM9ew9odv1vRnjtNA3AoTxKXfIuHdwqtsnUsR3JygGCKRaZ
+\unrestrict dPdHjWh3B2vfpuRxRq4Xw8DHKQ24dWqns67oAWYjDGd8bWgRS0Z9S1GyoVGUeNE
 
