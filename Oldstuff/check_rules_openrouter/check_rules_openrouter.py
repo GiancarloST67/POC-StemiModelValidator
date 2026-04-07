@@ -23,13 +23,46 @@ from time import perf_counter, sleep
 from urllib import error, request
 
 ROOT = Path(__file__).resolve().parent
-STEMI_DIR = ROOT / "CARDIO" / "STEMI"
+
+
+def _first_existing_path(*paths: Path) -> Path:
+    for path in paths:
+        if path.exists():
+            return path
+    return paths[0]
+
+
+# Se spostato in Oldstuff, il progetto principale resta due livelli sopra.
+WORKSPACE_ROOT = ROOT
+if ROOT.parent.name.lower() == "oldstuff":
+    WORKSPACE_ROOT = ROOT.parent.parent
+
+LOCAL_SRS_DIR = ROOT / "SRS"
+WORKSPACE_SRS_DIR = WORKSPACE_ROOT / "SRS"
+
+STEMI_DIR = _first_existing_path(
+    ROOT / "CARDIO" / "STEMI",
+    WORKSPACE_ROOT / "CARDIO" / "STEMI",
+)
 EPISODES_DIR = STEMI_DIR / "EPISODES"
 RULES_DIR = STEMI_DIR / "RULES"
-CHECK_SCHEMA_PATH = ROOT / "SRS" / "check_rule_schema.json"
-BASE_PROMPT_PATH = ROOT / "SRS" / "PROMPT_CheckRegoleSTEMI_plain.md"
-REFERENCE_PROMPT_TEMPLATE_PATH = ROOT / "SRS" / "PROMPT_CheckRegoleSTEMI_reference_template.md"
-RATIONALE_ALIGNMENT_PROMPT_PATH = ROOT / "SRS" / "PROMPT_RationaleAlignmentJudge.md"
+
+CHECK_SCHEMA_PATH = _first_existing_path(
+    LOCAL_SRS_DIR / "check_rule_schema.json",
+    WORKSPACE_SRS_DIR / "check_rule_schema.json",
+)
+BASE_PROMPT_PATH = _first_existing_path(
+    LOCAL_SRS_DIR / "PROMPT_CheckRegoleSTEMI_plain.md",
+    WORKSPACE_SRS_DIR / "PROMPT_CheckRegoleSTEMI_plain.md",
+)
+REFERENCE_PROMPT_TEMPLATE_PATH = _first_existing_path(
+    LOCAL_SRS_DIR / "PROMPT_CheckRegoleSTEMI_reference_template.md",
+    WORKSPACE_SRS_DIR / "PROMPT_CheckRegoleSTEMI_reference_template.md",
+)
+RATIONALE_ALIGNMENT_PROMPT_PATH = _first_existing_path(
+    LOCAL_SRS_DIR / "PROMPT_RationaleAlignmentJudge.md",
+    WORKSPACE_SRS_DIR / "PROMPT_RationaleAlignmentJudge.md",
+)
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_GOLD_MODEL = "anthropic/claude-opus-4.6"
